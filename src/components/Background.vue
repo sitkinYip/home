@@ -49,7 +49,7 @@ const imagesMap = {
   background10: 'https://blog.sitkin.top/upload/background10.jpg',
   background11: 'https://blog.sitkin.top/upload/background11%20.jpeg',
   background12: 'https://blog.sitkin.top/upload/background12.jpg',
-  background13: 'https://blog.sitkin.top/upload/photo1.jpeg"'
+  background13: 'https://blog.sitkin.top/upload/photo1.jpeg'
 }
 
 // 更换壁纸链接
