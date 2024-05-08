@@ -34,18 +34,34 @@ const emit = defineEmits(["loadComplete"]);
 
 // 壁纸随机数
 // 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
-const bgRandom = Math.floor(Math.random() * 10 + 1);
+const bgRandom = Math.floor(Math.random() * 13 + 1);
+
+const imagesMap = {
+  background1: 'https://blog.sitkin.top/upload/background1.jpg',
+  background2: 'https://blog.sitkin.top/upload/background2.jpg',
+  background3: 'https://blog.sitkin.top/upload/background3.jpg',
+  background4: 'https://blog.sitkin.top/upload/background4.jpg',
+  background5: 'https://blog.sitkin.top/upload/background5.png',
+  background6: 'https://blog.sitkin.top/upload/background6.jpg',
+  background7: 'https://blog.sitkin.top/upload/background7.jpg',
+  background8: 'https://blog.sitkin.top/upload/background8.jpg',
+  background9: 'https://blog.sitkin.top/upload/background9.jpg',
+  background10: 'https://blog.sitkin.top/upload/background10.jpg',
+  background11: 'https://blog.sitkin.top/upload/background11%20.jpeg',
+  background12: 'https://blog.sitkin.top/upload/background12.jpg',
+  background13: 'https://blog.sitkin.top/upload/photo1.jpeg"'
+}
 
 // 更换壁纸链接
 const changeBg = (type) => {
   if (type == 0) {
-    bgUrl.value = `/images/background${bgRandom}.jpg`;
+    bgUrl.value = imagesMap[`background${bgRandom}`];
   } else if (type == 1) {
-    bgUrl.value = "https://api.dujin.org/bing/1920.php";
+    bgUrl.value = "https://blog.sitkin.top/upload/photo1.jpeg";
   } else if (type == 2) {
-    bgUrl.value = "https://api.aixiaowai.cn/gqapi/gqapi.php";
+    bgUrl.value = "https://blog.sitkin.top/upload/Image_20240407_184501_821.jpg";
   } else if (type == 3) {
-    bgUrl.value = "https://api.aixiaowai.cn/api/api.php";
+    bgUrl.value = "https://blog.sitkin.top/upload/Image_20240407_184457_312.jpg";
   }
 };
 
@@ -76,7 +92,7 @@ const imgLoadError = () => {
       fill: "#efefef",
     }),
   });
-  bgUrl.value = `/images/background${bgRandom}.jpg`;
+  bgUrl.value = imagesMap[`background${bgRandom}`];
 };
 
 // 监听壁纸切换
