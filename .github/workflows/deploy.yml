@@ -1,5 +1,5 @@
 # Dev 分支推送部署到Linux服务器
-name: Deploy to Server from Dev branch
+name: Deploy to Server from Dev branch Home
 
 on:
   push:
