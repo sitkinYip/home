@@ -1,5 +1,5 @@
 <template>
-  <div class="more-content">您可在此编写任意内容</div>
+  <div class="more-content">你做过那种天马行空的梦吗？梦里时光会倒带。鲸鱼会沉入水面，冰川会再度结冰，月亮会坠落.....</div>
 </template>
 
 <style lang="scss" scoped>
