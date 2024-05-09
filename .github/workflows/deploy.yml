@@ -13,6 +13,9 @@ jobs:
     - name: Install rsync
       run: sudo apt-get update && sudo apt-get install -y rsync
 
+    - name: Verify rsync installation
+      run: rsync --version
+
     - name: Check out git repository
       uses: actions/checkout@v4.1.1
     - name: Install Node.js
@@ -40,4 +43,4 @@ jobs:
         SOURCE: 'dist/'
         REMOTE_HOST: ${{ secrets.HOST }}
         REMOTE_USER: ${{ secrets.USERNAME }}
-        TARGET: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/" # 这里假设您想将内容部署到这个目录
+        TARGET: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/index" # 这里假设您想将内容部署到这个目录
