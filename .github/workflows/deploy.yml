@@ -32,9 +32,9 @@ jobs:
     - name: Deploy
       uses: easingthemes/ssh-deploy@v2.1.1
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.PANEL }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
         ARGS: '-avz --delete'
         SOURCE: 'dist/'
-        REMOTE_HOST: ${{ secrets.HOST }} 
+        REMOTE_HOST: ${{ secrets.HOST }}
         REMOTE_USER: ${{ secrets.USERNAME }}
         TARGET: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/" # 这里假设您想将内容部署到这个目录
