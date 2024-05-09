@@ -10,6 +10,9 @@ jobs:
     name: Build and deploy to server
     runs-on: ubuntu-latest
     steps:
+    - name: Install rsync
+      run: sudo apt-get update && sudo apt-get install -y rsync
+
     - name: Check out git repository
       uses: actions/checkout@v4.1.1
     - name: Install Node.js
