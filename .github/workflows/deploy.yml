@@ -42,7 +42,7 @@ jobs:
       env:
         host: ${{  secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.PANEL }}
+        password: ${{ secrets.PASSWORD }}
       with:
         source: "dist/*"
         target: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/index"
