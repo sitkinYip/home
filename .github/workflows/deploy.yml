@@ -42,7 +42,8 @@ jobs:
       env:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.PANEL }}
+        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.SITKIN }}
         port: ${{ secrets.PORT }}
       with:
         source: "dist/*"
