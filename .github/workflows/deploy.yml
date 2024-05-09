@@ -36,14 +36,13 @@ jobs:
       run: npm run build
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-    
-    - name: Deploy Files
-      uses: appleboy/scp-action@master
-      env:
-        host: ${{  secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-      with:
-        source: "dist/*"
-        target: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/index"
-        strip_components: 1
+
+    - name: Deploy
+        uses: easingthemes/ssh-deploy@v2.1.1
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PANEL }}
+          ARGS: '-avz' #加上--delete代表让目标目录与源目录一致
+          SOURCE: 'dist/'
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/index"
