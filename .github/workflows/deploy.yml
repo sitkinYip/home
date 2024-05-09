@@ -42,7 +42,7 @@ jobs:
       env:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
+        key: ${{ secrets.PANEL }}
         port: ${{ secrets.PORT }}
       with:
         source: "dist/*"
