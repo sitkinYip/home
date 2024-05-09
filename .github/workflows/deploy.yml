@@ -36,15 +36,14 @@ jobs:
       run: npm run build
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-
-    - uses: actions/checkout@v4
-    - name: Deploy to Server
-      uses: appleboy/scp-action@v0.1.7
+    
+    - name: Deploy Files
+      uses: appleboy/scp-action@master
+      env:
+        HOST: ${{  secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        KEY: ${{ secrets.SITKIN }}
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        key: ${{ secrets.SITKIN }}
-        port: ${{ secrets.PORT }}
         source: "dist/*"
         target: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/index"
+        strip_components: 1
