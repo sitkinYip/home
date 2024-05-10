@@ -43,4 +43,4 @@ jobs:
         SOURCE: 'dist/'
         REMOTE_HOST: ${{ secrets.HOST }}
         REMOTE_USER: ${{ secrets.USERNAME }}
-        TARGET: "/opt/1panel/apps/openresty/openresty/www/sites/home.sitkin.top/index" # 这里假设您想将内容部署到这个目录
+        TARGET: ${{ secrets.PATH }}
