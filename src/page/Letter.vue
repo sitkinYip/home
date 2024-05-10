@@ -71,5 +71,6 @@ onBeforeUnmount(() => {
     display: flex;
     justify-content: center;
     align-items: center;
+    font-family: Roboto, "RiiTegakiFude", sans-serif;
 }
 </style>

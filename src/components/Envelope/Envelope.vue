@@ -13,7 +13,7 @@ const btnEnd = ref(false)
 const content = ref("")
 const fire = ref(false)
 const end = ref(true)
-const fontSize = ref(22);
+const fontSize = ref(16);
 const canvas = ref(null)
 const sorry = ref(null)
 const bgm = ref(null)
@@ -100,7 +100,7 @@ function talk(msg,dur = 0) {
     btnEnd.value = true;
     sorryList.value.length = 0;
     const endTime = Date.now() + (10 * 1000);
-    const colors = ['#bb0000', '#ffffff'];
+    const colors = ['#837362', '#ffffff'];
     (function frame() {
         confetti({
             particleCount: 2,
