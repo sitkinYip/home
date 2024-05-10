@@ -10,6 +10,9 @@ jobs:
     name: Build and deploy to server
     runs-on: ubuntu-latest
     steps:
+    - name: Install Core Utilities
+      run: sudo apt-get update && sudo apt-get install -y coreutils
+
     - name: Install rsync
       run: sudo apt-get update && sudo apt-get install -y rsync
 
