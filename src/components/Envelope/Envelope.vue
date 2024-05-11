@@ -1,8 +1,9 @@
 <script setup>
-import { ref,watch } from 'vue'
+import { ref,watch, reactive } from 'vue'
 import confetti from "canvas-confetti"
 
 import { list } from "./content.json"
+import TextDisplay from '../TextDisplay.vue';
 
 // const props =defineProps<{ msg: string }>()
 
@@ -20,6 +21,11 @@ const bgm = ref(null)
 const success = ref(null)
 const word = ref("")
 const wordShow = ref(false)
+const showText = reactive({
+    text1Show: true,
+    text2Show: false,
+    text3Show: false
+})
 
 let bomm = confetti.create(canvas.value, { resize: true });
 //    nextTick().then(()=>{
@@ -38,7 +44,7 @@ function addSorry(){
             "555...心碎+1",
             "emmm...什么东西碎了？"
         ][~~(Math.random()*6)]
-        wordShow.value = true;
+        talk(word.value, 2000)
     })
     sorryList.value.push({
         x:300*Math.random()-300,
@@ -81,12 +87,13 @@ function handleOpen(){
 
 function talk(msg,dur = 0) {
     return new Promise((resolve,)=>{
+        ElMessage({
+            message: msg,
+            grouping: true,
+            duration: dur,
+            type: ''
+        });
         setTimeout(()=>{
-            wordShow.value = false;
-        },dur)
-        setTimeout(()=>{
-            word.value = msg
-            wordShow.value = true;
             resolve()
         },dur+200)
     })
@@ -123,11 +130,12 @@ function talk(msg,dur = 0) {
             fire.value = false
         }
     }());
-    await talk("我没听错吧？！",0)
+    await talk("嘿嘿！",1500)
+    await talk(`天大地大 今天${content.value.name}最大`,1500)
+    await talk("既然你还想看些其他的",1500)
     await talk("那么...",1500)
-    await talk("还不快送我点小礼物，提升下好感度！！！",1500)
-    await talk("微信，支付宝也行！我不介意~",2000)
-    await talk("蟹蟹~~",2000)
+    await talk("我只能遵命了 看我浑身解数",2000)
+    await talk("走起~~",2000)
     end.value = true
 }
 
@@ -137,7 +145,7 @@ watch(open, v => {
     let msg = list[~~(Math.random()*list.length)];
     fontSize.value = msg.fontSize;
     setTimeout(()=>bomm(),1000)
-    setTimeout(()=>contentLog(msg.text),2222)
+    setTimeout(()=>contentLog(msg),2222)
 });
 
 watch(end,v=>{
@@ -151,7 +159,19 @@ watch(end,v=>{
 <div class="envelope" :class="{'active':open}">
   <div class="top"></div>
   <div class="heart" @click="handleOpen"></div>
-  <div class="card"><p :style="{'font-size':fontSize+'px'}">{{ content }}</p></div>
+  <div class="card">
+    <template v-if="content">
+    <TextDisplay v-if="showText.text1Show" :onComplete="() => showText.text2Show=true">{{content.to}}</TextDisplay>
+    <TextDisplay v-if="showText.text2Show" :onComplete="() => showText.text3Show=true" :style="{'font-size':fontSize+'px'}">{{ content.text }}</TextDisplay>
+    <div :style="{
+        display: 'flex',
+        justifyContent: 'flex-end'
+    }">
+    <TextDisplay v-if="showText.text3Show" :style="{
+    }">{{content.by}}</TextDisplay>    
+    </div>
+    </template>
+  </div>
   <canvas ref="canvas"></canvas>
 </div>
 
@@ -163,8 +183,8 @@ watch(end,v=>{
         src="../../assets/sorry.png" 
         class="sorry" />
 
-<div class="btns" :class="{'active':end&&open&&!btnEnd}">
-  <div @click="handleSucces">太开心，太感动了！！！</div>
+<div class="btns" :class="{'active':end&&open&&!btnEnd&&showText.text3Show}">
+  <div @click="handleSucces">太开心了，让我看看接下来有什么花样！！！</div>
   <div @click="addSorry">谢谢，你是个好人~</div>
 </div>
 
