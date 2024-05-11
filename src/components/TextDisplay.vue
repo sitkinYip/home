@@ -5,7 +5,7 @@
   </template>
   
   <script setup>
-  import { ref, watch, onMounted, computed } from 'vue';
+  import { ref, watch, onMounted, computed, useSlots, useAttrs } from 'vue';
   
   const props = defineProps({
     interval: {

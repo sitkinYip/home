@@ -3,10 +3,19 @@
     <div class="loader">
       <div class="loader-circle" />
       <div class="loader-text">
-        <span class="name">
-          {{ siteName }}
-        </span>
-        <span class="tip"> 加载中 </span>
+        <template v-if="!props.text">
+          <span class="name">
+            {{ siteName }}
+          </span>
+          <span class="tip"> 加载中 </span>
+        </template>
+        
+        <template v-if="props.text">
+          <span class="name">
+            {{ props.text }}
+          </span>
+          <span class="tip"> 别急，页面加载中 </span>
+        </template>
       </div>
     </div>
     <div class="loader-section section-left" />
@@ -18,6 +27,9 @@
 import { mainStore } from "@/store";
 
 const store = mainStore();
+const props =defineProps({
+  text: null
+})
 
 // 配置
 const siteName = import.meta.env.VITE_SITE_NAME;

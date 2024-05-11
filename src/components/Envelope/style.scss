@@ -85,16 +85,18 @@ $msg-color: rgb(192, 82, 82);
         cursor: pointer;
         width: 360px;
         height: 36px;
-        color: #333333;
+        color: #fff;
         display: flex;
         font-weight: bold;
         font-size: 16px;
         align-items: center;
         justify-content: center;
-        border: 1px solid #333333;
-        background-color: rgba(255, 255, 255, 0.5);
         margin: 0 auto 15px;
-        transition: 0.2s all;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 6px;
+        transition: transform 0.3s;
+        animation: fade 0.5s;
         &:active {
             transform: scale(0.95);
         }

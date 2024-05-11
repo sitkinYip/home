@@ -1,22 +1,28 @@
 <template>
     <div class="letter">
         <!-- 加载 -->
-        <Loading />
-        <Background @loadComplete="loadComplete" />
-        <Envelope />
+        <Loading text="郭涵生日定制专属" />
+        <Background :key="bgKey" imgType="1" @loadComplete="loadComplete" />
+        <Envelope @onNextWord="updateWord"/>
     </div>
 </template>
 <script setup>
 import Envelope from '@/components/Envelope/Envelope.vue'
 import Background from "@/components/Background.vue";
 import Loading from "@/components/Loading.vue";
-import { onMounted, onBeforeUnmount } from 'vue';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useRouter } from 'vue-router';
 const loadComplete = () => {
 
 };
 const scriptId = 'unique-script-id'; // 为了避免重复和能找到脚本进行卸载
 const scriptUrl = "https://cdn.jsdelivr.net/gh/Ukenn2112/UkennWeb@3.0/index/web.js";
+const bgKey = ref('bgkey')
+
+const updateWord = () => {
+    // console.log('updateWord', msg)
+    bgKey.value = Date.now()+'bgkey'
+}
 
 const loadScript = () => {
     if (document.getElementById(scriptId)) {

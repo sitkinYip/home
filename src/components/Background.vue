@@ -26,31 +26,23 @@
 <script setup>
 import { mainStore } from "@/store";
 import { Error } from "@icon-park/vue-next";
+import { defaultImagesMap, guoHanImageMap } from "../assets/imgMap";
 
 const store = mainStore();
 const bgUrl = ref(null);
 const imgTimeout = ref(null);
 const emit = defineEmits(["loadComplete"]);
+const props = defineProps({
+  // eslint-disable-next-line vue/require-prop-type-constructor
+  imgType: 0,
+});
+
+const imagesMap = props.imgType === 0 ? defaultImagesMap : guoHanImageMap;
+const imgLength = Object.keys(imagesMap).length;
 
 // 壁纸随机数
 // 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
-const bgRandom = Math.floor(Math.random() * 13 + 1);
-
-const imagesMap = {
-  background1: 'https://blog.sitkin.top/upload/background1.jpg',
-  background2: 'https://blog.sitkin.top/upload/background2.jpg',
-  background3: 'https://blog.sitkin.top/upload/background3.jpg',
-  background4: 'https://blog.sitkin.top/upload/background4.jpg',
-  background5: 'https://blog.sitkin.top/upload/background5.png',
-  background6: 'https://blog.sitkin.top/upload/background6.jpg',
-  background7: 'https://blog.sitkin.top/upload/background7.jpg',
-  background8: 'https://blog.sitkin.top/upload/background8.jpg',
-  background9: 'https://blog.sitkin.top/upload/background9.jpg',
-  background10: 'https://blog.sitkin.top/upload/background10.jpg',
-  background11: 'https://blog.sitkin.top/upload/background11%20.jpeg',
-  background12: 'https://blog.sitkin.top/upload/background12.jpg',
-  background13: 'https://blog.sitkin.top/upload/photo1.jpeg'
-}
+const bgRandom = Math.floor(Math.random() * imgLength + 1);
 
 // 更换壁纸链接
 const changeBg = (type) => {
