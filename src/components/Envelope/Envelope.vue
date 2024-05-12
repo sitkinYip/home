@@ -132,7 +132,7 @@ async function handleSucces() {
   end.value = true;
 }
 
-const onNewWorld = () => {
+const onNewWorld = (isNoUpdateBg) => {
 
   let availableMessages = list.filter(msg => !usedMessages.value.includes(msg.text));
   if (availableMessages.length === 0) {
@@ -152,7 +152,9 @@ const onNewWorld = () => {
   setTimeout(() => {
     showText.text1Show = true;
   }, 2000);
-  emit('onNextWord', msg)
+  if(isNoUpdateBg !== 'no') {
+    emit('onNextWord', msg)
+  }
 };
 
 watch(open, (v) => {
@@ -211,6 +213,7 @@ watch(end, (v) => {
   <div class="btns" :class="{ active: end && open && !btnEnd && showText.text3Show }">
     <div @click="handleSucces">超喜欢你，让我看看接下来有什么花样！！！</div>
     <div @click="onNewWorld">这句祝福我不喜欢，换一个！</div>
+    <div @click="()=>onNewWorld('no')">这句祝福我不喜欢，换一个！（不更换背景图）</div>
     <div @click="addSorry">谢谢，你是个好人~</div>
   </div>
 

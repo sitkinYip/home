@@ -33,15 +33,16 @@ const bgUrl = ref(null);
 const imgTimeout = ref(null);
 const emit = defineEmits(["loadComplete"]);
 const props = defineProps({
-  // eslint-disable-next-line vue/require-prop-type-constructor
-  imgType: 0,
+  imgType: {
+    type: String,
+    default: "0",
+  },
 });
 
-const imagesMap = props.imgType === 0 ? defaultImagesMap : guoHanImageMap;
+const imagesMap = props.imgType === '1' ? guoHanImageMap : defaultImagesMap;
 const imgLength = Object.keys(imagesMap).length;
 
 // 壁纸随机数
-// 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
 const bgRandom = Math.floor(Math.random() * imgLength + 1);
 
 // 更换壁纸链接
