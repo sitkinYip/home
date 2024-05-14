@@ -27,7 +27,7 @@ const showText = reactive({
   text2Show: false,
   text3Show: false,
 });
-const emit = defineEmits(["onNextWord"]);
+const emit = defineEmits(["onNextWord", "onEnd"]);
 
 let bomm = confetti.create(canvas.value, { resize: true });
 //    nextTick().then(()=>{
@@ -130,6 +130,7 @@ async function handleSucces() {
   await talk("我只能遵命了 看我浑身解数", 2000);
   await talk("走起~~", 2000);
   end.value = true;
+  emit('onEnd')
 }
 
 const onNewWorld = (isNoUpdateBg) => {

@@ -3,7 +3,7 @@
         <!-- 加载 -->
         <Loading text="郭涵生日定制专属" />
         <Background :key="bgKey" imgType="1" @loadComplete="loadComplete" />
-        <Envelope @onNextWord="updateWord"/>
+        <Envelope @onNextWord="updateWord" @onEnd="onNextPage"/>
     </div>
 </template>
 <script setup>
@@ -23,7 +23,13 @@ const updateWord = () => {
     // console.log('updateWord', msg)
     bgKey.value = Date.now()+'bgkey'
 }
+const router = useRouter();
 
+const onNextPage = () => {
+    router.push({
+        path: '/birthday'
+    })
+}
 const loadScript = () => {
     if (document.getElementById(scriptId)) {
         // 如果脚本已经存在，则不重复加载
@@ -56,7 +62,6 @@ onMounted(() => {
     loadScript();
 
     // 可以选择侦听路由变化，以在路由变化时卸载脚本
-    const router = useRouter();
     router.beforeEach((to, from, next) => {
         unloadScript(); // 路由变化前卸载脚本
         next();
