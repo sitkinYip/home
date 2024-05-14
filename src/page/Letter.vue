@@ -26,7 +26,8 @@ const updateWord = () => {
 const router = useRouter();
 
 const onNextPage = () => {
-    router.push({
+    unloadScript(); // 路由变化前卸载脚本
+    router.replace({
         path: '/birthday'
     })
 }
