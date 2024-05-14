@@ -41,7 +41,7 @@ const loadScript = () => {
     script.id = scriptId;
     script.src = scriptUrl;
     script.async = true;
-    document.body.appendChild(script);
+    // document.body.appendChild(script);
 
     script.onload = () => {
         console.log("Script loaded successfully.");
