@@ -1,7 +1,7 @@
 <template>
   <div class="birthday-box">
-    <iframe v-if="starrySkyShow" src="https://vae.sitkin.top/"></iframe>
-    <iframe v-else src="https://guohan.sitkin.top/"></iframe>
+    <iframe v-if="starrySkyShow" :src="`https://vae.sitkin.top?d_${Date.now()}`"></iframe>
+    <iframe v-else :src="`https://guohan.sitkin.top?d_${Date.now()}`"></iframe>
     <audio ref="music" loop preload="auto">
       <source src="@/assets/rgky.mp3" type="audio/mpeg" />
     </audio>
