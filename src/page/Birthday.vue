@@ -23,9 +23,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import confetti from "canvas-confetti";
-import { en } from "element-plus/es/locales.mjs";
 
-const starrySkyShow = ref(true);
+const starrySkyShow = ref(false);
 const music = ref(null);
 const canvas = ref(null);
 const end = ref(0); // 持续5秒
