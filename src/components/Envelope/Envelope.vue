@@ -127,7 +127,6 @@ async function handleSucces() {
   await talk(`天大地大 今天${content.value.name}最大`, 1500);
   await talk("既然你还想看些其他的", 1500);
   await talk("那么...", 1500);
-  await talk("我只能遵命了 看我浑身解数", 2000);
   await talk("走起~~", 2000);
   end.value = true;
   emit('onEnd')

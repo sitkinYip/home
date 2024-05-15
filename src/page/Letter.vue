@@ -28,7 +28,10 @@ const router = useRouter();
 const onNextPage = () => {
     unloadScript(); // 路由变化前卸载脚本
     router.replace({
-        path: '/birthday'
+        path: '/birthday',
+        props: {
+            title: '郭涵的Birthday'
+        }
     })
 }
 const loadScript = () => {
@@ -61,6 +64,7 @@ const unloadScript = () => {
 
 onMounted(() => {
     loadScript();
+    document.title = '郭涵的Birthday'
 
     // 可以选择侦听路由变化，以在路由变化时卸载脚本
     router.beforeEach((to, from, next) => {

@@ -7,7 +7,7 @@ const Birthday = () => import("@/page/Birthday.vue");
 const routes = [
   { path: "/", component: Home },
   { path: "/guohan", component: Letter },
-  { path: "/birthday", component: Birthday },
+  { path: "/birthday", component: Birthday, props: { title: '' } },
   {
     path: "/:pathMatch(.*)*",
     redirect: "/",
