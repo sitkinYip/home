@@ -34,6 +34,7 @@ import { Icon } from "@vicons/utils";
 import { QuoteLeft, QuoteRight } from "@vicons/fa";
 import { Error } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
+import {findTextByDate} from '@/utils/homeText'
 const store = mainStore();
 
 // 主页站点logo
@@ -50,10 +51,12 @@ const siteUrl = computed(() => {
   return url.split(".");
 });
 
+const DescTextData = findTextByDate();
+
 // 简介区域文字
 const descriptionText = reactive({
-  hello: import.meta.env.VITE_DESC_HELLO,
-  text: import.meta.env.VITE_DESC_TEXT,
+  hello: DescTextData.title,
+  text: DescTextData.content,
 });
 
 // 切换右侧功能区
@@ -80,8 +83,8 @@ watch(
       descriptionText.hello = import.meta.env.VITE_DESC_HELLO_OTHER;
       descriptionText.text = import.meta.env.VITE_DESC_TEXT_OTHER;
     } else {
-      descriptionText.hello = import.meta.env.VITE_DESC_HELLO;
-      descriptionText.text = import.meta.env.VITE_DESC_TEXT;
+      descriptionText.hello = DescTextData.title;
+      descriptionText.text = DescTextData.content;
     }
   },
 );
