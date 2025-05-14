@@ -7,19 +7,14 @@
             <div class="icon_box"></div>
             <div class="q_title">郭涵的生日寻宝游戏:</div>
             <div class="qa_content_text">
-                <p>1. 寻宝游戏是啥？</p>
-                <p>2. 寻宝游戏怎么玩？</p>
-                <p>3. 寻宝游戏怎么玩？</p>
-                <p>4. 寻宝游戏怎么玩？</p>
-                <p>5. 寻宝游戏怎么玩？</p>
-                <p>6. 寻宝游戏怎么玩？</p>
+                <p v-for="(item, index) in qaInfo.question" :key="index">{{ item }}</p>
             </div>
         </div>
         <div class="qa_input_box">
-            <el-input v-model="input" class="qa_input" placeholder="请输入答案....." />
+            <el-input v-model="input" class="qa_input" :placeholder="qaInfo.placeholder || '请输入答案.....'" />
         </div>
         <div class="btn_box">
-            <el-button class="btn" color="#2C3E50" type="info">确认答案</el-button>
+            <el-button @click="onConfirmAnswer" class="btn" color="#2C3E50" type="info">确认答案</el-button>
         </div>
         <div class="qares">
             <div class="emp" v-show="!isBinGo">
@@ -31,11 +26,38 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
+import { getQueryParam, qaData } from "../utils/qa/questions";
+function talk(msg, dur = 0) {
+  return new Promise((resolve) => {
+    ElMessage({
+      message: msg,
+      grouping: true,
+      duration: dur,
+      type: "",
+    });
+    setTimeout(() => {
+      resolve();
+    }, dur + 200);
+  });
+}
+const qaIndex = getQueryParam("qa")?.[0] || "1";
 const input = ref("");
 const isBinGo = ref(false);
+const qaInfo = ref(qaData[qaIndex])
 onMounted(() => {
     document.title = '寻宝游戏'
 });
+const onConfirmAnswer = async () => {
+    if (input.value === qaInfo.value.answer) {
+        isBinGo.value = true;
+        await talk("BinGo恭喜你答对了", 1000);
+        await talk("请查看下一个线索", 1000);
+        await talk("继续冒险吧 ~", 1000);
+
+    } else {
+        talk("不对哦~ 再想想~~", 1000);
+    }
+}
 </script>
 <style lang="scss" scoped>
 .questions-box {
