@@ -9,7 +9,7 @@ const Questions = () => import("@/page/Questions.vue");
 const routes = [
   { path: "/", component: Home },
   { path: "/guohan", component: Letter },
-  { path: "/questions", component: Questions },
+  { path: "/questions", component: Questions, props: { title: '寻宝游戏' } },
   { path: "/birthday", component: Birthday, props: { title: '' } },
   {
     path: "/:pathMatch(.*)*",
