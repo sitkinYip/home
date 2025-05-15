@@ -34,13 +34,13 @@
             </div>
             <div class="as_content" v-show="isBinGo">
                 <div class="as_item" v-for="(item, index) in qaInfo.thread" :key="index">
-                    <span v-if="item.type === 'text'">{{ item.content }}</span>
+                    <span v-if="item.type === 'text'">{{ replaceTemplateStrings(item.content, resList) }}</span>
                     <el-button @click="() => openPage(item.url)" class="url_btn" v-if="item.type === 'url'"
                         type="primary">
-                        {{ item.content }}
+                        {{ replaceTemplateStrings(item.content, resList) }}
                     </el-button>
                     <div class="img_view" v-if="item.type === 'img'">
-                        <el-button @click="showPreview = true" type="success"> {{ item.content }}</el-button>
+                        <el-button @click="showPreview = true" type="success"> {{ replaceTemplateStrings(item.content, resList) }}</el-button>
                         <el-image-viewer v-if="showPreview" :url-list="[item.url]" show-progress
                             @close="showPreview = false" />
                     </div>
@@ -51,7 +51,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
-import { getQueryParam, isTimeReached, qaData } from "../utils/qa/questions";
+import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings } from "../utils/qa/questions";
 
 function talk(msg, dur = 0) {
     return new Promise((resolve) => {
@@ -70,9 +70,13 @@ const qaIndex = getQueryParam("qa")?.[0] || "1";
 const input = ref("");
 const isBinGo = ref(false);
 const showPreview = ref(false);
+const resList = ref([]);
 const qaInfo = ref(qaData[qaIndex] || { question: [], placeholder: "", thread: [] });
 onMounted(() => {
     document.title = '寻宝游戏'
+    getQaInfo().then((res) => {
+        resList.value = res;
+    });
     const preData = JSON.parse(localStorage.getItem('qaIndex' + qaIndex) || "{}");
 
     if (preData?.type === 'bingo') {
@@ -82,7 +86,7 @@ onMounted(() => {
 });
 const onConfirmAnswer = async () => {
     if (isBinGo.value) return;
-    const date = '2025/05/19 14:00:00'
+    const date = '2025/05/16 14:00:00'
     if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000);
     if (input.value?.trim() === qaInfo.value.answer) {
         localStorage.setItem('qaIndex' + qaIndex, JSON.stringify({
