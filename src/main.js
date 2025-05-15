@@ -5,6 +5,7 @@ import router from "@/routes";
 // 引入 pinia
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 // swiper
 import "swiper/css";
 
@@ -15,6 +16,10 @@ pinia.use(piniaPluginPersistedstate);
 app.use(pinia);
 app.use(router)
 app.mount("#app");
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
 
 // PWA
 navigator.serviceWorker.addEventListener("controllerchange", () => {

@@ -7,7 +7,18 @@
             <div class="icon_box"></div>
             <div class="q_title">郭涵的生日寻宝游戏:</div>
             <div class="qa_content_text">
-                <p v-for="(item, index) in qaInfo.question" :key="index">{{ item }}</p>
+                <div v-for="(item, index) in qaInfo.question" :key="index">{{ item?.text || item }}
+                    <div class="tips">
+                        <el-popover title="提示" :content="item.tips" trigger="hover" placement="top">
+                            <template #reference>
+                                <el-icon color="#999999" v-if="item?.tips">
+                                    <QuestionFilled color="#999999" />
+                                </el-icon>
+                            </template>
+                        </el-popover>
+
+                    </div>
+                </div>
             </div>
         </div>
         <div class="qa_input_box">
@@ -21,35 +32,70 @@
                 <div class="icon_emp"></div>
                 <div class="text">答对谜题后,这里将展示下一个线索</div>
             </div>
+            <div class="as_content" v-show="isBinGo">
+                <div class="as_item" v-for="(item, index) in qaInfo.thread" :key="index">
+                    <span v-if="item.type === 'text'">{{ item.content }}</span>
+                    <el-button @click="() => openPage(item.url)" class="url_btn" v-if="item.type === 'url'"
+                        type="primary">
+                        {{ item.content }}
+                    </el-button>
+                    <div class="img_view" v-if="item.type === 'img'">
+                        <el-button @click="showPreview = true" type="success"> {{ item.content }}</el-button>
+                        <el-image-viewer v-if="showPreview" :url-list="[item.url]" show-progress
+                            @close="showPreview = false" />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
-import { getQueryParam, qaData } from "../utils/qa/questions";
+import { getQueryParam, isTimeReached, qaData } from "../utils/qa/questions";
+
 function talk(msg, dur = 0) {
-  return new Promise((resolve) => {
-    ElMessage({
-      message: msg,
-      grouping: true,
-      duration: dur,
-      type: "",
+    return new Promise((resolve) => {
+        ElMessage({
+            message: msg,
+            grouping: true,
+            duration: dur,
+            type: "",
+        });
+        setTimeout(() => {
+            resolve();
+        }, dur + 200);
     });
-    setTimeout(() => {
-      resolve();
-    }, dur + 200);
-  });
 }
 const qaIndex = getQueryParam("qa")?.[0] || "1";
 const input = ref("");
 const isBinGo = ref(false);
-const qaInfo = ref(qaData[qaIndex])
+const showPreview = ref(false);
+const qaInfo = ref(qaData[qaIndex] || { question: [], placeholder: "", thread: [] });
 onMounted(() => {
     document.title = '寻宝游戏'
+    const preData = JSON.parse(localStorage.getItem('qaIndex' + qaIndex) || "{}");
+
+    if (preData?.type === 'bingo') {
+        isBinGo.value = true;
+        input.value = preData.input;
+    }
 });
 const onConfirmAnswer = async () => {
-    if (input.value === qaInfo.value.answer) {
+    if (isBinGo.value) return;
+    const date = '2025/05/19 14:00:00'
+    if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000);
+    if (input.value?.trim() === qaInfo.value.answer) {
+        localStorage.setItem('qaIndex' + qaIndex, JSON.stringify({
+            type: 'bingo',
+            date: new Date().getTime(),
+            input: input.value,
+        }));
         isBinGo.value = true;
+        try {
+            fetch(`https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/郭涵答对了第${qaIndex}题，答案是${input.value}`)
+        } catch (e) {
+            console.log(e);
+        }
         await talk("BinGo恭喜你答对了", 1000);
         await talk("请查看下一个线索", 1000);
         await talk("继续冒险吧 ~", 1000);
@@ -58,11 +104,18 @@ const onConfirmAnswer = async () => {
         talk("不对哦~ 再想想~~", 1000);
     }
 }
+const openPage = (url) => {
+    if (url) {
+        window.open(url);
+    }
+}
 </script>
 <style lang="scss" scoped>
 .questions-box {
     width: 100vw;
     height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     background-color: #ffffff;
     box-sizing: border-box;
     padding: 0 26vpx;
@@ -79,6 +132,22 @@ const onConfirmAnswer = async () => {
         min-height: 200vpx;
         border-radius: 10vpx;
         background-color: #F9F6F2;
+
+        .as_content {
+            span {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #9CA3AF;
+            }
+
+            .as_item {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-bottom: 12vpx;
+            }
+        }
 
         .emp {
             display: flex;
@@ -131,9 +200,24 @@ const onConfirmAnswer = async () => {
             color: #2c2c2c;
             font-size: 16vpx;
 
-            div,
-            p {
+            div {
+                display: flex;
+                align-items: center;
                 color: #2c2c2c;
+                padding-bottom: 12vpx;
+
+                *,
+                a,
+                p {
+                    color: #999999;
+                }
+
+                .tips {
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    padding-left: 6vpx;
+                }
             }
         }
     }
