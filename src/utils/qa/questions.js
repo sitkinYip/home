@@ -80,17 +80,15 @@ export const qaData = {
           {
             type: "url",
             content: "点此查看奈雪地图位置",
-            url: "https://www.baidu.com",
+            url: "https://surl.amap.com/1nabJLHsd1d",
           },
           {
             type: "text",
             content: "取餐码 {取餐码}",
-            // url: "https://www.baidu.com",
           },
           {
             type: "text",
             content: "凭借取餐码取餐后即可知道问题3的密码",
-            // url: "https://www.baidu.com",
           },
     ]
   },
@@ -110,17 +108,15 @@ export const qaData = {
           {
             type: "url",
             content: "点此查看IF HOURS地图位置",
-            url: "https://www.baidu.com",
+            url: "https://surl.amap.com/1kIGnDbG1N6",
           },
           {
             type: "text",
             content: "地址",
-            // url: "https://www.baidu.com",
           },
           {
             type: "text",
             content: "广州天河区猎德街道花城大道16号铂林国际公寓",
-            // url: "https://www.baidu.com",
           },
     ]
   },
