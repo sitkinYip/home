@@ -5,7 +5,7 @@
                 <div class="yuan min"></div>
             </div>
             <!-- <div class="icon_box"></div> -->
-            <div class="lock_icon">
+            <div class="lock_icon" @click="HeaderClickCounter">
                 <el-icon color="#999999" size="25px">
                     <Lock color="#999999" />
                 </el-icon>
@@ -47,7 +47,7 @@
                     <div class="img_view" v-if="item.type === 'img'">
                         <el-button @click="showPreview = true" type="success"> {{ replaceTemplateStrings(item.content,
                             resList)
-                        }}</el-button>
+                            }}</el-button>
                         <el-image-viewer v-if="showPreview" :url-list="[item.url]" show-progress
                             @close="showPreview = false" />
                     </div>
@@ -58,7 +58,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
-import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings, filterSpecialChars, userIdMap } from "../utils/qa/questions";
+import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings, filterSpecialChars, userIdMap, HeaderClickCounter } from "../utils/qa/questions";
 
 function talk(msg, dur = 0) {
     return new Promise((resolve) => {

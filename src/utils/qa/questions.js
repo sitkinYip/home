@@ -225,3 +225,39 @@ export function replaceTemplateStrings(str, arr) {
   sx: '诗鑫的',
   sitkin: 'sitki的',
  }
+
+ export function clickCounter(callback, threshold) {
+  let clickCount = 0; // 记录点击次数
+  let timeout; // 定时器变量
+
+  // 绑定点击事件的处理函数
+  function handleClick() {
+    clearTimeout(timeout); // 清除之前的定时器
+
+    clickCount++; // 每次点击增加计数
+
+    if (clickCount === threshold) {
+      // 当点击次数达到阈值时触发回调函数
+      callback();
+
+      // 重置点击计数
+      clickCount = 0;
+    } else {
+      // 创建一个新的定时器，在1秒后重置点击计数
+      timeout = setTimeout(function() {
+        clickCount = 0;
+      }, 1000);
+    }
+  }
+
+  return handleClick;
+}
+
+const eventHandler = () => {
+  const qaIndex = getQueryParam("qa")?.[0] || "1"
+ localStorage.removeItem('qaIndex' + qaIndex)
+ alert('缓存已清空')
+}
+
+
+export const HeaderClickCounter = clickCounter(eventHandler, 5);
