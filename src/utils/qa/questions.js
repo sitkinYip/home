@@ -139,6 +139,10 @@ export const qaData = {
     answer: "all",
     isOpenEndedQuestions: true,
     thread: [
+      {
+            type: "text",
+            content: "恭喜你解锁了最终目的地!!",
+        },
         {
             type: "text",
             content: "房间号: {房间号}",

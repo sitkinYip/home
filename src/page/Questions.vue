@@ -4,7 +4,12 @@
             <div class="yuan yuan_wz">
                 <div class="yuan min"></div>
             </div>
-            <div class="icon_box"></div>
+            <!-- <div class="icon_box"></div> -->
+            <div class="lock_icon">
+                <el-icon color="#999999" size="25px">
+                    <Lock color="#999999" />
+                </el-icon>
+            </div>
             <div class="q_title">{{ userName }}寻宝游戏:</div>
             <div class="qa_content_text">
                 <div v-for="(item, index) in qaInfo.question" :key="index">{{ item?.text || item }}
@@ -42,7 +47,7 @@
                     <div class="img_view" v-if="item.type === 'img'">
                         <el-button @click="showPreview = true" type="success"> {{ replaceTemplateStrings(item.content,
                             resList)
-                            }}</el-button>
+                        }}</el-button>
                         <el-image-viewer v-if="showPreview" :url-list="[item.url]" show-progress
                             @close="showPreview = false" />
                     </div>
@@ -129,6 +134,15 @@ const openPage = (url) => {
     box-sizing: border-box;
     padding: 0 26vpx;
     padding-top: 24vpx;
+
+    .lock_icon {
+
+        *,
+        a,
+        p {
+            color: #999;
+        }
+    }
 
     .qares {
         display: flex;
