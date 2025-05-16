@@ -5,7 +5,7 @@
                 <div class="yuan min"></div>
             </div>
             <div class="icon_box"></div>
-            <div class="q_title">郭涵的生日寻宝游戏:</div>
+            <div class="q_title">{{ userName }}寻宝游戏:</div>
             <div class="qa_content_text">
                 <div v-for="(item, index) in qaInfo.question" :key="index">{{ item?.text || item }}
                     <div class="tips">
@@ -40,7 +40,9 @@
                         {{ replaceTemplateStrings(item.content, resList) }}
                     </el-button>
                     <div class="img_view" v-if="item.type === 'img'">
-                        <el-button @click="showPreview = true" type="success"> {{ replaceTemplateStrings(item.content, resList) }}</el-button>
+                        <el-button @click="showPreview = true" type="success"> {{ replaceTemplateStrings(item.content,
+                            resList)
+                            }}</el-button>
                         <el-image-viewer v-if="showPreview" :url-list="[item.url]" show-progress
                             @close="showPreview = false" />
                     </div>
@@ -51,7 +53,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
-import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings } from "../utils/qa/questions";
+import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings, filterSpecialChars, userIdMap } from "../utils/qa/questions";
 
 function talk(msg, dur = 0) {
     return new Promise((resolve) => {
@@ -68,6 +70,7 @@ function talk(msg, dur = 0) {
 }
 const qaIndex = getQueryParam("qa")?.[0] || "1";
 const input = ref("");
+const userName = ref(userIdMap[getQueryParam("user")?.[0]] || "旅行者");
 const isBinGo = ref(false);
 const showPreview = ref(false);
 const resList = ref([]);
@@ -87,8 +90,10 @@ onMounted(() => {
 const onConfirmAnswer = async () => {
     if (isBinGo.value) return;
     const date = '2025/05/16 14:00:00'
-    if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000);
-    if (input.value?.trim() === qaInfo.value.answer) {
+    // if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000);isOpenEndedQuestions
+    const isOpenEndedQuestions = qaInfo.value?.isOpenEndedQuestions
+    const answer = input.value?.trim()
+    if ((answer === qaInfo.value.answer) || (answer?.length > 3 && isOpenEndedQuestions)) {
         localStorage.setItem('qaIndex' + qaIndex, JSON.stringify({
             type: 'bingo',
             date: new Date().getTime(),
@@ -96,7 +101,7 @@ const onConfirmAnswer = async () => {
         }));
         isBinGo.value = true;
         try {
-            fetch(`https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/郭涵答对了第${qaIndex}题，答案是${input.value}`)
+            fetch(`https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/郭涵答对了第${qaIndex}题，答案是${filterSpecialChars(input.value)}`)
         } catch (e) {
             console.log(e);
         }
@@ -105,7 +110,7 @@ const onConfirmAnswer = async () => {
         await talk("继续冒险吧 ~", 1000);
 
     } else {
-        talk("不对哦~ 再想想~~", 1000);
+        talk(isOpenEndedQuestions ? "回答的有点短,再补充一下~" : "不对哦~ 再想想~~", 1000);
     }
 }
 const openPage = (url) => {

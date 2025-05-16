@@ -68,6 +68,7 @@ export const qaData = {
   },
   2: {
     question: [
+      "题目2:",
       { text: `"凶我"的反义词是什么`, tips: "这是一个冷笑话" },
     ],
     placeholder: "请输入两个字,这是一个脑筋急转弯的问题",
@@ -90,11 +91,19 @@ export const qaData = {
             type: "text",
             content: "凭借取餐码取餐后即可知道问题3的密码",
           },
+          {
+            type: "text",
+            content: "问题3会通过短信验证码发送给你",
+          },
+          {
+            type: "text",
+            content: "请留意短信",
+          },
     ]
   },
   3: {
     question: [
-      { text: `此问题无需解谜,` },
+      { text: `此问题无需解谜` },
       { text: `请完成问题2并且取餐` },
       { text: `留意奶茶杯子上的密码`, tips: "此问题无需解谜" },
     ],
@@ -118,6 +127,22 @@ export const qaData = {
             type: "text",
             content: "广州天河区猎德街道花城大道16号铂林国际公寓",
           },
+    ]
+  },
+  4: {
+    question: [
+      { text: `恭喜你披星戴月到达这里` },
+      { text: `如果你愿意告诉我你晚饭想吃什么的话`, tips: "建议具体到菜系" },
+      { text: `我就会把房间号告诉你`, tips: "此题无需解谜" },
+    ],
+    placeholder: "想吃什么呢",
+    answer: "all",
+    isOpenEndedQuestions: true,
+    thread: [
+        {
+            type: "text",
+            content: "房间号: {房间号}",
+          }
     ]
   },
 };
@@ -173,3 +198,26 @@ export function replaceTemplateStrings(str, arr) {
       return str;
     }
   }
+
+  export /**
+  * 过滤特殊字符，仅保留中文、英文、数字
+  * @param str 原始字符串
+  * @returns 过滤后的纯净字符串
+  */
+ function filterSpecialChars(str) {
+   // 使用正则表达式匹配非中文、英文、数字的字符，并替换为空字符串
+   // 正则说明：
+   // \u4e00-\u9fa5 : 匹配所有中文
+   // a-zA-Z        : 匹配所有英文字母
+   // 0-9           : 匹配所有数字
+   // /gu           : g表示全局匹配，u表示使用Unicode匹配模式
+   return str.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/gu, '');
+ }
+
+ export const userIdMap = {
+  gh: '郭涵的生日',
+  guohan: '郭涵的生日',
+  sy: '诗颖的',
+  sx: '诗鑫的',
+  sitkin: 'sitki的',
+ }
