@@ -39,7 +39,8 @@
             </div>
             <div class="as_content" v-show="isBinGo">
                 <div class="as_item" v-for="(item, index) in qaInfo.thread" :key="index">
-                    <span v-if="item.type === 'text'">{{ replaceTemplateStrings(item.content, resList) }}</span>
+                    <span v-if="item.type === 'text'">{{ replaceTemplateStrings(item.content, resList) }}
+                    </span>
                     <el-button @click="() => openPage(item.url)" class="url_btn" v-if="item.type === 'url'"
                         type="primary">
                         {{ replaceTemplateStrings(item.content, resList) }}
@@ -47,7 +48,7 @@
                     <div class="img_view" v-if="item.type === 'img'">
                         <el-button @click="showPreview = true" type="success"> {{ replaceTemplateStrings(item.content,
                             resList)
-                            }}</el-button>
+                        }}</el-button>
                         <el-image-viewer v-if="showPreview" :url-list="[item.url]" show-progress
                             @close="showPreview = false" />
                     </div>
@@ -58,7 +59,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
-import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings, filterSpecialChars, userIdMap, HeaderClickCounter } from "../utils/qa/questions";
+import { getQaInfo, getQueryParam, isTimeReached, qaData, replaceTemplateStrings, filterSpecialChars, userIdMap, HeaderClickCounter, userNameIdMap } from "../utils/qa/questions";
 
 function talk(msg, dur = 0) {
     return new Promise((resolve) => {
@@ -94,8 +95,8 @@ onMounted(() => {
 });
 const onConfirmAnswer = async () => {
     if (isBinGo.value) return;
-    const date = '2025/05/16 14:00:00'
-    // if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000);isOpenEndedQuestions
+    const date = '2025/05/19 15:00:00'
+    // if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000); isOpenEndedQuestions
     const isOpenEndedQuestions = qaInfo.value?.isOpenEndedQuestions
     const answer = input.value?.trim()
     if ((answer === qaInfo.value.answer) || (answer?.length > 3 && isOpenEndedQuestions)) {
@@ -106,9 +107,20 @@ const onConfirmAnswer = async () => {
         }));
         isBinGo.value = true;
         try {
-            fetch(`https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/郭涵答对了第${qaIndex}题，答案是${filterSpecialChars(input.value)}`)
+            fetch(`https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/${userNameIdMap[getQueryParam("user")?.[0]] || "旅行者"}答对了第${qaIndex}题，答案是${filterSpecialChars(input.value)}`)
         } catch (e) {
             console.log(e);
+        }
+        const qaList = Object.keys(qaData).map((key) => {
+            return {
+                key,
+                value: qaData[key]
+            }
+        })
+        const len = String(qaList.length)
+        if (len === qaIndex) {
+            await talk(`恭喜你，你已通过所有问题，请查看最终线索`, 1000);
+            return
         }
         await talk("BinGo恭喜你答对了", 1000);
         await talk("请查看下一个线索", 1000);
@@ -169,6 +181,10 @@ const openPage = (url) => {
                 align-items: center;
                 justify-content: center;
                 padding-bottom: 12vpx;
+
+                p {
+                    color: #9CA3AF;
+                }
             }
         }
 

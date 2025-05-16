@@ -146,7 +146,12 @@ export const qaData = {
         {
             type: "text",
             content: "房间号: {房间号}",
-          }
+          },
+          {
+              type: "url",
+              content: "要不要点我试试看?",
+              url: "https://vae.sitkin.top",
+            }
     ]
   },
 };
@@ -225,7 +230,13 @@ export function replaceTemplateStrings(str, arr) {
   sx: '诗鑫的',
   sitkin: 'sitki的',
  }
-
+ export const userNameIdMap = {
+  gh: '郭涵',
+  guohan: '郭涵',
+  sy: '诗颖',
+  sx: '诗鑫',
+  sitkin: 'sitki',
+ }
  export function clickCounter(callback, threshold) {
   let clickCount = 0; // 记录点击次数
   let timeout; // 定时器变量
