@@ -151,10 +151,12 @@ const onIsBinGo = () => {
 const openVideo = (url) => {
   videoPlayer.value.open(url);
 }
+
 const onConfirmAnswer = async () => {
   if (isBinGo.value) return;
+  const isTest = getQueryParam("test")?.[0] === '1';
   const date = "2025/05/19 15:00:00";
-  if (!isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000); isOpenEndedQuestions
+  if (!isTest && !isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000); isOpenEndedQuestions
   if (onIsBinGo()) {
     localStorage.setItem(
       "qaIndex" + qaIndex + userId,

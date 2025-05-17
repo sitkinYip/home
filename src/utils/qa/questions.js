@@ -88,7 +88,7 @@ export const qaData = {
     question: [
       "题目2:",
       { img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa1.png?Expires=1747538396&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ISyOhmPQesiWMyCZtXSuB7re%2FtI%3D` },
-      {text: "她说了啥?", tips: "出自甄嬛传"},
+      {text: "她说了啥?", tips: "15个字，出自甄嬛传"},
     ],
     placeholder: "输入剧里原台词",
     answer: "这几年的情爱与时光究竟是错付了",
