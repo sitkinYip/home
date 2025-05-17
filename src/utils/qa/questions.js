@@ -24,7 +24,26 @@ export function getQueryParam(param, url) {
     return null;
   }
 }
+export function checkAnswer(answer, correctAnswer) {
+  if (typeof answer !== 'string' || typeof correctAnswer !== 'string') {
+    return false;
+  }
 
+  try {
+    // 高性能正则表达式 (预编译避免重复创建)
+    const regex = /[\s\p{P}]/gmu;
+    
+    // 统一标准化处理
+    const process = str => str
+      .normalize('NFKC')  // 统一字符格式（全角转半角等）
+      .replace(regex, '') // 移除所有空格和标点
+      .toLowerCase();     // 统一转为小写（如需区分大小写可去掉）
+
+    return process(answer) === process(correctAnswer);
+  } catch (e) {
+    return false; // 异常时返回错误
+  }
+}
 export const qaData = {
   1: {
     question: [
@@ -51,67 +70,116 @@ export const qaData = {
       },
       {
         type: "text",
-        content: "0520",
+        content: "0717",
       },
       {
         type: "url",
         content: "点此查看蜂巢地图位置",
-        url: "https://www.baidu.com",
+        url: "https://surl.amap.com/AzGkcIR1Acqd",
       },
       {
         type: "img",
-        content: "点此查看图片",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/mhsg1.jpg",
+        content: "点此查看详细图片",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/inekicatiom1.jpg?Expires=1747538491&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=mrrvqdlEI3UYJu%2BA7IVzCL6aTEU%3D",
       },
     ],
   },
   2: {
     question: [
       "题目2:",
-      { text: `"凶我"的反义词是什么`, tips: "这是一个冷笑话" },
+      { img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa1.png?Expires=1747538396&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ISyOhmPQesiWMyCZtXSuB7re%2FtI%3D` },
+      {text: "她说了啥?", tips: "出自甄嬛传"},
+    ],
+    placeholder: "输入剧里原台词",
+    answer: "这几年的情爱与时光究竟是错付了",
+    thread: [
+      {
+          type: "text",
+          content: "请前往奈雪的茶领取问题3的密码:",
+        },
+        {
+          type: "url",
+          content: "点此查看奈雪地图位置",
+          url: "https://surl.amap.com/1nabJLHsd1d",
+        },
+        {
+          type: "text",
+          content: "取餐码 {取餐码}",
+        },
+        {
+          type: "text",
+          content: "凭借取餐码取餐后即可知道问题3",
+        },
+        {
+          type: "text",
+          content: "知道问题后扫描下方二维码查看问题3作答",
+        },
+        {
+          type: "img",
+          // content: "点我查看问题3二维码",
+          url:"https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qrcode/3.png?Expires=1747538304&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=axFSKgyAN6YetZdP%2BRgzHZT199s%3D"
+
+        },
+        {
+          type: 'video',
+          url: 'https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa2.mp4?Expires=1747545233&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=W%2BlDVR2z9SBF8SrMtLnAe44TCEM%3D',
+          content: '点我查看原剧片段',
+          state: 'ckickplay'
+        }
+  ]
+  },
+  3: {
+    question: [
+      "题目3:",
+      { text: `"请回答奶茶上备注的问题`, tips: "这是一个冷笑话" },
     ],
     placeholder: "请输入两个字,这是一个脑筋急转弯的问题",
     answer: "吉他",
     thread: [
-        {
+          {
             type: "text",
-            content: "请前往奈雪的茶领取问题3的密码:",
+            content: "恭喜获得专属补给",
+          },
+          {
+            type: "text",
+            content: "希望这杯奶茶能给你的旅途带来新的能量",
+          },
+          {
+            type: "text",
+            content: "接下来请前往下一个目的地吧",
           },
           {
             type: "url",
-            content: "点此查看奈雪地图位置",
-            url: "https://surl.amap.com/1nabJLHsd1d",
+            content: "点此查看下一个柜子的位置",
+            url: "https://surl.amap.com/2tZVmIFldSe",
           },
           {
             type: "text",
-            content: "取餐码 {取餐码}",
+            content: "取件码1229",
           },
           {
-            type: "text",
-            content: "凭借取餐码取餐后即可知道问题3的密码",
-          },
-          {
-            type: "text",
-            content: "问题3会通过短信验证码发送给你",
-          },
-          {
-            type: "text",
-            content: "请留意短信",
+            type: "img",
+            content: "点此查看详细图片",
+            url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/inekicatiom1.jpg?Expires=1747538491&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=mrrvqdlEI3UYJu%2BA7IVzCL6aTEU%3D",
           },
     ]
   },
-  3: {
+  4: {
     question: [
-      { text: `此问题无需解谜` },
-      { text: `请完成问题2并且取餐` },
-      { text: `留意奶茶杯子上的密码`, tips: "此问题无需解谜" },
+      "题目四",
+      { img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa2.png?Expires=1747550311&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=nMNDh3sCs%2BTUaQvv2ZcemBcl0bE%3D` },
+      { text: `她说了什么？`, tips: "5个字 或许可以想到蓝色的外卖平台" },
     ],
-    placeholder: "输入杯子上备注的密码",
-    answer: "0717",
+    placeholder: "输入5个字，电视剧台词",
+    answer: "你真是饿了",
     thread: [
         {
             type: "text",
             content: "恭喜解锁下一个地址:",
+          },
+          {
+            type: "text",
+            content: "终点近在咫尺了！！！",
           },
           {
             type: "url",
@@ -126,9 +194,15 @@ export const qaData = {
             type: "text",
             content: "广州天河区猎德街道花城大道16号铂林国际公寓",
           },
+          {
+            type: 'video',
+            url: 'https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa4.mp4?Expires=1747550797&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ceZMrlelIdVFNusiR0xGnb0J0TE%3D',
+            content: '点我查看原剧片段',
+            state: 'ckickplay'
+          }
     ]
   },
-  4: {
+  5: {
     question: [
       { text: `恭喜你披星戴月到达这里` },
       { text: `如果你愿意告诉我你晚饭想吃什么的话`, tips: "建议具体到菜系" },
@@ -227,14 +301,14 @@ export function replaceTemplateStrings(str, arr) {
   guohan: '郭涵的生日',
   sy: '诗颖的',
   sx: '诗鑫的',
-  sitkin: 'sitki的',
+  sitkin: 'sitkin的',
  }
  export const userNameIdMap = {
   gh: '郭涵',
   guohan: '郭涵',
   sy: '诗颖',
   sx: '诗鑫',
-  sitkin: 'sitki',
+  sitkin: 'sitkin',
  }
  export function clickCounter(callback, threshold) {
   let clickCount = 0; // 记录点击次数
@@ -264,8 +338,9 @@ export function replaceTemplateStrings(str, arr) {
 }
 
 const eventHandler = () => {
+  const userId = getQueryParam("user")?.[0] || "";
   const qaIndex = getQueryParam("qa")?.[0] || "1"
- localStorage.removeItem('qaIndex' + qaIndex)
+ localStorage.removeItem('qaIndex' + qaIndex + userId)
  alert('缓存已清空')
 }
 
