@@ -108,6 +108,12 @@ export default {
   border-radius: 8px;
   overflow: hidden;
 }
+/* 隐藏原生控件 */
+.video-element::-webkit-media-controls-overlay-play-button,
+.video-element::-webkit-media-controls-seek-back-button,
+.video-element::-webkit-media-controls-seek-forward-button {
+  display: none !important;
+}
 
 .close-btn {
   position: absolute;
