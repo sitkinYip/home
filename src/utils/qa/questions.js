@@ -71,7 +71,11 @@ export const qaData = {
       },
       {
         type: "text",
-        content: "0717",
+        content: "取件码: 0717",
+      },
+      {
+        type: "text",
+        content: "取手机号: 13684941369",
       },
       {
         type: "url",
@@ -81,7 +85,7 @@ export const qaData = {
       {
         type: "img",
         content: "点此查看详细图片",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/inekicatiom1.jpg?Expires=1747538491&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=mrrvqdlEI3UYJu%2BA7IVzCL6aTEU%3D",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/inekicatiom1.jpg",
       },
     ],
   },
@@ -89,7 +93,7 @@ export const qaData = {
     question: [
       "题目2:",
       {
-        img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa1.png?Expires=1747538396&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ISyOhmPQesiWMyCZtXSuB7re%2FtI%3D`,
+        img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa1.png`,
       },
       { text: "她说了啥?", tips: "15个字，出自甄嬛传" },
     ],
@@ -120,11 +124,11 @@ export const qaData = {
       {
         type: "img",
         // content: "点我查看问题3二维码",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qrcode/3.png?Expires=1747538304&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=axFSKgyAN6YetZdP%2BRgzHZT199s%3D",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qrcode/3.png",
       },
       {
         type: "video",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa2.mp4?Expires=1747545233&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=W%2BlDVR2z9SBF8SrMtLnAe44TCEM%3D",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa2.mp4",
         content: "点我查看原剧片段",
         state: "ckickplay",
       },
@@ -154,22 +158,26 @@ export const qaData = {
       },
       {
         type: "text",
-        content: "取件码1229",
+        content: "取件码: 2929",
+      },
+      {
+        type: "text",
+        content: "取手机号: 13684941369",
       },
       {
         type: "img",
         content: "点此查看详细图片",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz.jpg?Expires=1747561556&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=t83saHiuCJmjypobfZlWxBahDSc%3D",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz.jpg",
         imgList: [
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz.jpg?Expires=1747561556&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=t83saHiuCJmjypobfZlWxBahDSc%3D",
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz2.jpg?Expires=1747561953&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=WU8a%2FDuA9JT%2BByWbYhX%2FyrwzBks%3D",
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz1.jpg?Expires=1747561984&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=hHf35%2BqgIi2JM0RGq8zzexiNxA0%3D"
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz2.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz1.jpg"
         ],
       },
       {
         type: "video",
         content: "点此查看引导视频",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/yd.mp4?Expires=1747562255&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ziLjE2psApQfClZ8UeCznUMDl9w%3D"
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/yd.mp4"
       }
     ],
   },
@@ -177,7 +185,7 @@ export const qaData = {
     question: [
       "题目四",
       {
-        img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa2.png?Expires=1747550311&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=nMNDh3sCs%2BTUaQvv2ZcemBcl0bE%3D`,
+        img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa2.png`,
       },
       { text: `她说了什么？`, tips: "5个字 或许可以想到蓝色的外卖平台" },
     ],
@@ -207,7 +215,7 @@ export const qaData = {
       },
       {
         type: "video",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa4.mp4?Expires=1747550797&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ceZMrlelIdVFNusiR0xGnb0J0TE%3D",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa4.mp4",
         content: "点我查看原剧片段",
         state: "ckickplay",
       },
