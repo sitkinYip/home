@@ -78,7 +78,9 @@
           </div>
           <template v-if="item.type === 'video'">
             <!-- <VideoPlayer :videoSrc="item.url" /> -->
-            <el-button type="warning" @click="openVideo(item.url)">{{ replaceTemplateStrings(item.content, resList) }}</el-button>
+            <el-button type="warning" @click="openVideo(item.url)">{{
+              replaceTemplateStrings(item.content, resList)
+            }}</el-button>
           </template>
         </div>
       </div>
@@ -141,7 +143,7 @@ const onIsBinGo = () => {
   const userAnswer = input.value?.trim();
   const answer = qaInfo.value.answer;
   if (userAnswer?.length > 3 && isOpenEndedQuestions) return true;
-  if(userAnswer === answer) return true;
+  if (userAnswer === answer) return true;
   if (checkAnswer(userAnswer, answer)) return true;
   if (answer.type === "Keywords" && answer.value) {
     return userAnswer.includes(answer.value);
@@ -150,13 +152,23 @@ const onIsBinGo = () => {
 };
 const openVideo = (url) => {
   videoPlayer.value.open(url);
-}
+};
 
 const onConfirmAnswer = async () => {
   if (isBinGo.value) return;
-  const isTest = getQueryParam("test")?.[0] === '1';
+  if (!onIsBinGo() && input.value?.trim()) {
+    try {
+      fetch(
+        `https://api.chuckfang.com/4acc3779/回答错误的寻宝游戏通知 -- 来自sitkin.top/${userNameIdMap[userId] || "旅行者"}答错了第${qaIndex}题，回答的是${filterSpecialChars(input.value)}`,
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const isTest = getQueryParam("test")?.[0] === "1";
   const date = "2025/05/19 15:00:00";
-  if (!isTest && !isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000); isOpenEndedQuestions
+  if (!isTest && !isTimeReached(date)) return talk("游戏还未开始哦,耐心等待" + date, 3000);
+  isOpenEndedQuestions;
   if (onIsBinGo()) {
     localStorage.setItem(
       "qaIndex" + qaIndex + userId,

@@ -211,7 +211,7 @@ export const qaData = {
       },
       {
         type: "text",
-        content: "广州天河区猎德街道花城大道16号铂林国际公寓",
+        content: "广州天河区猎德街道花城大道16号铂林国际公寓花城大道16号铂林国际公寓C座",
       },
       {
         type: "video",
@@ -223,6 +223,7 @@ export const qaData = {
   },
   5: {
     question: [
+      "尊敬的冒险者",
       { text: `恭喜你披星戴月到达这里` },
       { text: `如果你愿意告诉我你晚饭想吃什么的话`, tips: "建议具体到菜系" },
       { text: `我就会把房间号告诉你`, tips: "此题无需解谜" },
