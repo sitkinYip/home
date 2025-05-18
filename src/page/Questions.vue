@@ -67,7 +67,7 @@
               >
               <el-image-viewer
                 v-if="showPreview"
-                :url-list="[item.url]"
+                :url-list="item?.imgList || [item.url]"
                 show-progress
                 @close="showPreview = false"
               />
@@ -155,7 +155,7 @@ const openVideo = (url) => {
 const onConfirmAnswer = async () => {
   if (isBinGo.value) return;
   const isTest = getQueryParam("test")?.[0] === '1';
-  const date = "2025/05/19 15:00:00";
+  const date = "2025/05/19 14:30:00";
   if (!isTest && !isTimeReached(date)) return talk('游戏还未开始哦,耐心等待' + date, 3000); isOpenEndedQuestions
   if (onIsBinGo()) {
     localStorage.setItem(
@@ -248,6 +248,7 @@ const openPage = (url) => {
         align-items: center;
         justify-content: center;
         color: #9ca3af;
+        text-align: center;
       }
 
       .as_item {

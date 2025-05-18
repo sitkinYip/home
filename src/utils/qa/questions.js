@@ -25,19 +25,20 @@ export function getQueryParam(param, url) {
   }
 }
 export function checkAnswer(answer, correctAnswer) {
-  if (typeof answer !== 'string' || typeof correctAnswer !== 'string') {
+  if (typeof answer !== "string" || typeof correctAnswer !== "string") {
     return false;
   }
 
   try {
     // 高性能正则表达式 (预编译避免重复创建)
     const regex = /[\s\p{P}]/gmu;
-    
+
     // 统一标准化处理
-    const process = str => str
-      .normalize('NFKC')  // 统一字符格式（全角转半角等）
-      .replace(regex, '') // 移除所有空格和标点
-      .toLowerCase();     // 统一转为小写（如需区分大小写可去掉）
+    const process = (str) =>
+      str
+        .normalize("NFKC") // 统一字符格式（全角转半角等）
+        .replace(regex, "") // 移除所有空格和标点
+        .toLowerCase(); // 统一转为小写（如需区分大小写可去掉）
 
     return process(answer) === process(correctAnswer);
   } catch (e) {
@@ -87,120 +88,130 @@ export const qaData = {
   2: {
     question: [
       "题目2:",
-      { img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa1.png?Expires=1747538396&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ISyOhmPQesiWMyCZtXSuB7re%2FtI%3D` },
-      {text: "她说了啥?", tips: "15个字，出自甄嬛传"},
+      {
+        img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa1.png?Expires=1747538396&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ISyOhmPQesiWMyCZtXSuB7re%2FtI%3D`,
+      },
+      { text: "她说了啥?", tips: "15个字，出自甄嬛传" },
     ],
     placeholder: "输入剧里原台词",
     answer: "这几年的情爱与时光究竟是错付了",
     thread: [
       {
-          type: "text",
-          content: "请前往奈雪的茶领取问题3的密码:",
-        },
-        {
-          type: "url",
-          content: "点此查看奈雪地图位置",
-          url: "https://surl.amap.com/1nabJLHsd1d",
-        },
-        {
-          type: "text",
-          content: "取餐码 {取餐码}",
-        },
-        {
-          type: "text",
-          content: "凭借取餐码取餐后即可知道问题3",
-        },
-        {
-          type: "text",
-          content: "知道问题后扫描下方二维码查看问题3作答",
-        },
-        {
-          type: "img",
-          // content: "点我查看问题3二维码",
-          url:"https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qrcode/3.png?Expires=1747538304&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=axFSKgyAN6YetZdP%2BRgzHZT199s%3D"
-
-        },
-        {
-          type: 'video',
-          url: 'https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa2.mp4?Expires=1747545233&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=W%2BlDVR2z9SBF8SrMtLnAe44TCEM%3D',
-          content: '点我查看原剧片段',
-          state: 'ckickplay'
-        }
-  ]
+        type: "text",
+        content: "请前往奈雪的茶领取问题3的密码:",
+      },
+      {
+        type: "url",
+        content: "点此查看奈雪地图位置",
+        url: "https://surl.amap.com/1nabJLHsd1d",
+      },
+      {
+        type: "text",
+        content: "取餐码 {取餐码}",
+      },
+      {
+        type: "text",
+        content: "凭借取餐码取餐后即可知道问题3",
+      },
+      {
+        type: "text",
+        content: "知道问题后扫描下方二维码查看问题3作答",
+      },
+      {
+        type: "img",
+        // content: "点我查看问题3二维码",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qrcode/3.png?Expires=1747538304&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=axFSKgyAN6YetZdP%2BRgzHZT199s%3D",
+      },
+      {
+        type: "video",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa2.mp4?Expires=1747545233&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=W%2BlDVR2z9SBF8SrMtLnAe44TCEM%3D",
+        content: "点我查看原剧片段",
+        state: "ckickplay",
+      },
+    ],
   },
   3: {
-    question: [
-      "题目3:",
-      { text: `"请回答奶茶上备注的问题`, tips: "这是一个冷笑话" },
-    ],
+    question: ["题目3:", { text: `"请回答奶茶上备注的问题`, tips: "这是一个冷笑话" }],
     placeholder: "请输入两个字,这是一个脑筋急转弯的问题",
     answer: "吉他",
     thread: [
-          {
-            type: "text",
-            content: "恭喜获得专属补给",
-          },
-          {
-            type: "text",
-            content: "希望这杯奶茶能给你的旅途带来新的能量",
-          },
-          {
-            type: "text",
-            content: "接下来请前往下一个目的地吧",
-          },
-          {
-            type: "url",
-            content: "点此查看下一个柜子的位置",
-            url: "https://surl.amap.com/2tZVmIFldSe",
-          },
-          {
-            type: "text",
-            content: "取件码1229",
-          },
-          {
-            type: "img",
-            content: "点此查看详细图片",
-            url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/inekicatiom1.jpg?Expires=1747538491&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=mrrvqdlEI3UYJu%2BA7IVzCL6aTEU%3D",
-          },
-    ]
+      {
+        type: "text",
+        content: "恭喜获得专属补给",
+      },
+      {
+        type: "text",
+        content: "希望这杯奶茶能给你的旅途带来新的能量",
+      },
+      {
+        type: "text",
+        content: "接下来请前往下一个目的地吧",
+      },
+      {
+        type: "url",
+        content: "点此查看下一个柜子的位置",
+        url: "https://surl.amap.com/2tZVmIFldSe",
+      },
+      {
+        type: "text",
+        content: "取件码1229",
+      },
+      {
+        type: "img",
+        content: "点此查看详细图片",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz.jpg?Expires=1747561556&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=t83saHiuCJmjypobfZlWxBahDSc%3D",
+        imgList: [
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz.jpg?Expires=1747561556&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=t83saHiuCJmjypobfZlWxBahDSc%3D",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz2.jpg?Expires=1747561953&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=WU8a%2FDuA9JT%2BByWbYhX%2FyrwzBks%3D",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/aliwz1.jpg?Expires=1747561984&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=hHf35%2BqgIi2JM0RGq8zzexiNxA0%3D"
+        ],
+      },
+      {
+        type: "video",
+        content: "点此查看引导视频",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/yd.mp4?Expires=1747562255&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ziLjE2psApQfClZ8UeCznUMDl9w%3D"
+      }
+    ],
   },
   4: {
     question: [
       "题目四",
-      { img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa2.png?Expires=1747550311&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=nMNDh3sCs%2BTUaQvv2ZcemBcl0bE%3D` },
+      {
+        img: `https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/qa/qa2.png?Expires=1747550311&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=nMNDh3sCs%2BTUaQvv2ZcemBcl0bE%3D`,
+      },
       { text: `她说了什么？`, tips: "5个字 或许可以想到蓝色的外卖平台" },
     ],
     placeholder: "输入5个字，电视剧台词",
     answer: "你真是饿了",
     thread: [
-        {
-            type: "text",
-            content: "恭喜解锁下一个地址:",
-          },
-          {
-            type: "text",
-            content: "终点近在咫尺了！！！",
-          },
-          {
-            type: "url",
-            content: "点此查看IF HOURS地图位置",
-            url: "https://surl.amap.com/1kIGnDbG1N6",
-          },
-          {
-            type: "text",
-            content: "地址",
-          },
-          {
-            type: "text",
-            content: "广州天河区猎德街道花城大道16号铂林国际公寓",
-          },
-          {
-            type: 'video',
-            url: 'https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa4.mp4?Expires=1747550797&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ceZMrlelIdVFNusiR0xGnb0J0TE%3D',
-            content: '点我查看原剧片段',
-            state: 'ckickplay'
-          }
-    ]
+      {
+        type: "text",
+        content: "恭喜解锁下一个地址:",
+      },
+      {
+        type: "text",
+        content: "终点近在咫尺了！！！",
+      },
+      {
+        type: "url",
+        content: "点此查看IF HOURS地图位置",
+        url: "https://surl.amap.com/1kIGnDbG1N6",
+      },
+      {
+        type: "text",
+        content: "地址",
+      },
+      {
+        type: "text",
+        content: "广州天河区猎德街道花城大道16号铂林国际公寓",
+      },
+      {
+        type: "video",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/video/qa4.mp4?Expires=1747550797&OSSAccessKeyId=TMP.3Kq3ZuVMoyRKFG3irqXXG2zSQLr9doYnBXE9FKdHUfgBzqVm89depfQuZJCETtYXmAASgpRdFf29rF84oNZfCPXWxz17W2&Signature=ceZMrlelIdVFNusiR0xGnb0J0TE%3D",
+        content: "点我查看原剧片段",
+        state: "ckickplay",
+      },
+    ],
   },
   5: {
     question: [
@@ -213,104 +224,101 @@ export const qaData = {
     isOpenEndedQuestions: true,
     thread: [
       {
-            type: "text",
-            content: "恭喜你解锁了最终目的地!!",
-        },
-        {
-            type: "text",
-            content: "房间号: {房间号}",
-          },
-          {
-              type: "url",
-              content: "要不要点我试试看?",
-              url: "https://vae.sitkin.top",
-            }
-    ]
+        type: "text",
+        content: "恭喜你解锁了最终目的地!!",
+      },
+      {
+        type: "text",
+        content: "房间号: {房间号}",
+      },
+      {
+        type: "url",
+        content: "要不要点我试试看?",
+        url: "https://vae.sitkin.top",
+      },
+    ],
   },
 };
 
-
-export const getQaInfo= async() => {
-    try {
-     const res = await fetch('https://blog.sitkin.top/apis/api.content.halo.run/v1alpha1/singlepages')
-     const data = await res.json()
-     const list = data?.items?.map(item => {
-        let content = item?.status?.excerpt
-        const title = item?.spec?.title
+export const getQaInfo = async () => {
+  try {
+    const res = await fetch(
+      "https://blog.sitkin.top/apis/api.content.halo.run/v1alpha1/singlepages",
+    );
+    const data = await res.json();
+    const list =
+      data?.items?.map((item) => {
+        let content = item?.status?.excerpt;
+        const title = item?.spec?.title;
 
         return {
           title,
-          content
-        }
-     }) || []
-     console.log('list', list)
-      return list
-    } catch (e) {
-      console.error(e)
-      return [];
-    }
-} 
+          content,
+        };
+      }) || [];
+    console.log("list", list);
+    return list;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
 
 export function replaceTemplateStrings(str, arr) {
-    if (typeof str !== 'string' || !Array.isArray(arr)) {
-      return str;
-    }
-  
-    try {
-      // 创建映射表提升查询性能
-      const map = new Map();
-      for (const item of arr) {
-        if (
-          !item ||
-          typeof item !== 'object' ||
-          !('title' in item) ||
-          !('content' in item)
-        ) {
-          throw new Error('Invalid array item structure');
-        }
-        map.set(item.title, item.content);
-      }
-  
-      // 使用正则表达式进行一次性替换
-      return str.replace(/\{([^{}]+)\}/g, (match, key) => {
-        return map.has(key) ? map.get(key) : match;
-      });
-    } catch (e) {
-      // 出现任何异常返回原字符串
-      return str;
-    }
+  if (typeof str !== "string" || !Array.isArray(arr)) {
+    return str;
   }
 
-  export /**
-  * 过滤特殊字符，仅保留中文、英文、数字
-  * @param str 原始字符串
-  * @returns 过滤后的纯净字符串
-  */
- function filterSpecialChars(str) {
-   // 使用正则表达式匹配非中文、英文、数字的字符，并替换为空字符串
-   // 正则说明：
-   // \u4e00-\u9fa5 : 匹配所有中文
-   // a-zA-Z        : 匹配所有英文字母
-   // 0-9           : 匹配所有数字
-   // /gu           : g表示全局匹配，u表示使用Unicode匹配模式
-   return str.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/gu, '');
- }
+  try {
+    // 创建映射表提升查询性能
+    const map = new Map();
+    for (const item of arr) {
+      if (!item || typeof item !== "object" || !("title" in item) || !("content" in item)) {
+        throw new Error("Invalid array item structure");
+      }
+      map.set(item.title, item.content);
+    }
 
- export const userIdMap = {
-  gh: '郭涵的生日',
-  guohan: '郭涵的生日',
-  sy: '诗颖的',
-  sx: '诗鑫的',
-  sitkin: 'sitkin的',
- }
- export const userNameIdMap = {
-  gh: '郭涵',
-  guohan: '郭涵',
-  sy: '诗颖',
-  sx: '诗鑫',
-  sitkin: 'sitkin',
- }
- export function clickCounter(callback, threshold) {
+    // 使用正则表达式进行一次性替换
+    return str.replace(/\{([^{}]+)\}/g, (match, key) => {
+      return map.has(key) ? map.get(key) : match;
+    });
+  } catch (e) {
+    // 出现任何异常返回原字符串
+    return str;
+  }
+}
+
+export /**
+ * 过滤特殊字符，仅保留中文、英文、数字
+ * @param str 原始字符串
+ * @returns 过滤后的纯净字符串
+ */
+function filterSpecialChars(str) {
+  // 使用正则表达式匹配非中文、英文、数字的字符，并替换为空字符串
+  // 正则说明：
+  // \u4e00-\u9fa5 : 匹配所有中文
+  // a-zA-Z        : 匹配所有英文字母
+  // 0-9           : 匹配所有数字
+  // /gu           : g表示全局匹配，u表示使用Unicode匹配模式
+  return str.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/gu, "");
+}
+
+export const userIdMap = {
+  gh: "郭涵的生日",
+  guohan: "郭涵的生日",
+  sy: "诗颖的",
+  sx: "诗鑫的",
+  sitkin: "sitkin的",
+};
+export const userNameIdMap = {
+  gh: "郭涵",
+  guohan: "郭涵",
+  sy: "诗颖",
+  sx: "诗鑫",
+  sitkin: "sitkin",
+};
+export function clickCounter(callback, threshold) {
   let clickCount = 0; // 记录点击次数
   let timeout; // 定时器变量
 
@@ -328,7 +336,7 @@ export function replaceTemplateStrings(str, arr) {
       clickCount = 0;
     } else {
       // 创建一个新的定时器，在1秒后重置点击计数
-      timeout = setTimeout(function() {
+      timeout = setTimeout(function () {
         clickCount = 0;
       }, 1000);
     }
@@ -339,10 +347,9 @@ export function replaceTemplateStrings(str, arr) {
 
 const eventHandler = () => {
   const userId = getQueryParam("user")?.[0] || "";
-  const qaIndex = getQueryParam("qa")?.[0] || "1"
- localStorage.removeItem('qaIndex' + qaIndex + userId)
- alert('缓存已清空')
-}
-
+  const qaIndex = getQueryParam("qa")?.[0] || "1";
+  localStorage.removeItem("qaIndex" + qaIndex + userId);
+  alert("缓存已清空");
+};
 
 export const HeaderClickCounter = clickCounter(eventHandler, 5);
