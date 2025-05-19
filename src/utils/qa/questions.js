@@ -203,7 +203,19 @@ export const qaData = {
       {
         type: "url",
         content: "点此查看IF HOURS地图位置",
-        url: "https://surl.amap.com/1kIGnDbG1N6",
+        url: "https://surl.amap.com/7Xz6GFvm4Wi",
+      },
+      {
+        type: "img",
+        content: "点此查看路线引导图",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/1.jpg",
+        imgList: [
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/1.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/2.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/3.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/4.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/5.jpg",
+        ],
       },
       {
         type: "text",
