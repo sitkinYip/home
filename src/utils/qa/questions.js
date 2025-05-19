@@ -152,6 +152,10 @@ export const qaData = {
         content: "接下来请前往下一个目的地吧",
       },
       {
+        type: "text",
+        content: "线索地址: 广州市海珠区鼎新路88号 ",
+      },
+      {
         type: "url",
         content: "点此查看下一个柜子的位置",
         url: "https://surl.amap.com/2tZVmIFldSe",
@@ -203,18 +207,19 @@ export const qaData = {
       {
         type: "url",
         content: "点此查看IF HOURS地图位置",
-        url: "https://surl.amap.com/7Xz6GFvm4Wi",
+        url: "https://www.amap.com/place/B0FFHLKBMA",
       },
       {
         type: "img",
         content: "点此查看路线引导图",
-        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/1.jpg",
+        url: "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/1.jpg",
         imgList: [
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/1.jpg",
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/2.jpg",
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/3.jpg",
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/4.jpg",
-          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/5.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/1.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/2.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/3.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/4.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/5.jpg",
+          "https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/pice/location/hotel/new/6.jpg",
         ],
       },
       {
@@ -223,7 +228,7 @@ export const qaData = {
       },
       {
         type: "text",
-        content: "广州天河区猎德街道花城大道16号铂林国际公寓花城大道16号铂林国际公寓C座",
+        content: "广州天河区猎德街道花城大道16号铂林国际公寓A座",
       },
       {
         type: "video",
