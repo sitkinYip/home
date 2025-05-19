@@ -87,6 +87,36 @@ import {
     userNameIdMap,
 } from "../utils/qa/questions";
 import VideoPlayer from "@/components/VideoPlayer.vue";
+const scriptId = 'unique-script-id'; // 为了避免重复和能找到脚本进行卸载
+const scriptUrl = "https://cdn.jsdelivr.net/gh/Ukenn2112/UkennWeb@3.0/index/web.js";
+
+const loadScript = () => {
+    if (document.getElementById(scriptId)) {
+        // 如果脚本已经存在，则不重复加载
+        return;
+    }
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = scriptUrl;
+    script.async = true;
+    // document.body.appendChild(script);
+
+    script.onload = () => {
+        console.log("Script loaded successfully.");
+    };
+
+    script.onerror = () => {
+        console.error(`Error loading script: ${scriptUrl}`);
+    };
+};
+
+const unloadScript = () => {
+    const scriptElement = document.getElementById(scriptId);
+    if (scriptElement) {
+        document.body.removeChild(scriptElement);
+    }
+};
 
 function talk(msg, dur = 0) {
     return new Promise((resolve) => {
@@ -121,6 +151,9 @@ onMounted(() => {
         isBinGo.value = true;
         input.value = preData.input;
     }
+});
+onBeforeUnmount(() => {
+    unloadScript(); // 组件卸载前卸载脚本
 });
 const isOpenEndedQuestions = qaInfo.value?.isOpenEndedQuestions;
 const onIsBinGo = () => {
@@ -164,9 +197,6 @@ const onConfirmAnswer = async () => {
         );
         isBinGo.value = true;
         try {
-            fetch(
-                `https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/${userNameIdMap[userId] || "旅行者"}答对了第${qaIndex}题，答案是${filterSpecialChars(input.value)}`,
-            );
             const src = qaInfo.value.thread.find(
                 (item) => item.type === "video" && item.state === "ckickplay",
             )?.url;
@@ -174,6 +204,9 @@ const onConfirmAnswer = async () => {
                 // showVideoPlayer(src)
                 openVideo(src);
             }
+            fetch(
+                `https://api.chuckfang.com/4acc3779/寻宝游戏通知 -- 来自sitkin.top/${userNameIdMap[userId] || "旅行者"}答对了第${qaIndex}题，答案是${filterSpecialChars(input.value)}`,
+            );
         } catch (e) {
             console.log(e);
         }
@@ -186,6 +219,7 @@ const onConfirmAnswer = async () => {
         const len = String(qaList.length);
         if (len === qaIndex) {
             await talk(`恭喜你，你已通过所有问题，请查看最终线索`, 1000);
+            loadScript();
             return;
         }
         await talk("BinGo恭喜你答对了", 1000);
