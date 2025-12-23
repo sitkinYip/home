@@ -14,11 +14,13 @@ jobs:
       run: rsync --version
 
     - name: Check out git repository
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4 # 已经是最新 v4
+
     - name: Install Node.js
-      uses: actions/setup-node@v4.0.0
+      uses: actions/setup-node@v4 # 已经是最新 v4
       with:
         node-version: "18.x"
+
     - name: Copy .env.example
       run: |
         if [ ! -f .env ]; then
@@ -26,14 +28,20 @@ jobs:
         else
           echo ".env file already exists. Skipping the copy step."
         fi
+
     - name: Install Dependencies
       run: npm install
+
     - name: Build Website
       run: npm run build
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
     - name: Deploy
-      uses: easingthemes/ssh-deploy@v2.1.1
+      # 建议使用更新频率更高的 appleboy/scp-action 或者更新 easingthemes
+      # 这里先帮你把 easingthemes 尝试升级到 v5 左右的版本，或者保留原样
+      # 注意：v2.1.1 非常老了，建议使用下方的版本或替换
+      uses: easingthemes/ssh-deploy@main 
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
         ARGS: '-avz --delete'
