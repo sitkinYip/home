@@ -14,13 +14,23 @@
         <!-- 这里可以放播放结束后的额外 UI 元件 -->
         <div v-if="showFinalUI" class="final-content">
             <!-- 例如：出现一封信 -->
-            <p class="final-hint">（星空已为你定格）</p>
+            <!-- <p class="final-hint">（星空已为你定格）</p> -->
+            <LyricsScrolling :data="mySubtitles" :defaultDuration="2500" />
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import LyricsScrolling from '../components/LyricsScrolling/LyricsScrolling.vue';
+
+const mySubtitles = [
+    { text: "遇到你后总自觉渺小", duration: 3000 }, // audio: "https://api.i-meto.com/meting/api?server=netease&type=url&id=1859652717&auth=ee8c2e9797cc452e1290754bc88bb81471466f64"
+    { text: "给不了你星辰皓月", duration: 2000 },
+    { text: "甚至给不了你完全没有焦虑的生活" }, // 不传时间，使用默认时间
+    { text: "但起码 在这个属于我的世界里" },
+    { text: "所有的星光 永远为你闪烁" },
+];
 
 const canvasRef = ref(null);
 const started = ref(false);
@@ -339,7 +349,7 @@ canvas {
 
 .final-content {
     position: absolute;
-    bottom: 15%;
+    bottom: 5%;
     width: 100%;
     text-align: center;
     z-index: 10;
