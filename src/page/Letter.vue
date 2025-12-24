@@ -1,81 +1,26 @@
 <template>
     <div class="letter">
         <!-- 加载 -->
-        <Loading text="郭涵生日定制专属" />
-        <Background :key="bgKey" imgType="1" @loadComplete="loadComplete" />
-        <Envelope @onNextWord="updateWord" @onEnd="onNextPage"/>
+        <!-- <LetterComponent :paragraphs="myLetterContent" :speed="100" :images="bgImages" /> -->
+        <LetterComponent :paragraphs="myLetterContent" styleType="ancient" :speed="100" :images="bgImages" />
     </div>
 </template>
 <script setup>
-import Envelope from '@/components/Envelope/Envelope.vue'
-import Background from "@/components/Background.vue";
-import Loading from "@/components/Loading.vue";
-import { onMounted, onBeforeUnmount, ref } from 'vue';
-import { useRouter } from 'vue-router';
-const loadComplete = () => {
+import LetterComponent from '../components/LetterComponent/LetterComponent.vue';
+const myLetterContent = [
+    { content: '见字如晤：', align: 'left' },
+    { content: '这是一段居中的诗词', align: 'center', delay: 500 },
+    { content: '海内存知己，天涯若比邻。', align: 'center' },
+    {
+        content: `王爷爷推开窗时，那阵熟悉的甜香便涌了进来`, align: 'left', delay: 1000
+    },
+    { content: '--- 你的朋友 SITKIN', align: 'right' }
+];
 
-};
-const scriptId = 'unique-script-id'; // 为了避免重复和能找到脚本进行卸载
-const scriptUrl = "https://cdn.jsdelivr.net/gh/Ukenn2112/UkennWeb@3.0/index/web.js";
-const bgKey = ref('bgkey')
-
-const updateWord = () => {
-    // console.log('updateWord', msg)
-    bgKey.value = Date.now()+'bgkey'
-}
-const router = useRouter();
-
-const onNextPage = () => {
-    unloadScript(); // 路由变化前卸载脚本
-    router.replace({
-        path: '/birthday',
-        props: {
-            title: '郭涵的Birthday'
-        }
-    })
-}
-const loadScript = () => {
-    if (document.getElementById(scriptId)) {
-        // 如果脚本已经存在，则不重复加载
-        return;
-    }
-
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = scriptUrl;
-    script.async = true;
-    // document.body.appendChild(script);
-
-    script.onload = () => {
-        console.log("Script loaded successfully.");
-    };
-
-    script.onerror = () => {
-        console.error(`Error loading script: ${scriptUrl}`);
-    };
-};
-
-const unloadScript = () => {
-    const scriptElement = document.getElementById(scriptId);
-    if (scriptElement) {
-        document.body.removeChild(scriptElement);
-    }
-};
-
-onMounted(() => {
-    loadScript();
-    document.title = '郭涵的Birthday'
-
-    // 可以选择侦听路由变化，以在路由变化时卸载脚本
-    router.beforeEach((to, from, next) => {
-        unloadScript(); // 路由变化前卸载脚本
-        next();
-    });
-});
-
-onBeforeUnmount(() => {
-    unloadScript(); // 组件卸载前卸载脚本
-});
+const bgImages = [
+    /* "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800",
+    "https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=800" */
+];
 </script>
 <style lang="scss">
 .letter {
