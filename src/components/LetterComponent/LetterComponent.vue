@@ -32,7 +32,7 @@
                     </div>
                 </div>
             </div>
-            <div class="hint" v-if="!isOpen">点击开启信件</div>
+            <div class="hint" v-if="!isOpen">{{ hintText }}</div>
         </div>
     </div>
 </template>
@@ -45,17 +45,18 @@ const props = defineProps({
         type: Array,
         default: () => [
             { content: '见字如晤：', align: 'left' },
-            { content: '这是一段居中的诗词', align: 'center', delay: 500 },
+            { content: '这是一段带配音的文字', align: 'center' }, // 示例音频
             { content: '海内存知己，天涯若比邻。', align: 'center' },
             { content: '最后是我的署名。', align: 'left', delay: 1000 },
             { content: '--- 你的朋友 SITKIN', align: 'right' }
         ]
     },
     speed: { type: Number, default: 80 },
-    styleType: { type: String, default: 'ancient' },
+    styleType: { type: String, default: 'modern' },
     images: { type: Array, default: () => [] },
     carouselInterval: { type: Number, default: 5000 },
-    customTextColor: { type: String, default: '' }
+    customTextColor: { type: String, default: '' },
+    hintText: { type: String, default: '点击开启信件' },
 });
 
 const isOpen = ref(false);
@@ -66,6 +67,34 @@ const currentImgIndex = ref(0);
 const scrollContainer = ref(null);
 let carouselTimer = null;
 let isUserInteracting = false;
+
+// --- 新增：音频实例 ---
+const audioPlayer = new Audio();
+
+/**
+ * 封装音频播放的 Promise
+ * @param {string} url 
+ */
+const playAudioSync = (url) => {
+    return new Promise((resolve) => {
+        audioPlayer.src = url;
+        audioPlayer.play().catch(err => {
+            console.warn("音频播放失败，可能是浏览器限制:", err);
+            resolve(); // 播放失败也继续，防止阻塞
+        });
+
+        // 音频播放结束触发
+        audioPlayer.onended = () => {
+            resolve();
+        };
+
+        // 容错处理：如果音频加载失败
+        audioPlayer.onerror = () => {
+            console.error("音频加载错误");
+            resolve();
+        };
+    });
+};
 
 watch(displayedParagraphs, () => {
     if (!isTyping.value || isUserInteracting) return;
@@ -98,18 +127,36 @@ const unlockBodyScroll = () => {
     document.body.style.touchAction = '';
 };
 
+// --- 修改后的打字机逻辑 ---
 const typeText = async () => {
     isTyping.value = true;
     for (let i = 0; i < props.paragraphs.length; i++) {
         activeParagraphIndex.value = i;
         const config = props.paragraphs[i];
         displayedParagraphs.value.push({ currentText: '', align: config.align || 'left' });
+
         if (config.delay) await new Promise(resolve => setTimeout(resolve, config.delay));
+
         const text = config.content || '';
+
+        // 1. 如果有音频，开始播放（不阻塞打字）
+        let audioPromise = null;
+        if (config.audio) {
+            audioPromise = playAudioSync(config.audio);
+        }
+
+        // 2. 打字效果执行
         for (let char of text) {
             displayedParagraphs.value[i].currentText += char;
             await new Promise(resolve => setTimeout(resolve, props.speed));
         }
+
+        // 3. 打字结束后的等待：如果有音频在播放，则必须等待音频结束
+        if (audioPromise) {
+            await audioPromise;
+        }
+
+        // 段落之间的固定停顿
         await new Promise(resolve => setTimeout(resolve, 300));
     }
     isTyping.value = false;
@@ -117,6 +164,15 @@ const typeText = async () => {
 
 const openLetter = () => {
     if (isOpen.value) return;
+
+    // --- 关键：解锁移动端音频播放权限 ---
+    // 在用户点击的瞬间触发一次播放，哪怕没有 src，或者立刻 pause
+    audioPlayer.play().then(() => {
+        audioPlayer.pause();
+    }).catch(() => {
+        // 部分浏览器需要静音或交互解锁，这里捕获异常
+    });
+
     isOpen.value = true;
     lockBodyScroll();
     setTimeout(() => {
@@ -132,8 +188,12 @@ const openLetter = () => {
 onUnmounted(() => {
     clearInterval(carouselTimer);
     unlockBodyScroll();
+    // 销毁时停止音频
+    audioPlayer.pause();
+    audioPlayer.src = '';
 });
 </script>
+
 
 <style scoped>
 .letter-container {

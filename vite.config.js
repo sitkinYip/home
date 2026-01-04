@@ -7,11 +7,14 @@ import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import viteCompression from "vite-plugin-compression";
-import pxtoviewport from 'postcss-px-to-viewport'
+import pxtoviewport from 'postcss-px-to-viewport';
+import { createHtmlPlugin } from 'vite-plugin-html';
 
 // https://vitejs.dev/config/
-export default ({ mode }) =>
-  defineConfig({
+export default ({ mode }) => {
+  const env = loadEnv(mode, process.cwd()); // 获取当前环境的所有变量
+
+  return  defineConfig({
     plugins: [
       vue(),
       AutoImport({
@@ -91,6 +94,19 @@ export default ({ mode }) =>
         },
       }),
       viteCompression(),
+      createHtmlPlugin({
+        inject: {
+          data: {
+            // 这里映射 HTML 中的占位符
+            VITE_SITE_NAME: env.VITE_SITE_NAME,
+            VITE_SITE_DES: env.VITE_SITE_DES,
+            VITE_SITE_KEYWORDS: env.VITE_SITE_KEYWORDS,
+            VITE_SITE_ANTHOR: env.VITE_SITE_ANTHOR,
+            VITE_SITE_LOGO: env.VITE_SITE_LOGO,
+            VITE_SITE_APPLE_LOGO: env.VITE_SITE_APPLE_LOGO,
+          },
+        },
+      }),
     ],
     server: {
       port: "3000",
@@ -128,9 +144,35 @@ export default ({ mode }) =>
       },
       preprocessorOptions: {
         scss: {
-          charset: false,
-          additionalData: `@import "./src/style/global.scss";`,
-        },
+          // 方案 1: 解决 "legacy-js-api" 警告
+          api: 'modern-compiler', 
+          
+          /**
+           * 方案 2: 动态注入逻辑
+           * @param {string} source 文件内容
+           * @param {string} fp 文件绝对路径
+           */
+          additionalData: (source, fp) => {
+            // 1. 定义你需要注入全局变量的页面或文件夹路径（根据你的需求修改）
+            // 例如：只给 src/page 目录下的文件注入，或者特定的组件
+            const needGlobalScss = [
+              resolve(__dirname, "src/page/Home.vue"),
+              // 或者匹配整个目录
+              // "src/page/" 
+            ];
+
+            // 检查当前文件是否在白名单中
+            const isTarget = needGlobalScss.some(path => fp.includes(path));
+
+            if (isTarget) {
+              // 使用 @use 替代 @import 解决 "Sass @import rules are deprecated" 警告
+              // 'as *' 表示引入后可以直接使用变量，不需要 global.$variable 这样写
+              return `@use "@/style/global.scss" as *; \n ${source}`;
+            }
+
+            return source;
+          },
+        },      
       },
     },
     build: {
@@ -142,3 +184,5 @@ export default ({ mode }) =>
       },
     },
   });
+}
+ 
