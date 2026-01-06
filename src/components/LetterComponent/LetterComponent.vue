@@ -2,11 +2,13 @@
     <div :class="['letter-container', styleType, { 'is-open': isOpen }]">
         <div class="envelope-wrapper" @click="openLetter">
             <div class="envelope">
+                <!-- 信封盖子 -->
                 <div class="flap"></div>
+                <!-- 信封口袋 -->
                 <div class="pocket"></div>
 
                 <div class="letter-paper" @click.stop>
-                    <!-- 背景图 -->
+                    <!-- 背景轮播图 -->
                     <div class="bg-carousel" v-if="images && images.length > 0">
                         <transition-group name="fade">
                             <div v-for="(img, index) in images" :key="img" v-show="currentImgIndex === index"
@@ -17,78 +19,128 @@
                     <!-- 滚动内容区 -->
                     <div class="content-wrapper" ref="scrollContainer" @touchstart="onUserTouch">
                         <div class="text-content">
-                            <!-- 这里是关键：通过控制每一行的高度和基线 -->
+                            <!-- 段落渲染 -->
                             <div v-for="(p, index) in displayedParagraphs" :key="index" class="paragraph-row"
-                                :style="{ textAlign: p.align || 'left' }">
+                                :style="{ textAlign: p.align }">
                                 <p class="line-text"
                                     :style="{ color: (customTextColor || 'var(--text-color)') + ' !important' }">
                                     {{ p.currentText }}
+                                    <!-- 打字机光标 -->
                                     <span class="cursor" v-if="isTyping && activeParagraphIndex === index"
                                         :style="{ background: (customTextColor || 'var(--text-color)') + ' !important' }"></span>
                                 </p>
                             </div>
+                            <!-- 底部留白 -->
                             <div class="extra-space"></div>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- 开启提示 -->
             <div class="hint" v-if="!isOpen">{{ hintText }}</div>
         </div>
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted } from 'vue';
 
-const props = defineProps({
-    paragraphs: {
-        type: Array,
-        default: () => [
-            { content: '见字如晤：', align: 'left' },
-            { content: '这是一段带配音的文字', align: 'center' }, // 示例音频
-            { content: '海内存知己，天涯若比邻。', align: 'center' },
-            { content: '最后是我的署名。', align: 'left', delay: 1000 },
-            { content: '--- 你的朋友 SITKIN', align: 'right' }
-        ]
-    },
-    speed: { type: Number, default: 80 },
-    styleType: { type: String, default: 'modern' },
-    images: { type: Array, default: () => [] },
-    carouselInterval: { type: Number, default: 5000 },
-    customTextColor: { type: String, default: '' },
-    hintText: { type: String, default: '点击开启信件' },
+/** 
+ * 段落配置项接口 
+ */
+interface ParagraphConfig {
+    /** 段落文本内容 */
+    content: string;
+    /** 对齐方式：左、中、右 */
+    align?: 'left' | 'center' | 'right';
+    /** 打字前的延迟时间 (ms) */
+    delay?: number;
+    /** 关联的音频地址 */
+    audio?: string;
+}
+
+/** 
+ * 内部渲染使用的段落状态接口 
+ */
+interface DisplayedParagraph {
+    /** 当前已打出的文本 */
+    currentText: string;
+    /** 对齐方式 */
+    align: 'left' | 'center' | 'right';
+}
+
+/** 
+ * 组件入参声明 
+ */
+interface Props {
+    /** 信件段落列表 */
+    paragraphs?: ParagraphConfig[];
+    /** 打字速度 (ms/字符) */
+    speed?: number;
+    /** 样式风格：modern(现代), ancient(古风) 等 */
+    styleType?: string;
+    /** 背景轮播图数组 */
+    images?: string[];
+    /** 轮播切换间隔 (ms) */
+    carouselInterval?: number;
+    /** 自定义文字颜色 */
+    customTextColor?: string;
+    /** 未开启时的提示文字 */
+    hintText?: string;
+}
+
+// 定义 props 并设置默认值
+const props = withDefaults(defineProps<Props>(), {
+    paragraphs: () => [
+        { content: '见字如晤：', align: 'left' },
+        { content: '这是一段带配音的文字', align: 'center' },
+        { content: '海内存知己，天涯若比邻。', align: 'center' },
+        { content: '最后是我的署名。', align: 'left', delay: 1000 },
+        { content: '--- 你的朋友 SITKIN', align: 'right' }
+    ],
+    speed: 80,
+    styleType: 'modern',
+    images: () => [],
+    carouselInterval: 5000,
+    customTextColor: '',
+    hintText: '点击开启信件',
 });
 
-const isOpen = ref(false);
-const displayedParagraphs = ref([]);
-const isTyping = ref(false);
-const activeParagraphIndex = ref(0);
-const currentImgIndex = ref(0);
-const scrollContainer = ref(null);
-let carouselTimer = null;
-let isUserInteracting = false;
+// --- 响应式状态 ---
+const isOpen = ref<boolean>(false); // 信件是否已开启
+const displayedParagraphs = ref<DisplayedParagraph[]>([]); // 实际渲染的段落数据
+const isTyping = ref<boolean>(false); // 是否正在打字中
+const activeParagraphIndex = ref<number>(0); // 当前正在打字的段落索引
+const currentImgIndex = ref<number>(0); // 当前背景图索引
+const scrollContainer = ref<HTMLDivElement | null>(null); // 滚动容器引用
 
-// --- 新增：音频实例 ---
-const audioPlayer = new Audio();
+// --- 内部变量 ---
+let carouselTimer: ReturnType<typeof setInterval> | null = null; // 轮播定时器
+let isUserInteracting = false; // 用户是否正在手动滚动/操作
+
+/** 扩展 Window 接口以支持全局定时器（兼容原逻辑） */
+declare global {
+    interface Window {
+        scrollResetTimer?: ReturnType<typeof setTimeout>;
+    }
+}
+
+// --- 音频处理 ---
+const audioPlayer: HTMLAudioElement = new Audio();
 
 /**
  * 封装音频播放的 Promise
- * @param {string} url 
+ * @param url 音频资源地址
  */
-const playAudioSync = (url) => {
+const playAudioSync = (url: string): Promise<void> => {
     return new Promise((resolve) => {
         audioPlayer.src = url;
         audioPlayer.play().catch(err => {
             console.warn("音频播放失败，可能是浏览器限制:", err);
-            resolve(); // 播放失败也继续，防止阻塞
+            resolve(); // 播放失败也继续，防止打字机逻辑阻塞
         });
 
-        // 音频播放结束触发
-        audioPlayer.onended = () => {
-            resolve();
-        };
-
-        // 容错处理：如果音频加载失败
+        audioPlayer.onended = () => resolve();
         audioPlayer.onerror = () => {
             console.error("音频加载错误");
             resolve();
@@ -96,11 +148,15 @@ const playAudioSync = (url) => {
     });
 };
 
+/** 
+ * 监听内容变化，实现自动滚动到底部 
+ */
 watch(displayedParagraphs, () => {
     if (!isTyping.value || isUserInteracting) return;
     nextTick(() => {
         const el = scrollContainer.value;
         if (el) {
+            // 判断是否在底部附近，如果是则执行滚动
             const atBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 120;
             if (atBottom) {
                 el.scrollTo({ top: el.scrollHeight, behavior: 'auto' });
@@ -109,100 +165,128 @@ watch(displayedParagraphs, () => {
     });
 }, { deep: true });
 
-const onUserTouch = () => {
+/** 
+ * 处理用户触摸，暂时停止自动滚动 
+ */
+const onUserTouch = (): void => {
     if (isTyping.value) {
         isUserInteracting = true;
-        clearTimeout(window.scrollResetTimer);
-        window.scrollResetTimer = setTimeout(() => { isUserInteracting = false; }, 3000);
+        if (window?.scrollResetTimer) {
+            clearTimeout(window.scrollResetTimer);
+        }
+        window.scrollResetTimer = setTimeout(() => {
+            isUserInteracting = false;
+        }, 3000);
     }
 };
 
-const lockBodyScroll = () => {
+/** 锁定背景滚动 */
+const lockBodyScroll = (): void => {
     document.body.style.overflow = 'hidden';
     document.body.style.touchAction = 'none';
 };
 
-const unlockBodyScroll = () => {
+/** 解锁背景滚动 */
+const unlockBodyScroll = (): void => {
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
 };
 
-// --- 修改后的打字机逻辑 ---
-const typeText = async () => {
+/** 
+ * 核心逻辑：打字机效果 
+ */
+const typeText = async (): Promise<void> => {
     isTyping.value = true;
-    for (let i = 0; i < props.paragraphs.length; i++) {
-        activeParagraphIndex.value = i;
-        const config = props.paragraphs[i];
-        displayedParagraphs.value.push({ currentText: '', align: config.align || 'left' });
 
-        if (config.delay) await new Promise(resolve => setTimeout(resolve, config.delay));
+    for (let i = 0; i < (props.paragraphs?.length || 0); i++) {
+        activeParagraphIndex.value = i;
+        const config = props.paragraphs![i];
+
+        // 初始化当前行
+        displayedParagraphs.value.push({
+            currentText: '',
+            align: config.align || 'left'
+        });
+
+        // 段前延迟
+        if (config.delay) {
+            await new Promise(resolve => setTimeout(resolve, config.delay));
+        }
 
         const text = config.content || '';
 
-        // 1. 如果有音频，开始播放（不阻塞打字）
-        let audioPromise = null;
+        // 1. 播放音频（不阻塞打字）
+        let audioPromise: Promise<void> | null = null;
         if (config.audio) {
             audioPromise = playAudioSync(config.audio);
         }
 
-        // 2. 打字效果执行
-        for (let char of text) {
+        // 2. 执行打字效果
+        for (const char of text) {
             displayedParagraphs.value[i].currentText += char;
             await new Promise(resolve => setTimeout(resolve, props.speed));
         }
 
-        // 3. 打字结束后的等待：如果有音频在播放，则必须等待音频结束
+        // 3. 等待音频播放完成（如果音频长于打字时长）
         if (audioPromise) {
             await audioPromise;
         }
 
-        // 段落之间的固定停顿
+        // 段落间停顿
         await new Promise(resolve => setTimeout(resolve, 300));
     }
+
     isTyping.value = false;
 };
 
-const openLetter = () => {
+/** 
+ * 开启信件 
+ */
+const openLetter = (): void => {
     if (isOpen.value) return;
 
-    // --- 关键：解锁移动端音频播放权限 ---
-    // 在用户点击的瞬间触发一次播放，哪怕没有 src，或者立刻 pause
+    // 解锁移动端音频自动播放权限（必须由用户交互触发）
     audioPlayer.play().then(() => {
         audioPlayer.pause();
     }).catch(() => {
-        // 部分浏览器需要静音或交互解锁，这里捕获异常
+        // 捕获静音或未交互的异常
     });
 
     isOpen.value = true;
     lockBodyScroll();
+
+    // 动画延时后开始执行逻辑
     setTimeout(() => {
         typeText();
-        if (props.images.length > 1) {
+        // 开启背景轮播
+        if (props.images && props.images.length > 1) {
             carouselTimer = setInterval(() => {
-                currentImgIndex.value = (currentImgIndex.value + 1) % props.images.length;
+                currentImgIndex.value = (currentImgIndex.value + 1) % props.images!.length;
             }, props.carouselInterval);
         }
     }, 1000);
 };
 
+/** 
+ * 销毁生命周期处理 
+ */
 onUnmounted(() => {
-    clearInterval(carouselTimer);
+    if (carouselTimer) clearInterval(carouselTimer);
     unlockBodyScroll();
-    // 销毁时停止音频
+    // 停止音频播放
     audioPlayer.pause();
     audioPlayer.src = '';
 });
 </script>
 
-
 <style scoped>
+/* 样式部分保持不变，已包含在组件内 */
 .letter-container {
     --paper-bg: #fdf5e6;
     --line-color: rgba(0, 0, 0, 0.08);
     --text-color: #222;
     --envelope-color: #c0392b;
     --flap-color: #a5281b;
-    /* 定义全局行高变量，方便多处同步 */
     --letter-line-height: 36px;
 
     position: fixed;
@@ -299,19 +383,15 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     padding: 0px 25px;
-    /* 顶部padding取消，改用text-content控制 */
     box-sizing: border-box;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
-
-    /* 关键点 1：行高与渐变背景大小完全一致 */
     line-height: var(--letter-line-height);
     background-image: repeating-linear-gradient(transparent,
             transparent calc(var(--letter-line-height) - 1px),
             var(--line-color) calc(var(--letter-line-height) - 1px),
             var(--line-color) var(--letter-line-height));
     background-attachment: local;
-    /* 关键点 2：背景起始位置偏移，确保第一行线出现在第一行文字下方 */
     background-position: 0 0px;
 }
 
@@ -322,7 +402,6 @@ onUnmounted(() => {
 .text-content {
     position: relative;
     z-index: 5;
-    /* 关键点 3：通过 padding-top 微调文字在行线上的垂直位置 */
     padding-top: 4px;
 }
 
@@ -335,7 +414,6 @@ onUnmounted(() => {
     padding: 0 !important;
     font-size: 18px;
     font-weight: 500;
-    /* 关键点 4：强制行高同步 */
     line-height: var(--letter-line-height) !important;
     width: 100%;
     white-space: pre-wrap;
@@ -371,7 +449,6 @@ onUnmounted(() => {
     height: 20px;
     vertical-align: middle;
     margin-left: 2px;
-    /* 微调光标位置，使其也坐在线上 */
     margin-top: -4px;
     animation: blink 0.8s infinite;
 }

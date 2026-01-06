@@ -1,13 +1,13 @@
-import * as VueRouter from "vue-router";
+import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 
 const Home = () => import("@/page/Home.vue");
 const Letter = () => import("@/page/Letter.vue");
 const Birthday = () => import("@/page/Birthday.vue");
 
-const Questions = () => import("@/page/Questions.vue");
+const Questions = () => import("@/page/Questions/index.vue");
 const Bless = () => import("@/page/Bless.vue");
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   { path: "/", component: Home },
   { path: "/letter", component: Letter },
   { path: "/questions", component: Questions, meta: { title: '寻宝游戏' } },
@@ -18,16 +18,18 @@ const routes = [
     redirect: "/",
   },
 ];
-const router = VueRouter.createRouter({
-  history: VueRouter.createWebHistory(),
+
+const router = createRouter({
+  history: createWebHistory(),
   routes,
 });
+
 router.afterEach((to) => {
   // 1. 获取默认标题（从环境变量读取）
-  const defaultTitle = import.meta.env.VITE_SITE_NAME;
+  const defaultTitle = import.meta.env.VITE_SITE_NAME as string;
   
   // 2. 获取路由配置中的标题
-  const pageTitle = to.meta.title;
+  const pageTitle = to.meta.title as string | undefined;
 
   // 3. 设置最终标题
   // 逻辑：如果有配置页面标题，显示 "页面标题 - 站点名"；否则只显示 "站点名"
@@ -37,4 +39,5 @@ router.afterEach((to) => {
     document.title = defaultTitle;
   }
 });
+
 export default router;

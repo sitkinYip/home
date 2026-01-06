@@ -2,11 +2,11 @@
     <div class="letter">
         <!-- 加载 -->
         <!-- <LetterComponent :paragraphs="myLetterContent" :speed="100" :images="bgImages" /> -->
-        <!-- <LetterComponent :paragraphs="myLetterContent" styleType="modern" :speed="100" :images="bgImages" /> -->
+        <LetterComponent :paragraphs="myLetterContent" styleType="modern" :speed="100" :images="bgImages" />
         <AncientEnvelope :paragraphs="myAcLetterContent" :speed="100" :images="bgImages" />
     </div>
 </template>
-<script setup>
+<script setup lang="ts">
 import AncientEnvelope from '../components/AncientEnvelope/AncientEnvelope.vue';
 import LetterComponent from '../components/LetterComponent/LetterComponent.vue';
 const myLetterContent = [
