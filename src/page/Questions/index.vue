@@ -171,6 +171,7 @@
           </div>
         </div>
       </transition>
+      <VictoryAura ref="victoryAuraRef" />
     </div>
   </div>
 
@@ -181,7 +182,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount, computed, nextTick } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import { Lock, QuestionFilled, MagicStick, CircleClose } from "@element-plus/icons-vue";
 import gsap from "gsap";
@@ -197,9 +198,8 @@ import {
 import { fetchLevels } from "@/server/qa";
 import { LevelRecord } from "@/types/qa";
 import VideoPlayer from "@/components/VideoPlayer.vue";
-
-const scriptId = "unique-script-id";
-const scriptUrl = "https://cdn.jsdelivr.net/gh/Ukenn2112/UkennWeb@3.0/index/web.js";
+import VictoryAura from "./components/VictoryAura.vue"; // 路径根据你存放的位置调整
+const victoryAuraRef = ref<any>(null);
 
 const videoPlayerRef = ref<any>(null);
 const userInput = ref("");
@@ -258,7 +258,7 @@ const talk = (msg: string, dur: number = 0): Promise<void> => {
 const onConfirmAnswer = async () => {
   if (isBinGo.value || !qaInfo.value) return;
   if (isError.value) return;
-  const { startTime, endTime } = qaInfo.value || {};
+  /* const { startTime, endTime } = qaInfo.value || {};
   if (startTime && !isTimeReached(startTime)) {
     ElMessage.error("冒险还未开始 请耐心等待~");
     return;
@@ -266,7 +266,7 @@ const onConfirmAnswer = async () => {
   if (endTime && isTimeReached(endTime)) {
     ElMessage.error("冒险已结束 请留意下一次探险公告~");
     return;
-  }
+  } */
 
   const ans = userInput.value.trim();
   const isCorrect = ans === qaInfo.value.answer || checkAnswer(ans, qaInfo.value.answer);
@@ -325,7 +325,7 @@ const handleSuccess = async () => {
 
   if (currentStep === allLevels.value.length) {
     await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
-    loadScript();
+    victoryAuraRef.value?.startEffect(); // 启动终极特效
   } else {
     await talk("契约达成！真理已现。", 1000);
   }
@@ -338,24 +338,11 @@ const reportAction = (content: string, title: string) => {
   ).catch((e) => console.error("Report failed", e));
 };
 
-const loadScript = () => {
-  if (document.getElementById(scriptId)) return;
-  const script = document.createElement("script");
-  script.id = scriptId;
-  script.src = scriptUrl;
-  script.async = true;
-  document.body.appendChild(script);
-};
-
 const openVideo = (url: string) => videoPlayerRef.value?.open(url);
 const openPage = (url?: string) => url && window.open(url);
 const handleHeaderClick = () => HeaderClickCounter();
 
 onMounted(initData);
-onBeforeUnmount(() => {
-  const script = document.getElementById(scriptId);
-  if (script) script.remove();
-});
 </script>
 
 <style lang="scss" scoped>
