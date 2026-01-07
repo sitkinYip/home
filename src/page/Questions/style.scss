@@ -1,164 +1,380 @@
-.questions-box {
+// 魔法主题色
+$magic-gold: #ffd700;
+$magic-purple: rgb(138, 43, 226);
+$magic-red: #ff4757;
+$magic-green: #2ecc71;
+$glass-bg: rgba(255, 255, 255, 0.1);
+$glass-border: rgba(255, 255, 255, 0.2);
+
+.adventure-container {
     width: 100vw;
     height: 100vh;
-    overflow-y: auto;
+    position: relative;
     overflow-x: hidden;
-    background-color: #ffffff;
-    box-sizing: border-box;
-    padding: 0 26vpx;
-    padding-top: 24vpx;
+    overflow-y: auto;
+    color: #fff;
+    background: #0a0e14;
 
-    .lock_icon {
-        *,
-        a,
-        p {
-            color: #999;
-        }
+    .magic-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1000")
+            center/cover;
+        z-index: 0;
+        filter: brightness(0.3) saturate(1.2);
     }
 
-    .qares {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+        z-index: 1;
+    }
+
+    .quest-wrapper {
         position: relative;
+        z-index: 2;
+        padding: 30vpx 24vpx;
+        padding-bottom: 12vpx;
         box-sizing: border-box;
-        padding: 24vpx;
-        width: 342vpx;
-        min-height: 200vpx;
-        border-radius: 10vpx;
-        background-color: #f9f6f2;
-        margin-bottom: 40vpx;
+    }
+}
 
-        .as_content {
-            span {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #9ca3af;
-                text-align: center;
-            }
+// 基础毛玻璃面板
+.magic-panel {
+    background: $glass-bg;
+    backdrop-filter: blur(20vpx);
+    -webkit-backdrop-filter: blur(20vpx);
+    border: 1vpx solid $glass-border;
+    border-radius: 20vpx;
+    box-shadow: 0 8vpx 32vpx 0 rgba(0, 0, 0, 0.3);
+    margin-bottom: 24vpx;
+    padding: 24vpx;
+    transition:
+        border-color 0.4s,
+        box-shadow 0.4s;
+}
 
-            .as_item {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding-bottom: 12vpx;
+// 英雄头部样式
+.hero-header {
+    display: flex;
+    align-items: center;
+    gap: 16vpx;
+    margin-bottom: 32vpx;
 
-                p {
-                    color: #9ca3af;
-                }
-            }
+    .hero-avatar-wrap {
+        position: relative;
+        width: 60vpx;
+        height: 60vpx;
+
+        .avatar-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: $magic-gold;
+            border-radius: 50%;
+            filter: blur(12vpx);
+            opacity: 0.4;
+            animation: pulse 2s infinite;
         }
 
-        .emp {
+        .avatar-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2vpx solid $magic-gold;
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            .icon_emp {
-                width: 35vpx;
-                height: 35vpx;
-                background-image: url("../assets/h36.png");
-                background-size: 100%;
-            }
-
-            .text {
-                padding-top: 20vpx;
-                text-align: center;
-                font-size: 16vpx;
-                color: #999999;
-            }
         }
     }
 
-    // padding-top: 68vpx;
-    .ask {
-        position: relative;
-        box-sizing: border-box;
-        padding: 24vpx;
-        width: 342vpx;
-        min-height: 200vpx;
-        border-radius: 10vpx;
-        background-color: #f8f8f8;
-
-        .icon_box {
-            width: 21vpx;
-            height: 24vpx;
-            background-image: url("../assets/suo.png");
-            background-size: 100%;
-        }
-
-        .q_title {
-            box-sizing: border-box;
-            padding: 12vpx 0;
-            color: #999999;
-            font-size: 17vpx;
-        }
-
-        .qa_content_text {
-            box-sizing: border-box;
-            color: #2c2c2c;
-            font-size: 16vpx;
-
-            div {
-                display: flex;
-                align-items: center;
-                color: #2c2c2c;
-                padding-bottom: 12vpx;
-
-                *,
-                a,
-                p {
-                    color: #999999;
-                }
-
-                .tips {
-                    padding: 0;
-                    display: flex;
-                    align-items: center;
-                    padding-left: 6vpx;
-                }
-            }
-        }
+    .hero-name {
+        font-size: 20vpx;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2vpx 8vpx rgba(0, 0, 0, 0.8);
     }
 
-    .yuan {
+    .level-badge {
+        font-size: 11vpx;
+        color: $magic-gold;
+        letter-spacing: 1.5vpx;
+        background: rgba(255, 215, 0, 0.15);
+        padding: 2vpx 8vpx;
+        border-radius: 4vpx;
+        margin-top: 4vpx;
+        display: inline-block;
+    }
+}
+
+// 任务面板装饰
+.quest-card {
+    .q_title_row {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 128vpx;
-        height: 128vpx;
-        border-radius: 50%;
-        border: solid 2vpx rgba(0, 0, 0, 0.1);
+        gap: 12vpx;
+        margin-bottom: 20vpx;
 
-        .min {
-            width: 64vpx;
-            height: 64vpx;
+        .ornament {
+            height: 1vpx;
+            flex: 1;
+            background: linear-gradient(to right, transparent, $glass-border, transparent);
+        }
+        .title_text {
+            font-size: 13vpx;
+            text-transform: uppercase;
+            letter-spacing: 2vpx;
+            color: #aaa;
         }
     }
 
-    .yuan_wz {
-        position: absolute;
-        right: 2vpx;
-        top: 2vpx;
-    }
+    .qa_content_text {
+        font-size: 17vpx;
+        margin-bottom: 24vpx;
+        line-height: 1;
+        .question-item {
+            display: flex;
+            align-items: center;
+        }
 
-    .qa_input_box {
-        padding: 28vpx 0;
+        .text-glow {
+            display: flex;
+            align-items: center;
 
-        .qa_input {
-            height: 56vpx;
+            padding-top: 6vpx;
+            padding-bottom: 6vpx;
+            padding-right: 5vpx;
+            text-shadow: 0 0 10vpx rgba(255, 255, 255, 0.2);
+        }
+
+        .image-container {
+            margin: 16vpx 0;
+            border-radius: 12vpx;
+            overflow: hidden;
+            border: 1vpx solid rgba(255, 255, 255, 0.1);
+            .quest-img {
+                width: 100%;
+                display: block;
+            }
         }
     }
+}
 
-    .btn_box {
-        padding-bottom: 30vpx;
+// 交互区域：输入框与按钮
+.interaction-zone {
+    .input-wrapper {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1vpx solid $glass-border;
+        border-radius: 12vpx;
+        transition: all 0.3s ease;
+        margin-bottom: 16vpx;
 
-        .btn {
+        &.is-focus {
+            border-color: $magic-gold;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 15vpx rgba($magic-gold, 0.2);
+        }
+        &.is-error {
+            border-color: $magic-red !important;
+            box-shadow: 0 0 15vpx rgba($magic-red, 0.3);
+        }
+
+        .magic-input {
             width: 100%;
-            height: 56vpx;
-            font-size: 20vpx;
+            background: transparent;
+            border: none;
+            padding: 16vpx;
+            color: #fff;
+            font-size: 16vpx;
+            outline: none;
+            box-sizing: border-box;
+            &::placeholder {
+                color: rgba(255, 255, 255, 0.3);
+            }
         }
     }
+
+    .magic-btn {
+        width: 100%;
+        padding: 16vpx;
+        border-radius: 12vpx;
+        border: none;
+        background: linear-gradient(135deg, $magic-purple 0%, #4834d4 100%);
+        color: #fff;
+        font-weight: bold;
+        font-size: 18vpx;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        &:active {
+            transform: scale(0.96);
+        }
+
+        &.btn-success {
+            background: linear-gradient(135deg, $magic-green 0%, #27ae60 100%) !important;
+        }
+
+        &.btn-error {
+            background: linear-gradient(135deg, $magic-red 0%, #c0392b 100%) !important;
+            box-shadow: 0 0 20vpx rgba($magic-red, 0.4);
+            transform: scale(0.98);
+        }
+
+        .btn-flare {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: skewX(-25deg);
+            animation: flare 4s infinite;
+        }
+    }
+}
+
+// 错误反馈动画：抖动
+@keyframes magic-shake {
+    0%,
+    100% {
+        transform: translateX(0) rotate(0);
+    }
+    15% {
+        transform: translateX(-10vpx) rotate(-1deg);
+    }
+    30% {
+        transform: translateX(10vpx) rotate(1deg);
+    }
+    45% {
+        transform: translateX(-10vpx) rotate(-1deg);
+    }
+    60% {
+        transform: translateX(10vpx) rotate(1deg);
+    }
+    75% {
+        transform: translateX(-5vpx) rotate(-0.5deg);
+    }
+    90% {
+        transform: translateX(5vpx) rotate(0.5deg);
+    }
+}
+
+.shake-animation {
+    // forwards 保证动画结束后状态（如果需要）
+    animation: magic-shake 1.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    border-color: rgba($magic-red, 0.6) !important;
+    // 增加一个淡红色的发光
+    box-shadow: 0 0 30vpx rgba($magic-red, 0.2);
+}
+
+// 线索卡片
+.clue-card {
+    padding: 20vpx;
+    margin-bottom: 12vpx;
+    border: 1vpx solid rgba($magic-green, 0.4);
+
+    .clue-header {
+        text-align: center;
+        color: $magic-green;
+        font-weight: bold;
+        margin-bottom: 12vpx;
+        font-size: 14vpx;
+    }
+
+    .clue-text {
+        display: block;
+        text-align: center;
+        color: #ddd;
+        font-style: italic;
+        margin-bottom: 12vpx;
+    }
+
+    .clue-btn {
+        width: 100%;
+        height: 48vpx;
+        margin: 8vpx 0;
+        font-size: 15vpx;
+    }
+}
+
+// 通用动画
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+}
+
+@keyframes flare {
+    0% {
+        left: -100%;
+    }
+    20% {
+        left: 150%;
+    }
+    100% {
+        left: 150%;
+    }
+}
+
+.icon-pulse {
+    animation: pulse 2s infinite;
+    color: $magic-gold;
+}
+
+// Loading 状态
+.loading-screen {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #0a0e14;
+    color: $magic-gold;
+
+    .loader-spell {
+        width: 44vpx;
+        height: 44vpx;
+        border: 3vpx solid rgba($magic-gold, 0.1);
+        border-top-color: $magic-gold;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16vpx;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Vue 过渡动画
+.scroll-reveal-enter-active {
+    transition: all 0.8s ease-out;
+}
+.scroll-reveal-enter-from {
+    opacity: 0;
+    transform: translateY(30vpx);
 }

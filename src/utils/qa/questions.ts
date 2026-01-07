@@ -9,6 +9,7 @@ export function isTimeReached(targetDate: ConfigType) {
   return now.valueOf() >= processedDate.valueOf();
 }
 
+
 export function getQueryParam(param: string, url?: string) {
   try {
     const searchParams = url

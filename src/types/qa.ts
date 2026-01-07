@@ -33,6 +33,8 @@ export interface LevelRecord {
     collectionName: string;
     created: string;
     updated: string;
+    startTime?: string;
+    endTime?: string;
 }
 
 /**
