@@ -16,7 +16,9 @@
             <div class="avatar-frame"></div>
             <el-image :src="qaInfo.avatar || '默认头像地址'" class="user-avatar" fit="cover">
               <template #error>
-                <div class="avatar-placeholder">{{ `${currentUserDisplay?.[0] ?? "旅"}` }}</div>
+                <div class="avatar-placeholder">
+                  {{ `${currentUserDisplay?.at?.(-1) ?? "旅"}` }}
+                </div>
               </template>
             </el-image>
           </div>
@@ -24,7 +26,9 @@
           <!-- 英雄信息 -->
           <div class="hero-info">
             <h2 class="hero-name">{{ currentUserDisplay }}</h2>
-            <div class="level-badge">RANK: {{ currentStep }} · 探索者</div>
+            <div class="level-badge">
+              RANK: {{ currentStep }} · {{ qaInfo?.rankName || "探索者" }}
+            </div>
           </div>
         </div>
 
@@ -80,7 +84,7 @@
                 title="魔法提示"
                 class="tips-pop"
                 :content="item.tips"
-                trigger="hover"
+                trigger="click"
                 placement="top"
               >
                 <template #reference>
@@ -95,7 +99,11 @@
 
         <!-- 答题输入区 -->
         <div class="interaction-zone">
-          <div class="input-wrapper" :class="{ 'is-focus': isInputFocus, 'is-error': isError }">
+          <div
+            class="input-wrapper"
+            :class="{ 'is-focus': isInputFocus, 'is-error': isError }"
+            :style="{ '--power': `${inputMagicPower}px` }"
+          >
             <input
               v-model="userInput"
               class="magic-input"
@@ -104,6 +112,8 @@
               @blur="isInputFocus = false"
               @keyup.enter="onConfirmAnswer"
             />
+            <!-- 增加一个魔力进度条，非常细微，在输入框底部 -->
+            <div class="magic-progress" :style="{ width: `${inputMagicPower}%` }"></div>
           </div>
           <button
             @click="onConfirmAnswer"
@@ -120,53 +130,35 @@
           </button>
         </div>
       </main>
-
+      <MagicScroll ref="magicScrollRef" />
       <!-- 线索展示（答对后呈现） -->
       <transition name="scroll-reveal">
         <div class="magic-panel clue-card" v-show="isBinGo">
-          <div class="clue-header">获取的神谕线索</div>
+          <div class="clue-header">
+            <span class="header-ornament"></span>
+            获取的神谕线索
+            <span class="header-ornament"></span>
+          </div>
+
           <div class="as_content">
-            <div class="as_item" v-for="(item, index) in qaInfo.thread" :key="index">
-              <span v-if="item.type === 'text'" class="clue-text">{{ item.content }}</span>
+            <div v-for="(item, index) in qaInfo.thread" :key="index" class="as_item_wrapper">
+              <!-- 使用新组件 ClueArtifact -->
+              <ClueArtifact
+                :type="item.type"
+                :content="item.content"
+                @action="handleArtifactAction(item)"
+                :path="item.path"
+                :query="item.query"
+              />
 
-              <el-button
-                v-if="item.type === 'url'"
-                @click="openPage(item.url)"
-                class="clue-btn portal"
-                type="primary"
-                round
-              >
-                传送门: {{ item.content }}
-              </el-button>
-
-              <div class="img_view" v-if="item.type === 'img'">
-                <template v-if="item.content">
-                  <el-button @click="showPreview = true" type="success" class="clue-btn" round>
-                    查看密卷: {{ item.content }}
-                  </el-button>
-                  <el-image-viewer
-                    v-if="showPreview"
-                    :url-list="item.imgList || [item.url!]"
-                    @close="showPreview = false"
-                  />
-                </template>
+              <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->
+              <div class="direct-img-view" v-if="item.type === 'img' && !item.content">
                 <el-image
-                  v-else
                   :src="item.url"
-                  :preview-src-list="item.imgList || [item.url!]"
                   class="clue-img"
+                  @click="previewImage(item.imgList || [item.url!])"
                 />
               </div>
-
-              <el-button
-                v-if="item.type === 'video'"
-                type="warning"
-                @click="openVideo(item.url!)"
-                class="clue-btn"
-                round
-              >
-                回溯影像: {{ item.content }}
-              </el-button>
             </div>
           </div>
         </div>
@@ -205,13 +197,16 @@ import { LevelRecord } from "@/types/qa";
 import VideoPlayer from "@/components/VideoPlayer.vue";
 import VictoryAura from "./components/VictoryAura.vue"; // 路径根据你存放的位置调整
 import AdventurePortal from "./components/AdventurePortal.vue";
+import ClueArtifact from "./components/ClueArtifact.vue";
+import { showImagePreview } from "vant";
+import MagicScroll from "./components/MagicScroll.vue";
+
+const magicScrollRef = ref<any>(null);
 const isDebug = getQueryParam("debug")?.[0] === "1";
 const victoryAuraRef = ref<any>(null);
-
 const videoPlayerRef = ref<any>(null);
 const userInput = ref("");
 const isBinGo = ref(false);
-const showPreview = ref(false);
 const isInputFocus = ref(false);
 const isError = ref(false); // 错误视觉状态
 const allLevels = ref<LevelRecord[]>([]);
@@ -223,6 +218,7 @@ const userId = getQueryParam("user")?.[0] || "";
 const userName = ref("旅行者");
 
 const currentUserDisplay = computed(() => `${userName.value}`);
+const cacheKey = computed(() => `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`);
 
 const initData = async () => {
   const levels = await fetchLevels();
@@ -245,10 +241,43 @@ const initData = async () => {
     ElMessage.error("未找到关卡信息");
   }
 };
+/**
+ * 统一处理遗物点击动作
+ */
+const handleArtifactAction = (item: any) => {
+  switch (item.type) {
+    case "url":
+      openPage(item.url);
+      break;
+    case "img":
+      // 使用 Vant 的 ImagePreview，支持双指缩放、左右滑动、手势关闭
+      showImagePreview({
+        images: item.imgList || [item.url!],
+        closeable: true,
+      });
+      break;
+    case "video":
+      openVideo(item.url!);
+      break;
+    case "text":
+      // 触发羊皮纸弹窗
+      magicScrollRef.value?.show(item.content);
+      break;
+  }
+};
+
+/**
+ * 直接点击图片的预览
+ */
+const previewImage = (images: string[]) => {
+  showImagePreview({
+    images: images,
+    closeable: true,
+  });
+};
 
 const checkPersistentProgress = () => {
-  const cacheKey = `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`;
-  const preData = JSON.parse(localStorage.getItem(cacheKey) || "{}");
+  const preData = JSON.parse(localStorage.getItem(cacheKey.value) || "{}");
   if (preData?.type === "bingo") {
     isBinGo.value = true;
     userInput.value = preData.input || "";
@@ -303,6 +332,11 @@ const triggerErrorEffect = () => {
   }, 20);
 };
 
+const inputMagicPower = computed(() => {
+  const length = userInput.value.length;
+  return Math.min(length * 5, 100); // 最大 100%
+});
+
 const handleSuccess = async () => {
   if (!qaInfo.value) return;
 
@@ -314,7 +348,7 @@ const handleSuccess = async () => {
   });
 
   localStorage.setItem(
-    `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`,
+    cacheKey.value,
     JSON.stringify({
       type: "bingo",
       date: Date.now(),
@@ -350,8 +384,7 @@ const reportAction = (content: string, title: string) => {
 const openVideo = (url: string) => videoPlayerRef.value?.open(url);
 const openPage = (url?: string) => url && window.open(url);
 const handleHeaderClick = () => {
-  const cacheKey = `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`;
-  HeaderClickCounter(cacheKey);
+  HeaderClickCounter(cacheKey.value);
 };
 
 onMounted(initData);

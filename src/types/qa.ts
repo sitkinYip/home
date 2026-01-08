@@ -11,11 +11,13 @@ export interface QuestionItem {
  * 线索条目类型
  */
 export interface ThreadItem {
-  type: "text" | "url" | "img" | "video";
+  type: "text" | "url" | "img" | "video" | "letter";
   content: string;
   url?: string;
   imgList?: string[];
   state?: string; // 比如 'ckickplay' 表示点击播放
+  path?: string;
+  query?: Record<string, string>;
 }
 
 /**
@@ -36,6 +38,7 @@ export interface LevelRecord {
   startTime?: string;
   endTime?: string;
   avatar?: string;
+  rankName?: string;
 }
 
 /**

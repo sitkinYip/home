@@ -27,6 +27,7 @@
     "pocketbase": "^0.26.5",
     "sakura-js": "^1.1.1",
     "swiper": "^11.1.1",
+    "vant": "^4.9.22",
     "vue": "^3.4.24",
     "vue-router": "4"
   },

@@ -119,6 +119,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+$magic-gold: #ffd700;
 $gold: #ffd700;
 $gray: #7f8c8d;
 $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Ccircle cx='256' cy='256' r='250' stroke-opacity='0.2'/%3E%3Ccircle cx='256' cy='256' r='200' stroke-dasharray='10 5'/%3E%3Cpath d='M256 40 L440 350 L72 350 Z' stroke-opacity='0.4'/%3E%3Ccircle cx='256' cy='256' r='100'/%3E%3C/g%3E%3C/svg%3E";
@@ -132,6 +133,23 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
   justify-content: center;
   backdrop-filter: blur(20vpx);
   background: rgba(0, 0, 0, 0.85);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 100vpx rgba($magic-gold, 0.1);
+    animation: portal-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes portal-pulse {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
 
   // 未开始状态：金光闪烁
   &.pre_start {

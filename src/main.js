@@ -5,7 +5,8 @@ import router from "@/routes";
 // 引入 pinia
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import "vant/lib/index.css";
 // swiper
 import "swiper/css";
 
@@ -14,11 +15,11 @@ const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 app.use(pinia);
-app.use(router)
+app.use(router);
 app.mount("#app");
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
+  app.component(key, component);
 }
 
 // PWA

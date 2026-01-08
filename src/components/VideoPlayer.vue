@@ -1,145 +1,160 @@
 <template>
-  <!-- 模板部分保持不变 -->
-  <el-dialog
-    v-model="dialogVisible"
-    :show-close="false"
-    width="90%"
-    :close-on-click-modal="true"
-    class="video-dialog"
-    @close="handleClose"
-  >
-    <div class="video-container">
-      <video
-        ref="videoPlayer"
-        :src="videoUrl"
-        controls
-        class="video-element"
-        playsinline
-        webkit-playsinline
-      ></video>
-      <el-icon class="close-btn" @click="dialogVisible = false">
-        <Close />
-      </el-icon>
+  <transition name="video-fade">
+    <div v-if="dialogVisible" class="magic-video-overlay" @click.self="dialogVisible = false">
+      <div class="video-portal">
+        <!-- 魔法边框装饰 -->
+        <div class="video-frame-border"></div>
+
+        <div class="video-wrapper">
+          <video
+            ref="videoPlayer"
+            :src="videoUrl"
+            controls
+            class="video-element"
+            playsinline
+            webkit-playsinline
+            autoplay
+          ></video>
+
+          <!-- 魔法关闭按钮 -->
+          <div class="magic-close-btn" @click="dialogVisible = false">
+            <el-icon><Close /></el-icon>
+          </div>
+        </div>
+      </div>
     </div>
-  </el-dialog>
+  </transition>
 </template>
 
-<script>
-import { ref, watch, nextTick } from 'vue'
-import { ElDialog, ElIcon } from 'element-plus'
-import { Close } from '@element-plus/icons-vue'
+<script setup lang="ts">
+import { ref, watch, nextTick } from "vue";
+import { Close } from "@element-plus/icons-vue";
 
-export default {
-  components: { ElDialog, ElIcon, Close },
-  setup() {
-    const dialogVisible = ref(false)
-    const videoUrl = ref('')
-    const videoPlayer = ref(null)
+const dialogVisible = ref(false);
+const videoUrl = ref("");
+const videoPlayer = ref<HTMLVideoElement | null>(null);
 
-    // 新增处理视频结束的函数
-    const handleVideoEnded = () => {
-      dialogVisible.value = false
-    }
+const handleVideoEnded = () => {
+  dialogVisible.value = false;
+};
 
-    const open = (url) => {
-      videoUrl.value = url
-      dialogVisible.value = true
-    }
+const open = (url: string) => {
+  videoUrl.value = url;
+  dialogVisible.value = true;
+};
 
-    const handleClose = () => {
-      if (videoPlayer.value) {
-        videoPlayer.value.pause()
-        videoPlayer.value.currentTime = 0
-      }
-    }
-
-    watch(dialogVisible, async (val) => {
-      if (val) {
-        await nextTick()
-        if (videoPlayer.value) {
-          // 先移除旧的监听器避免重复
-          videoPlayer.value.removeEventListener('ended', handleVideoEnded)
-          // 添加新的结束事件监听
-          videoPlayer.value.addEventListener('ended', handleVideoEnded)
-          
-          // 处理自动播放
-          videoPlayer.value.play().catch(() => {
-            // 自动播放失败处理（保持不变）
-          })
-        }
-      }
-    })
-
-    return {
-      dialogVisible,
-      videoUrl,
-      videoPlayer,
-      open,
-      handleClose
-    }
+const handleClose = () => {
+  if (videoPlayer.value) {
+    videoPlayer.value.pause();
+    videoPlayer.value.currentTime = 0;
   }
-}
+};
+
+watch(dialogVisible, async (val) => {
+  if (val) {
+    await nextTick();
+    if (videoPlayer.value) {
+      videoPlayer.value.removeEventListener("ended", handleVideoEnded);
+      videoPlayer.value.addEventListener("ended", handleVideoEnded);
+      videoPlayer.value.play().catch(() => {
+        console.log("Autoplay blocked, waiting for user interaction");
+      });
+    }
+  } else {
+    handleClose();
+  }
+});
+
+// 关键：暴露 open 方法给父组件，保持原有逻辑不坏
+defineExpose({ open });
 </script>
 
-<!-- 样式部分保持不变 -->
-
-<style lang="scss">
-.video-dialog {
-  &.el-dialog {
-    padding: 0;
-    background-color: transparent;
-  }
+<style lang="scss" scoped>
+.magic-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001; // 高于 AdventurePortal 和 VictoryAura
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15vpx);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.video-container {
+.video-portal {
   position: relative;
-  width: 100%;
-  max-width: 100vw;
-  max-height: 80vh;
+  width: 90vw;
+  max-width: 600vpx;
+  animation: portal-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.video-element {
-  width: 100%;
-  height: auto;
-  max-height: 80vh;
-  border-radius: 8px;
-  overflow: hidden;
-}
-/* 隐藏原生控件 */
-.video-element::-webkit-media-controls-overlay-play-button,
-.video-element::-webkit-media-controls-seek-back-button,
-.video-element::-webkit-media-controls-seek-forward-button {
-  display: none !important;
-}
-
-.close-btn {
+.video-frame-border {
   position: absolute;
-  top: -40px;
-  right: -10px;
-  font-size: 24px;
+  inset: -2vpx;
+  border: 1vpx solid rgba(255, 215, 0, 0.5);
+  border-radius: 12vpx;
+  box-shadow: 0 0 20vpx rgba(255, 215, 0, 0.3);
+  pointer-events: none;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -8vpx;
+    border: 1vpx dashed rgba(255, 215, 0, 0.2);
+    border-radius: 16vpx;
+  }
+}
+
+.video-wrapper {
+  position: relative;
+  border-radius: 10vpx;
+  overflow: hidden;
+  background: #000;
+
+  .video-element {
+    width: 100%;
+    display: block;
+    // 隐藏不必要的控件或美化
+    &::-webkit-media-controls-enclosure {
+      border-radius: 0;
+    }
+  }
+}
+
+.magic-close-btn {
+  position: absolute;
+  top: 10vpx;
+  right: 10vpx;
+  width: 32vpx;
+  height: 32vpx;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1vpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  padding: 4px;
+  z-index: 10;
 }
 
-@media (orientation: portrait) {
-  /* 竖屏样式 */
-  .video-container {
-    width: 90vw;
-    height: calc(90vw * 9 / 16);
+@keyframes portal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20vpx);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-@media (orientation: landscape) {
-  /* 横屏样式 */
-  .video-container {
-    width: calc(90vh * 16 / 9);
-    height: 90vh;
-  }
+.video-fade-enter-active,
+.video-fade-leave-active {
+  transition: all 0.4s;
+}
+.video-fade-enter-from,
+.video-fade-leave-to {
+  opacity: 0;
+  filter: blur(20vpx);
 }
 </style>
