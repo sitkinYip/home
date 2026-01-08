@@ -11,7 +11,7 @@
 
           <!-- 中心图标 -->
           <div class="gate-center">
-            <el-icon :size="'60vpx'">
+            <el-icon :size="'60px'">
               <Lock v-if="portalState === 'PRE_START'" />
               <CircleClose v-else />
             </el-icon>
