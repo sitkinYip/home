@@ -9,7 +9,6 @@ export function isTimeReached(targetDate: ConfigType) {
   return now.valueOf() >= processedDate.valueOf();
 }
 
-
 export function getQueryParam(param: string, url?: string) {
   try {
     const searchParams = url
@@ -49,7 +48,6 @@ export function checkAnswer(answer: string, correctAnswer: string) {
     return false; // 异常时返回错误
   }
 }
-
 
 export const getQaInfo = async (): Promise<any[]> => {
   try {
@@ -116,19 +114,19 @@ function filterSpecialChars(str: string) {
   return str.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/gu, "");
 }
 
-export function clickCounter(callback: () => void, threshold: number) {
+export function clickCounter<T extends any[]>(callback: (...args: T) => void, threshold: number) {
   let clickCount = 0; // 记录点击次数
   let timeout: any; // 定时器变量
 
   // 绑定点击事件的处理函数
-  function handleClick() {
+  function handleClick(...args: T) {
     clearTimeout(timeout); // 清除之前的定时器
 
     clickCount++; // 每次点击增加计数
 
     if (clickCount === threshold) {
       // 当点击次数达到阈值时触发回调函数
-      callback();
+      callback(...args);
 
       // 重置点击计数
       clickCount = 0;
@@ -143,11 +141,10 @@ export function clickCounter(callback: () => void, threshold: number) {
   return handleClick;
 }
 
-const eventHandler = () => {
-  const userId = getQueryParam("user")?.[0] || "";
-  const qaIndex = getQueryParam("qa")?.[0] || "1";
-  localStorage.removeItem("qaIndex" + qaIndex + userId);
-  alert("缓存已清空");
+const eventHandler = (cacheKey: string) => {
+  localStorage.removeItem(cacheKey);
+  console.log("缓存已清空");
+  ElMessage.success("缓存已清空");
 };
 
 export const HeaderClickCounter = clickCounter(eventHandler, 5);

@@ -16,7 +16,7 @@
             <div class="avatar-frame"></div>
             <el-image :src="qaInfo.avatar || '默认头像地址'" class="user-avatar" fit="cover">
               <template #error>
-                <div class="avatar-placeholder">旅</div>
+                <div class="avatar-placeholder">{{ `${currentUserDisplay?.[0] ?? "旅"}` }}</div>
               </template>
             </el-image>
           </div>
@@ -171,7 +171,12 @@
           </div>
         </div>
       </transition>
-      <VictoryAura ref="victoryAuraRef" />
+      <AdventurePortal
+        v-show="!isDebug"
+        :start-time="qaInfo.startTime"
+        :end-time="qaInfo.endTime"
+      />
+      <VictoryAura ref="victoryAuraRef" @close="handleVictoryClose" />
     </div>
   </div>
 
@@ -199,6 +204,8 @@ import { fetchLevels } from "@/server/qa";
 import { LevelRecord } from "@/types/qa";
 import VideoPlayer from "@/components/VideoPlayer.vue";
 import VictoryAura from "./components/VictoryAura.vue"; // 路径根据你存放的位置调整
+import AdventurePortal from "./components/AdventurePortal.vue";
+const isDebug = getQueryParam("debug")?.[0] === "1";
 const victoryAuraRef = ref<any>(null);
 
 const videoPlayerRef = ref<any>(null);
@@ -258,15 +265,17 @@ const talk = (msg: string, dur: number = 0): Promise<void> => {
 const onConfirmAnswer = async () => {
   if (isBinGo.value || !qaInfo.value) return;
   if (isError.value) return;
-  /* const { startTime, endTime } = qaInfo.value || {};
-  if (startTime && !isTimeReached(startTime)) {
-    ElMessage.error("冒险还未开始 请耐心等待~");
-    return;
+  if (!isDebug) {
+    const { startTime, endTime } = qaInfo.value || {};
+    if (startTime && !isTimeReached(startTime)) {
+      ElMessage.error("冒险还未开始 请耐心等待~");
+      return;
+    }
+    if (endTime && isTimeReached(endTime)) {
+      ElMessage.error("冒险已结束 请留意下一次探险公告~");
+      return;
+    }
   }
-  if (endTime && isTimeReached(endTime)) {
-    ElMessage.error("冒险已结束 请留意下一次探险公告~");
-    return;
-  } */
 
   const ans = userInput.value.trim();
   const isCorrect = ans === qaInfo.value.answer || checkAnswer(ans, qaInfo.value.answer);
@@ -340,9 +349,20 @@ const reportAction = (content: string, title: string) => {
 
 const openVideo = (url: string) => videoPlayerRef.value?.open(url);
 const openPage = (url?: string) => url && window.open(url);
-const handleHeaderClick = () => HeaderClickCounter();
+const handleHeaderClick = () => {
+  const cacheKey = `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`;
+  HeaderClickCounter(cacheKey);
+};
 
 onMounted(initData);
+
+const handleVictoryClose = () => {
+  console.log("英雄回到了主世界");
+  // 这里可以写：
+  // 1. window.location.href = '/' (跳转回首页)
+  // 2. ElMessage.success("感谢你的参与，冒险者！")
+  // 3. 开启下一阶段的彩蛋逻辑
+};
 </script>
 
 <style lang="scss" scoped>
