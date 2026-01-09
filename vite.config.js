@@ -8,6 +8,7 @@ import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import viteCompression from "vite-plugin-compression";
 import pxtoviewport from "postcss-px-to-viewport";
+import mobileForever from "postcss-mobile-forever";
 import { createHtmlPlugin } from "vite-plugin-html";
 
 // https://vitejs.dev/config/
@@ -18,7 +19,12 @@ export default ({ mode }) => {
     plugins: [
       vue(),
       AutoImport({
-        imports: ["vue"],
+        imports: [
+          "vue",
+          {
+            "@/utils/toVpx": ["toVpx"],
+          },
+        ],
         resolvers: [ElementPlusResolver()],
       }),
       Components({
@@ -123,6 +129,10 @@ export default ({ mode }) => {
     css: {
       postcss: {
         plugins: [
+          mobileForever({
+            appSelector: "#app", // 页面最外层选择器，例如“#app”，用于设置在桌面端和移动端横屏时的居中样式
+            maxDisplayWidth: 480, // 限制视口单位的最大宽度
+          }),
           pxtoviewport({
             unitToConvert: "vpx", // 要转换的单位
             viewportWidth: 390, // 设计稿的视口宽度（按你的设计稿尺寸设置）

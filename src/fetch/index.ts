@@ -1,5 +1,3 @@
-import { ElMessage } from "element-plus";
-
 interface RequestOptions extends RequestInit {
   retries?: number;
   retryDelay?: number;
@@ -67,7 +65,11 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
     if (showError) {
       const msg =
         error.name === "AbortError" ? "请求超时，请检查网络" : error.message || "网络请求失败";
-      ElMessage.error(msg);
+      ElMessage({
+        message: msg,
+        grouping: true,
+        type: "error",
+      });
     }
     console.error(`Final request failed to ${url} after ${retries} retries:`, error);
     throw error;

@@ -9,7 +9,7 @@
 
     <div class="artifact-inner">
       <div class="artifact-icon-wrap" :class="{ 'seal-icon': type === 'letter' }">
-        <el-icon :size="'24vpx'">
+        <el-icon :size="toVpx(24)">
           <Position v-if="type === 'url'" />
           <Picture v-else-if="type === 'img'" />
           <VideoPlay v-else-if="type === 'video'" />

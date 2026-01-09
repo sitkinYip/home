@@ -46,7 +46,7 @@
 
             <!-- 内部容器：增加 is-error-border -->
             <div class="status-inner" :class="{ 'is-error-border': isError }">
-              <el-icon :size="'24vpx'">
+              <el-icon :size="toVpx(24)">
                 <!-- 三态图标逻辑 -->
                 <CircleClose v-if="isError" color="#ff4757" />
                 <template v-else>

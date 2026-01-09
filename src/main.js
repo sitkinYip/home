@@ -10,9 +10,13 @@ import "vant/lib/index.css";
 // swiper
 import "swiper/css";
 
+import { toVpx } from "@/utils/toVpx";
+
 const app = createApp(App);
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
+
+app.config.globalProperties.toVpx = toVpx;
 
 app.use(pinia);
 app.use(router);
