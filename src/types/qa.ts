@@ -5,8 +5,8 @@ export interface QuestionItem {
   text?: string;
   tips?: string;
   img?: string;
+  video?: string;
 }
-
 /**
  * 线索条目类型
  */
@@ -15,10 +15,26 @@ export interface ThreadItem {
   content: string;
   url?: string;
   imgList?: string[];
-  state?: string; // 比如 'ckickplay' 表示点击播放
+  state?: "ckickplay" | string; // 比如 'ckickplay' 表示点击播放
   path?: string;
   query?: Record<string, string>;
 }
+
+export type QuestionItemList = QuestionItem[];
+export type ThreadItemList = ThreadItem[];
+
+export interface ParagraphConfig {
+  /** 段落文本内容 */
+  content: string;
+  /** 对齐方式：左、中、右  上 下*/
+  align?: "left" | "center" | "right" | "top" | "bottom";
+  /** 打字前的延迟时间 (ms) */
+  delay?: number;
+  /** 关联的音频地址 */
+  audio?: string;
+}
+
+export type ParagraphConfigList = ParagraphConfig[];
 
 /**
  * 关卡数据结构 (对应服务端 API 返回的单个 item)

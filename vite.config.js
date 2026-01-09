@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import { defineConfig, loadEnv } from "vite";
-import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+import { ElementPlusResolver, VantResolver } from "unplugin-vue-components/resolvers";
 import { resolve } from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import vue from "@vitejs/plugin-vue";
@@ -25,10 +25,10 @@ export default ({ mode }) => {
             "@/utils/toVpx": ["toVpx"],
           },
         ],
-        resolvers: [ElementPlusResolver()],
+        resolvers: [ElementPlusResolver(), VantResolver()],
       }),
       Components({
-        resolvers: [ElementPlusResolver()],
+        resolvers: [ElementPlusResolver(), VantResolver()],
       }),
       VitePWA({
         registerType: "autoUpdate",
@@ -129,10 +129,6 @@ export default ({ mode }) => {
     css: {
       postcss: {
         plugins: [
-          mobileForever({
-            appSelector: "#app", // 页面最外层选择器，例如“#app”，用于设置在桌面端和移动端横屏时的居中样式
-            maxDisplayWidth: 480, // 限制视口单位的最大宽度
-          }),
           pxtoviewport({
             unitToConvert: "vpx", // 要转换的单位
             viewportWidth: 390, // 设计稿的视口宽度（按你的设计稿尺寸设置）
@@ -149,6 +145,26 @@ export default ({ mode }) => {
             landscape: false, // 是否处理横屏情况
             landscapeUnit: "vw", // 横屏使用的单位
             landscapeWidth: 812, // 横屏视口宽度
+          }),
+          /* pxtoviewport({
+            unitToConvert: "px", // Vant 使用 px
+            viewportWidth: 375, // Vant 设计稿宽度
+            unitPrecision: 5,
+            propList: ["*"],
+            viewportUnit: "vw",
+            fontViewportUnit: "vw",
+            selectorBlackList: [],
+            minPixelValue: 1,
+            mediaQuery: false,
+            replace: true,
+            exclude: undefined,
+            include: [/node_modules\/vant/], // 仅针对 Vant
+            landscape: false,
+          }), */
+          mobileForever({
+            appSelector: "#Questions", // 页面最外层选择器，例如“#app”，用于设置在桌面端和移动端横屏时的居中样式
+            maxDisplayWidth: 480, // 限制视口单位的最大宽度
+            include: [/src\/page\/Questions/],
           }),
         ],
       },
