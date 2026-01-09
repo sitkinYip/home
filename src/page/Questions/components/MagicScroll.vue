@@ -1,23 +1,19 @@
 <!-- components/MagicScroll.vue -->
 <template>
   <transition name="scroll-unfold">
-    <!-- 点击遮罩层触发 handleClose -->
     <div v-if="visible" class="scroll-overlay" @click.self="handleClose">
       <div class="scroll-body">
-        <!-- 卷轴顶杆 -->
         <div class="scroll-rod top"></div>
 
         <div class="scroll-paper">
           <div class="scroll-content-wrap">
             <div class="scroll-title">神谕密卷</div>
-            <div class="scroll-text">{{ text }}</div>
+            <!-- 核心：渲染解析后的富文本 -->
+            <div class="scroll-text" v-html="parsedText"></div>
           </div>
-
-          <!-- 底部关闭按钮 -->
-          <div class="scroll-footer" @click="handleClose">收起卷轴</div>
+          <div class="scroll-footer" @click="handleClose">合上卷轴</div>
         </div>
 
-        <!-- 卷轴底杆 -->
         <div class="scroll-rod bottom"></div>
       </div>
     </div>
@@ -25,22 +21,28 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const visible = ref(false);
-const text = ref("");
+const rawText = ref("");
+
+// 解析文字：支持 [[文本]] 高亮和 \n 换行
+const parsedText = computed(() => {
+  if (!rawText.value) return "";
+  return rawText.value
+    .replace(/\n/g, "<br>")
+    .replace(/\[\[(.*?)\]\]/g, '<span class="scroll-highlight">$1</span>');
+});
 
 const show = (content: string) => {
-  text.value = content;
+  rawText.value = content;
   visible.value = true;
 };
 
 const handleClose = () => {
-  // 触发 transition 的 leave 动画
   visible.value = false;
 };
 
-// 暴露给父组件调用
 defineExpose({ show });
 </script>
 
@@ -55,7 +57,6 @@ defineExpose({ show });
   align-items: center;
   justify-content: center;
   padding: 40vpx;
-  // 确保整体淡入淡出
   transition: opacity 0.5s ease;
 }
 
@@ -82,34 +83,30 @@ defineExpose({ show });
   overflow-y: auto;
   border-left: 2vpx solid rgba(0, 0, 0, 0.05);
   border-right: 2vpx solid rgba(0, 0, 0, 0.05);
-  // 转换中心设为中间，收缩时向中心靠拢
   transform-origin: center;
   z-index: 1;
 
-  .scroll-content-wrap {
+  .scroll-text {
+    font-size: 16vpx;
+    line-height: 1.8;
     color: #3e2723;
     font-family: serif;
 
-    .scroll-title {
-      text-align: center;
-      font-weight: bold;
-      font-size: 19vpx;
-      margin-bottom: 20vpx;
-      border-bottom: 1vpx solid rgba(62, 39, 35, 0.2);
-      padding-bottom: 12vpx;
-      letter-spacing: 2vpx;
-    }
-
-    .scroll-text {
-      font-size: 16vpx;
-      line-height: 1.8;
-      white-space: pre-wrap;
+    // 解析后的高亮样式：红墨水手书
+    :deep(.scroll-highlight) {
+      color: #b71c1c; // 深红
+      font-weight: 900;
+      padding: 0 4vpx;
+      margin: 0 2vpx;
+      border-bottom: 2vpx wavy #d32f2f; // 手绘波浪线
+      background: rgba(211, 47, 47, 0.05);
+      border-radius: 4vpx;
     }
   }
 }
 
 .scroll-rod {
-  width: 104%; // 比纸稍宽一点，视觉更自然
+  width: 104%;
   height: 20vpx;
   background: linear-gradient(to right, #3e2723, #5d4037, #3e2723);
   border-radius: 10vpx;
@@ -123,58 +120,28 @@ defineExpose({ show });
   text-align: center;
   font-size: 13vpx;
   color: #8d6e63;
-  text-transform: uppercase;
-  letter-spacing: 1vpx;
+  text-decoration: underline;
   cursor: pointer;
-  font-weight: bold;
 }
 
-/* --- 核心动画逻辑 --- */
-
-// 进入和离开的活跃阶段
+/* 动画逻辑 */
 .scroll-unfold-enter-active,
 .scroll-unfold-leave-active {
   transition: opacity 0.5s ease;
-
-  .scroll-paper {
-    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-  }
-
-  .scroll-rod.top,
-  .scroll-rod.bottom {
+  .scroll-paper,
+  .scroll-rod {
     transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
   }
 }
-
-// 离开动画阶段的具体表现 (收起)
+.scroll-unfold-enter-from,
 .scroll-unfold-leave-to {
   opacity: 0;
-
-  .scroll-paper {
-    transform: scaleY(0); // 纸张高度向中心缩至0
-  }
-
-  .scroll-rod.top {
-    transform: translateY(110vpx); // 顶杆向下移
-  }
-
-  .scroll-rod.bottom {
-    transform: translateY(-110vpx); // 底杆向上移
-  }
-}
-
-// 进入动画的起始阶段 (拉开前)
-.scroll-unfold-enter-from {
-  opacity: 0;
-
   .scroll-paper {
     transform: scaleY(0);
   }
-
   .scroll-rod.top {
     transform: translateY(110vpx);
   }
-
   .scroll-rod.bottom {
     transform: translateY(-110vpx);
   }

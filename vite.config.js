@@ -7,14 +7,14 @@ import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import viteCompression from "vite-plugin-compression";
-import pxtoviewport from 'postcss-px-to-viewport';
-import { createHtmlPlugin } from 'vite-plugin-html';
+import pxtoviewport from "postcss-px-to-viewport";
+import { createHtmlPlugin } from "vite-plugin-html";
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd()); // 获取当前环境的所有变量
 
-  return  defineConfig({
+  return defineConfig({
     plugins: [
       vue(),
       AutoImport({
@@ -124,29 +124,29 @@ export default ({ mode }) => {
       postcss: {
         plugins: [
           pxtoviewport({
-            unitToConvert: 'vpx',    // 要转换的单位
-            viewportWidth: 390,     // 设计稿的视口宽度（按你的设计稿尺寸设置）
-            unitPrecision: 5,       // 转换后的保留小数位数
-            propList: ['*'],        // 需要转换的CSS属性，*表示全部
-            viewportUnit: 'vw',     // 转换后的单位
-            fontViewportUnit: 'vw', // 字体使用的视口单位
-            selectorBlackList: [],  // 不需要转换的CSS选择器
-            minPixelValue: 1,       // 最小转换数值（小于等于该值不转换）
-            mediaQuery: false,      // 是否转换媒体查询中的px
-            replace: true,          // 是否直接替换值而不是添加备用
-            exclude: undefined,     // 排除的文件（正则表达式）
-            include: undefined,     // 包含的文件（正则表达式）
-            landscape: false,       // 是否处理横屏情况
-            landscapeUnit: 'vw',    // 横屏使用的单位
-            landscapeWidth: 812     // 横屏视口宽度
-          })
-        ]
+            unitToConvert: "vpx", // 要转换的单位
+            viewportWidth: 390, // 设计稿的视口宽度（按你的设计稿尺寸设置）
+            unitPrecision: 5, // 转换后的保留小数位数
+            propList: ["*"], // 需要转换的CSS属性，*表示全部
+            viewportUnit: "vw", // 转换后的单位
+            fontViewportUnit: "vw", // 字体使用的视口单位
+            selectorBlackList: [], // 不需要转换的CSS选择器
+            minPixelValue: 1, // 最小转换数值（小于等于该值不转换）
+            mediaQuery: false, // 是否转换媒体查询中的px
+            replace: true, // 是否直接替换值而不是添加备用
+            exclude: undefined, // 排除的文件（正则表达式）
+            include: undefined, // 包含的文件（正则表达式）
+            landscape: false, // 是否处理横屏情况
+            landscapeUnit: "vw", // 横屏使用的单位
+            landscapeWidth: 812, // 横屏视口宽度
+          }),
+        ],
       },
       preprocessorOptions: {
         scss: {
           // 方案 1: 解决 "legacy-js-api" 警告
-          api: 'modern-compiler', 
-          
+          api: "modern-compiler",
+
           /**
            * 方案 2: 动态注入逻辑
            * @param {string} source 文件内容
@@ -158,11 +158,11 @@ export default ({ mode }) => {
             const needGlobalScss = [
               resolve(__dirname, "src/page/Home.vue"),
               // 或者匹配整个目录
-              // "src/page/" 
+              // "src/page/"
             ];
 
             // 检查当前文件是否在白名单中
-            const isTarget = needGlobalScss.some(path => fp.includes(path));
+            const isTarget = needGlobalScss.some((path) => fp.includes(path));
 
             if (isTarget) {
               // 使用 @use 替代 @import 解决 "Sass @import rules are deprecated" 警告
@@ -172,7 +172,7 @@ export default ({ mode }) => {
 
             return source;
           },
-        },      
+        },
       },
     },
     build: {
@@ -184,5 +184,4 @@ export default ({ mode }) => {
       },
     },
   });
-}
- 
+};
