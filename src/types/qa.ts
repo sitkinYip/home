@@ -57,6 +57,12 @@ export interface LevelRecord {
   endTime?: string;
   avatar?: string;
   rankName?: string;
+  isFinalLevel?: boolean;
+  FinalLevelConfig?: {
+    path?: string;
+    link?: string;
+    query?: Record<string, string>;
+  };
 }
 
 /**

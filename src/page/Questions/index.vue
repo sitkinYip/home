@@ -162,6 +162,7 @@ import { ref, onMounted, computed, nextTick } from "vue";
 import { Lock, MagicStick, CircleClose } from "@element-plus/icons-vue";
 import gsap from "gsap";
 import confetti from "canvas-confetti";
+import { useRouter } from "vue-router";
 
 import {
   getQueryParam,
@@ -191,6 +192,7 @@ const isInputFocus = ref(false);
 const isError = ref(false); // 错误视觉状态
 const allLevels = ref<LevelRecord[]>([]);
 const qaInfo = ref<LevelRecord | null>(null);
+const router = useRouter();
 
 const qaIndexStr = getQueryParam("qa")?.[0] || "1";
 const currentStep = parseInt(qaIndexStr);
@@ -368,7 +370,7 @@ const handleSuccess = async () => {
 
   reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
 
-  if (currentStep === allLevels.value.length) {
+  if (qaInfo.value?.isFinalLevel) {
     await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
     victoryAuraRef.value?.startEffect(); // 启动终极特效
   } else {
@@ -393,10 +395,13 @@ onMounted(initData);
 
 const handleVictoryClose = () => {
   console.log("英雄回到了主世界");
-  // 这里可以写：
-  // 1. window.location.href = '/' (跳转回首页)
-  // 2. ElMessage.success("感谢你的参与，冒险者！")
-  // 3. 开启下一阶段的彩蛋逻辑
+  const { path, query = {}, link } = qaInfo?.value?.FinalLevelConfig || {};
+  if (path) {
+    return router.push({ path, query });
+  }
+  if (link) {
+    return openPage(link);
+  }
 };
 </script>
 

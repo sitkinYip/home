@@ -194,7 +194,7 @@ $magic-gold: #ffd700;
 }
 
 .magic-hint-trigger {
-  margin-top: 16vpx;
+  margin-top: 12vpx;
   display: flex;
   justify-content: center;
 
