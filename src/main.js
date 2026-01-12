@@ -7,6 +7,11 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import "vant/lib/index.css";
+import "vant/es/toast/style";
+import "vant/es/dialog/style";
+import "vant/es/notify/style";
+import "vant/es/image-preview/style";
+
 // swiper
 import "swiper/css";
 

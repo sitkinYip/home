@@ -137,7 +137,7 @@ export default ({ mode }) => {
             viewportUnit: "vw", // 转换后的单位
             fontViewportUnit: "vw", // 字体使用的视口单位
             selectorBlackList: [], // 不需要转换的CSS选择器
-            minPixelValue: 1, // 最小转换数值（小于等于该值不转换）
+            minPixelValue: 0.5, // 最小转换数值（小于等于该值不转换）
             mediaQuery: false, // 是否转换媒体查询中的px
             replace: true, // 是否直接替换值而不是添加备用
             exclude: undefined, // 排除的文件（正则表达式）

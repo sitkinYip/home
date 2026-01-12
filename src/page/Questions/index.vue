@@ -68,39 +68,12 @@
         >
           <div class="q_title_row">
             <span class="ornament"></span>
-            <span class="title_text">当前谜题</span>
+            <span class="title_text">{{ qaInfo?.title ?? "当前谜题" }}</span>
             <span class="ornament"></span>
           </div>
 
           <!-- 问题内容 -->
-          <div class="qa_content_text">
-            <div v-for="(item, index) in qaInfo.question" :key="index" class="question-item">
-              <span v-if="typeof item === 'string'" class="text-glow">{{ item }}</span>
-              <span v-else class="text-glow">{{ item.text }}</span>
-
-              <template v-if="typeof item !== 'string' && item.img">
-                <div class="image-container">
-                  <el-image :src="item.img" :preview-src-list="[item.img]" class="quest-img" />
-                </div>
-              </template>
-
-              <div v-if="typeof item !== 'string' && item.tips" class="tips-trigger">
-                <el-popover
-                  title="魔法提示"
-                  class="tips-pop"
-                  :content="item.tips"
-                  trigger="click"
-                  placement="top"
-                >
-                  <template #reference>
-                    <el-icon class="icon-pulse">
-                      <QuestionFilled />
-                    </el-icon>
-                  </template>
-                </el-popover>
-              </div>
-            </div>
-          </div>
+          <QuestContent :list="qaInfo.question" @play-video="openVideo" />
 
           <!-- 答题输入区 -->
           <div class="interaction-zone">
@@ -186,7 +159,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed, nextTick } from "vue";
-import { Lock, QuestionFilled, MagicStick, CircleClose } from "@element-plus/icons-vue";
+import { Lock, MagicStick, CircleClose } from "@element-plus/icons-vue";
 import gsap from "gsap";
 import confetti from "canvas-confetti";
 
@@ -206,6 +179,7 @@ import ClueArtifact from "./components/ClueArtifact.vue";
 import { showImagePreview } from "vant";
 import MagicScroll from "./components/MagicScroll.vue";
 import { showNotify } from "vant";
+import QuestContent from "./components/QuestContent.vue";
 
 const magicScrollRef = ref<any>(null);
 const isDebug = getQueryParam("debug")?.[0] === "1";
@@ -246,6 +220,7 @@ const initData = async () => {
   } else {
     showNotify({
       type: "danger",
+      position: "bottom",
       message: "未找到关卡信息",
     });
   }
@@ -312,6 +287,7 @@ const onConfirmAnswer = async () => {
     if (startTime && !isTimeReached(startTime)) {
       showNotify({
         type: "danger",
+        position: "bottom",
         message: "冒险还未开始 请耐心等待~",
         duration: 2000,
       });
@@ -320,6 +296,7 @@ const onConfirmAnswer = async () => {
     if (endTime && isTimeReached(endTime)) {
       showNotify({
         type: "danger",
+        position: "bottom",
         message: "冒险已结束 请留意下一次探险公告~",
         duration: 2000,
       });
@@ -340,8 +317,8 @@ const onConfirmAnswer = async () => {
     }
     showNotify({
       type: "danger",
+      position: "bottom",
       message: "咒语无效，请再次思索...",
-      duration: 2000,
     });
   }
 };

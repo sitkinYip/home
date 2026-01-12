@@ -6,6 +6,7 @@ export interface QuestionItem {
   tips?: string;
   img?: string;
   video?: string;
+  imgList?: string[];
 }
 /**
  * 线索条目类型
@@ -40,12 +41,13 @@ export type ParagraphConfigList = ParagraphConfig[];
  * 关卡数据结构 (对应服务端 API 返回的单个 item)
  */
 export interface LevelRecord {
+  title?: string;
   id: string;
   step: number; // 对应原来的 qaIndex
-  question: (string | QuestionItem)[];
+  question: QuestionItemList;
   answer: string;
   placeholder: string;
-  thread: ThreadItem[];
+  thread: ThreadItemList;
   userName: string;
   collectionId: string;
   collectionName: string;
