@@ -149,7 +149,8 @@
         <VictoryAura ref="victoryAuraRef" @close="handleVictoryClose" />
       </div>
     </div>
-
+    <!-- 迷失状态展示 -->
+    <AdventureLost v-else-if="isLost" :has-first-step="hasFirstStep" />
     <div v-else class="loading-screen">
       <div class="loader-spell"></div>
       <p>正在吟唱召唤咒语...</p>
@@ -181,6 +182,7 @@ import { showImagePreview } from "vant";
 import MagicScroll from "./components/MagicScroll.vue";
 import { showNotify } from "vant";
 import QuestContent from "./components/QuestContent.vue";
+import AdventureLost from "./components/AdventureLost.vue";
 
 const magicScrollRef = ref<any>(null);
 const isDebug = getQueryParam("debug")?.[0] === "1";
@@ -198,33 +200,44 @@ const qaIndexStr = getQueryParam("qa")?.[0] || "1";
 const currentStep = parseInt(qaIndexStr);
 const userId = getQueryParam("user")?.[0] || "";
 const userName = ref("旅行者");
+const isLost = ref(false); // 是否迷失
+const hasFirstStep = ref(false); // 关卡列表里是否有第一关
 
 const currentUserDisplay = computed(() => `${userName.value}`);
 const cacheKey = computed(() => `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`);
 
 const initData = async () => {
-  const levels = await fetchLevels();
-  allLevels.value = levels;
-  const currentLevel = levels.find((l) => l.step === currentStep);
-  if (currentLevel) {
-    qaInfo.value = currentLevel;
-    userName.value = qaInfo.value.userName || "旅行者";
-    checkPersistentProgress();
-    // 初始进场动画
-    nextTick(() => {
-      // 任务面板滑入
-      gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
-      // 左侧英雄信息从左侧滑入
-      gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
-      // 右侧状态指示器从右侧滑入
-      gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
-    });
-  } else {
-    showNotify({
-      type: "danger",
-      position: "bottom",
-      message: "未找到关卡信息",
-    });
+  try {
+    const levels = await fetchLevels();
+    allLevels.value = levels;
+
+    // 检查是否存在第1关，传给 Lost 组件
+    hasFirstStep.value = levels.some((l) => l.step === 1);
+
+    const currentLevel = levels.find((l) => l.step === currentStep);
+
+    if (currentLevel) {
+      qaInfo.value = currentLevel;
+      userName.value = qaInfo.value.userName || "旅行者";
+      checkPersistentProgress();
+
+      // 进场动画...
+      nextTick(() => {
+        // 任务面板滑入
+        gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
+        // 左侧英雄信息从左侧滑入
+        gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
+        // 右侧状态指示器从右侧滑入
+        gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
+      });
+    } else {
+      // 核心改动：找不到关卡时进入迷失状态
+      isLost.value = true;
+    }
+  } catch (error) {
+    // 接口报错也进入迷失状态
+    isLost.value = true;
+    console.error("召唤咒语失败", error);
   }
 };
 /**
