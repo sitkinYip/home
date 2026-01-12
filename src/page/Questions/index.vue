@@ -345,7 +345,7 @@ const triggerErrorEffect = () => {
     isError.value = true;
     setTimeout(() => {
       isError.value = false;
-    }, 800); // 状态保持时长
+    }, 1500); // 状态保持时长
   }, 20);
 };
 
