@@ -19,6 +19,7 @@ export interface ThreadItem {
   state?: "ckickplay" | string; // 比如 'ckickplay' 表示点击播放
   path?: string;
   query?: Record<string, string>;
+  nextIndex?: number;
 }
 
 export type QuestionItemList = QuestionItem[];

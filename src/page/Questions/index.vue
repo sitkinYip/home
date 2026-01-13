@@ -127,6 +127,7 @@
                   @action="handleArtifactAction(item)"
                   :path="item.path"
                   :query="item.query"
+                  :nextIndex="item.nextIndex"
                 />
 
                 <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->
@@ -410,7 +411,7 @@ const handleVictoryClose = () => {
   console.log("英雄回到了主世界");
   const { path, query = {}, link } = qaInfo?.value?.FinalLevelConfig || {};
   if (path) {
-    return router.push({ path, query });
+    return router.replace({ path, query });
   }
   if (link) {
     return openPage(link);

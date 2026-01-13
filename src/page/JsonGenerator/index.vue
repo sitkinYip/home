@@ -42,6 +42,16 @@
             <van-button round block type="primary" icon="plus" @click="addQuestionItem"
               >添加条目</van-button
             >
+            <van-button
+              round
+              block
+              type="danger"
+              icon="delete"
+              style="margin-top: 10px"
+              @click="removeLastQuestionItem"
+              v-if="questionList.length > 0"
+              >删除最后一条</van-button
+            >
           </div>
         </van-form>
       </van-tab>
@@ -66,6 +76,7 @@
                   <van-radio name="img">Image</van-radio>
                   <van-radio name="video">Video</van-radio>
                   <van-radio name="letter">Letter</van-radio>
+                  <van-radio name="topic">Topic</van-radio>
                 </van-radio-group>
               </template>
             </van-field>
@@ -91,6 +102,11 @@
             />
 
             <van-field v-model="item.state" label="State" placeholder="例如: ckickplay" />
+            <van-field
+              v-model="item.nextIndex"
+              label="NextIndex"
+              placeholder="跳转到第几题 例如: 1 需要选择type为topic"
+            />
 
             <!-- Query Editor (Key-Value Pairs) -->
             <van-cell title="Query Params" style="background: transparent; padding-left: 0">
@@ -126,6 +142,16 @@
           <div style="margin: 16px">
             <van-button round block type="primary" icon="plus" @click="addThreadItem"
               >添加条目</van-button
+            >
+            <van-button
+              round
+              block
+              type="danger"
+              icon="delete"
+              style="margin-top: 10px"
+              @click="removeLastThreadItem"
+              v-if="threadList.length > 0"
+              >删除最后一条</van-button
             >
           </div>
         </van-form>
@@ -171,6 +197,16 @@
           <div style="margin: 16px">
             <van-button round block type="primary" icon="plus" @click="addParagraphItem"
               >添加条目</van-button
+            >
+            <van-button
+              round
+              block
+              type="danger"
+              icon="delete"
+              style="margin-top: 10px"
+              @click="removeLastParagraphItem"
+              v-if="paragraphList.length > 0"
+              >删除最后一条</van-button
             >
           </div>
         </van-form>
@@ -229,6 +265,12 @@ const removeQuestionItem = (index: number) => {
   questionList.value.splice(index, 1);
 };
 
+const removeLastQuestionItem = () => {
+  if (questionList.value.length > 0) {
+    questionList.value.pop();
+  }
+};
+
 // Actions for Thread
 const addThreadItem = () => {
   threadList.value.push({
@@ -242,6 +284,12 @@ const removeThreadItem = (index: number) => {
   threadList.value.splice(index, 1);
 };
 
+const removeLastThreadItem = () => {
+  if (threadList.value.length > 0) {
+    threadList.value.pop();
+  }
+};
+
 // Actions for Paragraph
 const addParagraphItem = () => {
   paragraphList.value.push({
@@ -252,6 +300,12 @@ const addParagraphItem = () => {
 
 const removeParagraphItem = (index: number) => {
   paragraphList.value.splice(index, 1);
+};
+
+const removeLastParagraphItem = () => {
+  if (paragraphList.value.length > 0) {
+    paragraphList.value.pop();
+  }
 };
 
 const addQueryParam = (item: EditableThreadItem) => {
