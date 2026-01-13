@@ -1,4 +1,13 @@
 /**
+ * 选项
+ */
+export interface OptionItem {
+  text?: string;
+  img?: string;
+  key: string; // A/B/C/D.....选项编号 也有可能是 1/2/3/4之类的 随意设置
+  video?: string;
+}
+/**
  * 问题条目类型：可以是纯字符串，也可以是包含文字、图片或提示的对象
  */
 export interface QuestionItem {
@@ -42,6 +51,8 @@ export type ParagraphConfigList = ParagraphConfig[];
  * 关卡数据结构 (对应服务端 API 返回的单个 item)
  */
 export interface LevelRecord {
+  type?: "FillInTheBlank" | "MultipleChoice"; // 填空题或选择题 不填默认为填空题
+  options?: OptionItem[];
   title?: string;
   id: string;
   step: number; // 对应原来的 qaIndex

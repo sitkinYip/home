@@ -70,47 +70,69 @@
           :class="{ 'shake-animation': isError }"
           ref="questCard"
         >
-          <div class="q_title_row">
-            <span class="ornament"></span>
-            <span class="title_text">{{ questionsStore.qaInfo?.title ?? "当前谜题" }}</span>
-            <span class="ornament"></span>
-          </div>
+          <MagicAccordion v-model="isQuestionExpanded" :disabled="!isBinGo">
+            <template #header>
+              <div class="q_title_row">
+                <span class="ornament"></span>
+                <span class="title_text">{{ questionsStore.qaInfo?.title ?? "当前谜题" }}</span>
+                <span class="ornament"></span>
+              </div>
+            </template>
 
-          <!-- 问题内容 -->
-          <QuestContent :list="questionsStore.qaInfo.question" @play-video="openVideo" />
+            <!-- 问题内容 -->
+            <QuestContent :list="questionsStore.qaInfo.question" @play-video="openVideo" />
 
-          <!-- 答题输入区 -->
-          <div class="interaction-zone">
-            <div
-              class="input-wrapper"
-              :class="{ 'is-focus': isInputFocus, 'is-error': isError }"
-              :style="{ '--power': `${inputMagicPower}px` }"
-            >
-              <input
-                v-model="userInput"
-                class="magic-input"
-                :placeholder="questionsStore.qaInfo.placeholder || '在此刻下你的答案...'"
-                @focus="isInputFocus = true"
-                @blur="isInputFocus = false"
-                @keyup.enter="onConfirmAnswer"
-              />
-              <!-- 增加一个魔力进度条，非常细微，在输入框底部 -->
-              <div class="magic-progress" :style="{ width: `${inputMagicPower}%` }"></div>
+            <!-- 答题输入区 -->
+            <div class="interaction-zone">
+              <!-- 选择题模式 -->
+              <template
+                v-if="
+                  questionsStore.qaInfo.type === 'MultipleChoice' &&
+                  questionsStore.qaInfo.options?.length
+                "
+              >
+                <MultipleChoiceOptions
+                  :options="questionsStore.qaInfo.options"
+                  v-model="userInput"
+                  :disabled="isBinGo"
+                  @play-video="openVideo"
+                />
+              </template>
+
+              <!-- 填空题模式 (默认) -->
+              <div
+                v-else
+                class="input-wrapper"
+                :class="{ 'is-focus': isInputFocus, 'is-error': isError }"
+                :style="{ '--power': `${inputMagicPower}px` }"
+              >
+                <input
+                  v-model="userInput"
+                  class="magic-input"
+                  :placeholder="questionsStore.qaInfo.placeholder || '在此刻下你的答案...'"
+                  @focus="isInputFocus = true"
+                  @blur="isInputFocus = false"
+                  @keyup.enter="onConfirmAnswer"
+                />
+                <!-- 增加一个魔力进度条，非常细微，在输入框底部 -->
+                <div class="magic-progress" :style="{ width: `${inputMagicPower}%` }"></div>
+              </div>
+
+              <button
+                @click="onConfirmAnswer"
+                class="magic-btn"
+                :class="{
+                  'btn-success': isBinGo,
+                  'btn-error': isError,
+                }"
+              >
+                <span class="btn-content">
+                  {{ isBinGo ? "挑战成功" : isError ? "咒语错误" : "确认答案" }}
+                </span>
+                <div class="btn-flare"></div>
+              </button>
             </div>
-            <button
-              @click="onConfirmAnswer"
-              class="magic-btn"
-              :class="{
-                'btn-success': isBinGo,
-                'btn-error': isError,
-              }"
-            >
-              <span class="btn-content">
-                {{ isBinGo ? "挑战成功" : isError ? "咒语错误" : "确认答案" }}
-              </span>
-              <div class="btn-flare"></div>
-            </button>
-          </div>
+          </MagicAccordion>
         </main>
         <MagicScroll ref="magicScrollRef" />
         <!-- 线索展示（答对后呈现） -->
@@ -197,6 +219,9 @@ import { showNotify } from "vant";
 import QuestContent from "./components/QuestContent.vue";
 import AdventureLost from "./components/AdventureLost.vue";
 
+import MultipleChoiceOptions from "./components/MultipleChoiceOptions.vue";
+import MagicAccordion from "./components/MagicAccordion.vue";
+
 const questionsStore = useQuestionsStore();
 const magicScrollRef = ref<any>(null);
 const isDebug = getQueryParam("debug")?.[0] === "1";
@@ -204,6 +229,7 @@ const victoryAuraRef = ref<any>(null);
 const videoPlayerRef = ref<any>(null);
 const userInput = ref("");
 const isBinGo = ref(false);
+const isQuestionExpanded = ref(true);
 const isInputFocus = ref(false);
 const isError = ref(false); // 错误视觉状态
 // const allLevels = ref<LevelRecord[]>([]); // 移入 store
@@ -279,6 +305,7 @@ const checkPersistentProgress = () => {
   if (preData?.type === "bingo") {
     isBinGo.value = true;
     userInput.value = preData.input || "";
+    isQuestionExpanded.value = false; // 如果已答对，进场时自动折叠
   }
 };
 
@@ -385,9 +412,11 @@ const handleSuccess = async () => {
 
   if (questionsStore.qaInfo?.isFinalLevel) {
     await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
+    isQuestionExpanded.value = false; // 成功后折叠
     victoryAuraRef.value?.startEffect(); // 启动终极特效
   } else {
     await talk("契约达成！真理已现。", 1000);
+    isQuestionExpanded.value = false; // 成功后折叠
   }
 };
 
