@@ -73,8 +73,6 @@ const emit = defineEmits(["action"]);
 const router = useRouter();
 const route = useRoute();
 
-const toVpx = (val: number) => `${val}vpx`;
-
 const parsedContent = computed(() => {
   if (!props.content) return "";
   return props.content

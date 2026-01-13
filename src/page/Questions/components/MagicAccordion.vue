@@ -51,9 +51,6 @@ const emit = defineEmits(["update:modelValue"]);
 const innerRef = ref<HTMLElement | null>(null);
 const scrollHeight = ref(1000); // 初始给个足够大的值，之后动态获取
 
-// 简单的 px 转 vpx 模拟
-const toVpx = (px: number) => px;
-
 const updateHeight = () => {
   if (innerRef.value) {
     scrollHeight.value = innerRef.value.scrollHeight;
