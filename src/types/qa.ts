@@ -7,6 +7,7 @@ export interface OptionItem {
   key: string; // A/B/C/D.....选项编号 也有可能是 1/2/3/4之类的 随意设置
   video?: string;
 }
+type OptionItemList = OptionItem[];
 /**
  * 问题条目类型：可以是纯字符串，也可以是包含文字、图片或提示的对象
  */
@@ -52,7 +53,7 @@ export type ParagraphConfigList = ParagraphConfig[];
  */
 export interface LevelRecord {
   type?: "FillInTheBlank" | "MultipleChoice"; // 填空题或选择题 不填默认为填空题
-  options?: OptionItem[];
+  options?: OptionItemList;
   title?: string;
   id: string;
   step: number; // 对应原来的 qaIndex
