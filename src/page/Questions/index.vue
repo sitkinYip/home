@@ -1,6 +1,6 @@
 <template>
   <div id="Questions">
-    <div class="adventure-container" v-if="qaInfo">
+    <div class="adventure-container" v-if="questionsStore.qaInfo">
       <!-- 动态背景层 -->
       <div class="magic-bg"></div>
       <div class="overlay"></div>
@@ -9,16 +9,19 @@
 
       <div class="quest-wrapper">
         <!-- 英雄状态栏 -->
-        <!-- 英雄状态栏 -->
         <header class="hero-header">
           <div class="header-left">
             <!-- 新增：用户英雄头像 -->
             <div class="user-avatar-wrap">
               <div class="avatar-frame"></div>
-              <el-image :src="qaInfo.avatar || '默认头像地址'" class="user-avatar" fit="cover">
+              <el-image
+                :src="questionsStore.qaInfo.avatar || '默认头像地址'"
+                class="user-avatar"
+                fit="cover"
+              >
                 <template #error>
                   <div class="avatar-placeholder">
-                    {{ `${currentUserDisplay?.at?.(-1) ?? "旅"}` }}
+                    {{ `${questionsStore.currentUserDisplay?.at?.(-1) ?? "旅"}` }}
                   </div>
                 </template>
               </el-image>
@@ -26,9 +29,10 @@
 
             <!-- 英雄信息 -->
             <div class="hero-info">
-              <h2 class="hero-name">{{ currentUserDisplay }}</h2>
+              <h2 class="hero-name">{{ questionsStore.currentUserDisplay }}</h2>
               <div class="level-badge">
-                RANK: {{ currentStep }} · {{ qaInfo?.rankName || "探索者" }}
+                RANK: {{ questionsStore.currentStep }} ·
+                {{ questionsStore.qaInfo?.rankName || "探索者" }}
               </div>
             </div>
           </div>
@@ -68,12 +72,12 @@
         >
           <div class="q_title_row">
             <span class="ornament"></span>
-            <span class="title_text">{{ qaInfo?.title ?? "当前谜题" }}</span>
+            <span class="title_text">{{ questionsStore.qaInfo?.title ?? "当前谜题" }}</span>
             <span class="ornament"></span>
           </div>
 
           <!-- 问题内容 -->
-          <QuestContent :list="qaInfo.question" @play-video="openVideo" />
+          <QuestContent :list="questionsStore.qaInfo.question" @play-video="openVideo" />
 
           <!-- 答题输入区 -->
           <div class="interaction-zone">
@@ -85,7 +89,7 @@
               <input
                 v-model="userInput"
                 class="magic-input"
-                :placeholder="qaInfo.placeholder || '在此刻下你的答案...'"
+                :placeholder="questionsStore.qaInfo.placeholder || '在此刻下你的答案...'"
                 @focus="isInputFocus = true"
                 @blur="isInputFocus = false"
                 @keyup.enter="onConfirmAnswer"
@@ -119,7 +123,11 @@
             </div>
 
             <div class="as_content">
-              <div v-for="(item, index) in qaInfo.thread" :key="index" class="as_item_wrapper">
+              <div
+                v-for="(item, index) in questionsStore.qaInfo.thread"
+                :key="index"
+                class="as_item_wrapper"
+              >
                 <!-- 使用新组件 ClueArtifact -->
                 <ClueArtifact
                   :type="item.type"
@@ -144,14 +152,17 @@
         </transition>
         <AdventurePortal
           v-show="!isDebug"
-          :start-time="qaInfo.startTime"
-          :end-time="qaInfo.endTime"
+          :start-time="questionsStore.qaInfo.startTime"
+          :end-time="questionsStore.qaInfo.endTime"
         />
         <VictoryAura ref="victoryAuraRef" @close="handleVictoryClose" />
       </div>
     </div>
     <!-- 迷失状态展示 -->
-    <AdventureLost v-else-if="isLost" :has-first-step="hasFirstStep" />
+    <AdventureLost
+      v-else-if="questionsStore.isLost"
+      :has-first-step="questionsStore.hasFirstStep"
+    />
     <div v-else class="loading-screen">
       <div class="loader-spell"></div>
       <p>正在吟唱召唤咒语...</p>
@@ -165,6 +176,7 @@ import { Lock, MagicStick, CircleClose } from "@element-plus/icons-vue";
 import gsap from "gsap";
 import confetti from "canvas-confetti";
 import { useRouter } from "vue-router";
+import { useQuestionsStore } from "@/store/questions";
 
 import {
   getQueryParam,
@@ -173,10 +185,10 @@ import {
   filterSpecialChars,
   HeaderClickCounter,
 } from "@/utils/qa/questions";
-import { fetchLevels } from "@/server/qa";
-import { LevelRecord } from "@/types/qa";
+// import { fetchLevels } from "@/server/qa"; // 移入 store
+// import { LevelRecord } from "@/types/qa"; // 移入 store
 import VideoPlayer from "@/components/VideoPlayer.vue";
-import VictoryAura from "./components/VictoryAura.vue"; // 路径根据你存放的位置调整
+import VictoryAura from "./components/VictoryAura.vue";
 import AdventurePortal from "./components/AdventurePortal.vue";
 import ClueArtifact from "./components/ClueArtifact.vue";
 import { showImagePreview } from "vant";
@@ -185,6 +197,7 @@ import { showNotify } from "vant";
 import QuestContent from "./components/QuestContent.vue";
 import AdventureLost from "./components/AdventureLost.vue";
 
+const questionsStore = useQuestionsStore();
 const magicScrollRef = ref<any>(null);
 const isDebug = getQueryParam("debug")?.[0] === "1";
 const victoryAuraRef = ref<any>(null);
@@ -193,54 +206,39 @@ const userInput = ref("");
 const isBinGo = ref(false);
 const isInputFocus = ref(false);
 const isError = ref(false); // 错误视觉状态
-const allLevels = ref<LevelRecord[]>([]);
-const qaInfo = ref<LevelRecord | null>(null);
+// const allLevels = ref<LevelRecord[]>([]); // 移入 store
+// const qaInfo = ref<LevelRecord | null>(null); // 移入 store
 const router = useRouter();
 
 const qaIndexStr = getQueryParam("qa")?.[0] || "1";
 const currentStep = parseInt(qaIndexStr);
 const userId = getQueryParam("user")?.[0] || "";
-const userName = ref("旅行者");
-const isLost = ref(false); // 是否迷失
-const hasFirstStep = ref(false); // 关卡列表里是否有第一关
+// const userName = ref("旅行者"); // 移入 store
+// const isLost = ref(false); // 移入 store
+// const hasFirstStep = ref(false); // 移入 store
 
-const currentUserDisplay = computed(() => `${userName.value}`);
-const cacheKey = computed(() => `qaIndex${currentStep}${userId}${qaInfo.value?.updated || ""}`);
+// const currentUserDisplay = computed(() => `${userName.value}`); // 移入 store getter
+const cacheKey = computed(() => questionsStore.getCacheKey(currentStep, userId));
 
 const initData = async () => {
-  try {
-    const levels = await fetchLevels();
-    allLevels.value = levels;
+  // 调用 store 的 initData
+  await questionsStore.initData(currentStep, userId);
 
-    // 检查是否存在第1关，传给 Lost 组件
-    hasFirstStep.value = levels.some((l) => l.step === 1);
+  if (questionsStore.qaInfo) {
+    checkPersistentProgress();
 
-    const currentLevel = levels.find((l) => l.step === currentStep);
-
-    if (currentLevel) {
-      qaInfo.value = currentLevel;
-      userName.value = qaInfo.value.userName || "旅行者";
-      checkPersistentProgress();
-
-      // 进场动画...
-      nextTick(() => {
-        // 任务面板滑入
-        gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
-        // 左侧英雄信息从左侧滑入
-        gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
-        // 右侧状态指示器从右侧滑入
-        gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
-      });
-    } else {
-      // 核心改动：找不到关卡时进入迷失状态
-      isLost.value = true;
-    }
-  } catch (error) {
-    // 接口报错也进入迷失状态
-    isLost.value = true;
-    console.error("召唤咒语失败", error);
+    // 进场动画...
+    nextTick(() => {
+      // 任务面板滑入
+      gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
+      // 左侧英雄信息从左侧滑入
+      gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
+      // 右侧状态指示器从右侧滑入
+      gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
+    });
   }
 };
+
 /**
  * 统一处理遗物点击动作
  */
@@ -277,7 +275,7 @@ const previewImage = (images: string[]) => {
 };
 
 const checkPersistentProgress = () => {
-  const preData = JSON.parse(localStorage.getItem(cacheKey.value) || "{}");
+  const preData = questionsStore.getCachedProgress(currentStep, userId);
   if (preData?.type === "bingo") {
     isBinGo.value = true;
     userInput.value = preData.input || "";
@@ -296,10 +294,10 @@ const talk = (msg: string, dur: number = 0): Promise<void> => {
 };
 
 const onConfirmAnswer = async () => {
-  if (isBinGo.value || !qaInfo.value) return;
+  if (isBinGo.value || !questionsStore.qaInfo) return;
   if (isError.value) return;
   if (!isDebug) {
-    const { startTime, endTime } = qaInfo.value || {};
+    const { startTime, endTime } = questionsStore.qaInfo || {};
     if (startTime && !isTimeReached(startTime)) {
       showNotify({
         type: "danger",
@@ -321,7 +319,8 @@ const onConfirmAnswer = async () => {
   }
 
   const ans = userInput.value.trim();
-  const isCorrect = ans === qaInfo.value.answer || checkAnswer(ans, qaInfo.value.answer);
+  const isCorrect =
+    ans === questionsStore.qaInfo.answer || checkAnswer(ans, questionsStore.qaInfo.answer);
 
   if (isCorrect) {
     handleSuccess();
@@ -356,7 +355,7 @@ const inputMagicPower = computed(() => {
 });
 
 const handleSuccess = async () => {
-  if (!qaInfo.value) return;
+  if (!questionsStore.qaInfo) return;
 
   confetti({
     particleCount: 150,
@@ -375,7 +374,7 @@ const handleSuccess = async () => {
   );
 
   isBinGo.value = true;
-  const autoPlayVideo = qaInfo.value.thread.find(
+  const autoPlayVideo = questionsStore.qaInfo.thread.find(
     (t) => t.type === "video" && t.state === "ckickplay",
   );
   if (autoPlayVideo && videoPlayerRef.value) {
@@ -384,7 +383,7 @@ const handleSuccess = async () => {
 
   reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
 
-  if (qaInfo.value?.isFinalLevel) {
+  if (questionsStore.qaInfo?.isFinalLevel) {
     await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
     victoryAuraRef.value?.startEffect(); // 启动终极特效
   } else {
@@ -393,7 +392,8 @@ const handleSuccess = async () => {
 };
 
 const reportAction = (content: string, title: string) => {
-  const nickName = qaInfo.value?.userName || "旅行者";
+  const nickName = questionsStore.qaInfo?.userName || "旅行者";
+  if (isDebug) return console.log(`报告：${title} -- 来自sitkin.top/${nickName}${content}`);
   fetch(
     `https://api.chuckfang.com/4acc3779/${title} -- 来自sitkin.top/${nickName}${content}`,
   ).catch((e) => console.error("Report failed", e));
@@ -409,7 +409,7 @@ onMounted(initData);
 
 const handleVictoryClose = () => {
   console.log("英雄回到了主世界");
-  const { path, query = {}, link } = qaInfo?.value?.FinalLevelConfig || {};
+  const { path, query = {}, link } = questionsStore.qaInfo?.FinalLevelConfig || {};
   if (path) {
     return router.replace({ path, query });
   }
