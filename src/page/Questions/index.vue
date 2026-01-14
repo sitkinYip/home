@@ -12,7 +12,7 @@
         <header class="hero-header">
           <div class="header-left">
             <!-- 新增：用户英雄头像 -->
-            <div class="user-avatar-wrap">
+            <div class="user-avatar-wrap" @click="handleAvatarClick">
               <div class="avatar-frame"></div>
               <el-image
                 :src="questionsStore.qaInfo.avatar || '默认头像地址'"
@@ -74,7 +74,7 @@
             <template #header>
               <div class="q_title_row">
                 <span class="ornament"></span>
-                <span class="title_text">{{ questionsStore.qaInfo?.title ?? "当前谜题" }}</span>
+                <span class="title_text">{{ questionsStore.qaInfo?.title || "当前谜题" }}</span>
                 <span class="ornament"></span>
               </div>
             </template>
@@ -95,6 +95,8 @@
                   :options="questionsStore.qaInfo.options"
                   v-model="userInput"
                   :disabled="isBinGo"
+                  :penaltyEndTime="penaltyEndTime"
+                  :wrongCount="wrongCount"
                   @play-video="openVideo"
                 />
               </template>
@@ -206,6 +208,7 @@ import {
   checkAnswer,
   filterSpecialChars,
   HeaderClickCounter,
+  clickCounter,
 } from "@/utils/qa/questions";
 // import { fetchLevels } from "@/server/qa"; // 移入 store
 // import { LevelRecord } from "@/types/qa"; // 移入 store
@@ -215,7 +218,7 @@ import AdventurePortal from "./components/AdventurePortal.vue";
 import ClueArtifact from "./components/ClueArtifact.vue";
 import { showImagePreview } from "vant";
 import MagicScroll from "./components/MagicScroll.vue";
-import { showNotify } from "vant";
+import { showNotify, showToast } from "vant";
 import QuestContent from "./components/QuestContent.vue";
 import AdventureLost from "./components/AdventureLost.vue";
 
@@ -246,12 +249,29 @@ const userId = getQueryParam("user")?.[0] || "";
 // const currentUserDisplay = computed(() => `${userName.value}`); // 移入 store getter
 const cacheKey = computed(() => questionsStore.getCacheKey(currentStep, userId));
 
+// 惩罚机制相关状态
+const wrongCount = ref(0);
+const penaltyEndTime = ref(0);
+const penaltyKey = computed(
+  () => `qa_penalty_${currentStep}_${userId}_${questionsStore.qaInfo?.updated || ""}`,
+);
+// 默认惩罚配置: [第一次错误等待时间(ms), 第二次错误等待时间(ms), ...]
+// -1 代表永久锁定
+const defaultPenaltyConfig = [3 * 60 * 1000, -1];
+
+const currentPenaltyConfig = computed(() => {
+  // 如果服务端有下发 questionsStore.qaInfo.penaltyConfig 则使用它
+  // 否则使用默认的 defaultPenaltyConfig
+  return questionsStore.qaInfo?.penaltyConfig || defaultPenaltyConfig;
+});
+
 const initData = async () => {
   // 调用 store 的 initData
   await questionsStore.initData(currentStep, userId);
 
   if (questionsStore.qaInfo) {
     checkPersistentProgress();
+    loadPenaltyState(); // 加载惩罚状态
 
     // 进场动画...
     nextTick(() => {
@@ -297,6 +317,7 @@ const previewImage = (images: string[]) => {
   showImagePreview({
     images: images,
     closeable: true,
+    teleport: "body",
   });
 };
 
@@ -308,6 +329,46 @@ const checkPersistentProgress = () => {
     isQuestionExpanded.value = false; // 如果已答对，进场时自动折叠
   }
 };
+
+// 加载惩罚状态
+const loadPenaltyState = () => {
+  try {
+    const raw = localStorage.getItem(penaltyKey.value);
+    if (raw) {
+      const data = JSON.parse(raw);
+      wrongCount.value = data.wrongCount || 0;
+      penaltyEndTime.value = data.penaltyEndTime || 0;
+    }
+  } catch (e) {
+    console.error("Failed to load penalty state", e);
+  }
+};
+
+// 保存惩罚状态
+const savePenaltyState = () => {
+  try {
+    localStorage.setItem(
+      penaltyKey.value,
+      JSON.stringify({
+        wrongCount: wrongCount.value,
+        penaltyEndTime: penaltyEndTime.value,
+      }),
+    );
+  } catch (e) {
+    console.error("Failed to save penalty state", e);
+  }
+};
+
+// 后门：清除惩罚
+const clearPenalty = () => {
+  localStorage.removeItem(penaltyKey.value);
+  wrongCount.value = 0;
+  penaltyEndTime.value = 0;
+  showToast("神力显现，惩罚已清除！");
+};
+
+// 头像点击计数器 (10次清除)
+const handleAvatarClick = clickCounter(clearPenalty, 10);
 
 const talk = (msg: string, dur: number = 0): Promise<void> => {
   return new Promise((resolve) => {
@@ -323,6 +384,23 @@ const talk = (msg: string, dur: number = 0): Promise<void> => {
 const onConfirmAnswer = async () => {
   if (isBinGo.value || !questionsStore.qaInfo) return;
   if (isError.value) return;
+
+  // 检查是否处于惩罚期
+  if (penaltyEndTime.value > 0) {
+    // 如果是永久锁定 (-1) 或 当前时间还未到解锁时间
+    if (penaltyEndTime.value === -1 || Date.now() < penaltyEndTime.value) {
+      showNotify({
+        type: "warning",
+        message: "灵魂虚弱，暂时无法施法...",
+      });
+      return;
+    } else {
+      // 时间已过，重置倒计时（保留错误次数，以便下次错误的惩罚升级）
+      penaltyEndTime.value = 0;
+      savePenaltyState();
+    }
+  }
+
   if (!isDebug) {
     const { startTime, endTime } = questionsStore.qaInfo || {};
     if (startTime && !isTimeReached(startTime)) {
@@ -346,23 +424,63 @@ const onConfirmAnswer = async () => {
   }
 
   const ans = userInput.value.trim();
+
+  // 空答案不扣次数
+  if (!ans) {
+    showNotify({
+      type: "warning",
+      position: "bottom",
+      message: "请输入咒语",
+    });
+    return;
+  }
+
   const isCorrect =
     ans === questionsStore.qaInfo.answer || checkAnswer(ans, questionsStore.qaInfo.answer);
 
   if (isCorrect) {
     handleSuccess();
   } else {
-    triggerErrorEffect();
-    const filteredInput = filterSpecialChars(userInput.value);
-    if (userInput.value.trim()) {
-      reportAction(`答错了第${currentStep}题，回答的是${filteredInput}`, "错误通知");
-    }
-    showNotify({
-      type: "danger",
-      position: "bottom",
-      message: "咒语无效，请再次思索...",
-    });
+    handleWrongAnswer(ans);
   }
+};
+
+const handleWrongAnswer = (ans: string) => {
+  triggerErrorEffect();
+
+  // 增加错误次数
+  wrongCount.value++;
+
+  // 计算惩罚时间
+  // count从1开始，config索引从0开始，所以索引是 count - 1
+  const configIndex = Math.min(wrongCount.value - 1, currentPenaltyConfig.value.length - 1);
+  const duration = currentPenaltyConfig.value[configIndex];
+
+  if (duration === -1) {
+    penaltyEndTime.value = -1; // 永久锁定
+  } else {
+    penaltyEndTime.value = Date.now() + duration;
+  }
+
+  savePenaltyState();
+
+  const filteredInput = filterSpecialChars(ans);
+  if (ans) {
+    reportAction(`答错了第${currentStep}题，回答的是${filteredInput}`, "错误通知");
+  }
+
+  let msg = "咒语无效，请再次思索...";
+  if (penaltyEndTime.value === -1) {
+    msg = "咒语反噬，灵魂已被永久封印！";
+  } else {
+    msg = `咒语反噬！需等待恢复魔力...`;
+  }
+
+  showNotify({
+    type: "danger",
+    position: "bottom",
+    message: msg,
+  });
 };
 
 const triggerErrorEffect = () => {
@@ -399,6 +517,9 @@ const handleSuccess = async () => {
       input: userInput.value,
     }),
   );
+
+  // 答对清除惩罚记录
+  localStorage.removeItem(penaltyKey.value);
 
   isBinGo.value = true;
   const autoPlayVideo = questionsStore.qaInfo.thread.find(

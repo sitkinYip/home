@@ -117,6 +117,7 @@ export default ({ mode }) => {
     server: {
       port: "3000",
       open: true,
+      allowedHosts: ["local.sitkin.top"],
     },
     resolve: {
       alias: [

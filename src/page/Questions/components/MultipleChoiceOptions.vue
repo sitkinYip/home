@@ -6,7 +6,7 @@
       class="option-item"
       :class="{
         'is-selected': modelValue === item.key,
-        'is-disabled': disabled,
+        'is-disabled': disabled || isPenalized,
       }"
       @click="handleSelect(item.key)"
     >
@@ -47,26 +47,104 @@
         <div class="magic-circle"></div>
       </div>
     </div>
+
+    <!-- 惩罚遮罩层 -->
+    <transition name="fade">
+      <div class="penalty-overlay" v-if="isPenalized">
+        <div class="penalty-content">
+          <div class="penalty-icon">
+            <el-icon><Lock /></el-icon>
+          </div>
+          <div class="penalty-text">
+            <template v-if="remainingTime > 0">
+              <div class="timer">{{ formattedTime }}</div>
+              <div class="tips">灵魂冷却中...</div>
+            </template>
+            <template v-else>
+              <div class="forever-lock">灵魂已被封印</div>
+              <div class="tips">无法再进行尝试</div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { OptionItem } from "@/types/qa";
 import { showImagePreview } from "vant";
-import { VideoPlay } from "@element-plus/icons-vue";
+import { VideoPlay, Lock } from "@element-plus/icons-vue";
 import "vant/es/image-preview/style";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 interface Props {
   options: OptionItem[];
   modelValue: string; // 当前选中的 key
   disabled?: boolean;
+  penaltyEndTime?: number; // 惩罚结束时间戳，0表示无惩罚，-1表示永久
+  wrongCount?: number;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  penaltyEndTime: 0,
+  wrongCount: 0,
+});
 const emit = defineEmits(["update:modelValue", "change", "play-video"]);
 
+const now = ref(Date.now());
+let timer: any = null;
+
+const isPenalized = computed(() => {
+  if (props.penaltyEndTime === -1) return true;
+  return props.penaltyEndTime > now.value;
+});
+
+const remainingTime = computed(() => {
+  if (props.penaltyEndTime === -1) return -1;
+  return Math.max(0, props.penaltyEndTime - now.value);
+});
+
+const formattedTime = computed(() => {
+  const ms = remainingTime.value;
+  if (ms <= 0) return "00:00";
+  const totalSeconds = Math.ceil(ms / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+});
+
+watch(
+  () => props.penaltyEndTime,
+  (val) => {
+    if (val > 0 && !timer) {
+      startTimer();
+    }
+  },
+  { immediate: true },
+);
+
+function startTimer() {
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    now.value = Date.now();
+    if (!isPenalized.value && remainingTime.value <= 0 && props.penaltyEndTime !== -1) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }, 1000);
+}
+
+onMounted(() => {
+  startTimer();
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
+
 const handleSelect = (key: string) => {
-  if (props.disabled) return;
+  if (props.disabled || isPenalized.value) return;
   if (props.modelValue === key) return;
 
   emit("update:modelValue", key);
@@ -80,6 +158,7 @@ const handleMediaClick = (item: OptionItem) => {
     showImagePreview({
       images: [item.img],
       closeable: true,
+      teleport: "body",
     });
   }
 };
@@ -99,6 +178,7 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   margin-top: 20vpx;
   // 增加底部间距
   margin-bottom: 24vpx;
+  position: relative; // 为 overlay 定位
 }
 
 .option-item {
@@ -273,5 +353,85 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
     transform: scale(0.8);
     opacity: 0.7;
   }
+}
+
+// 惩罚遮罩
+.penalty-overlay {
+  position: absolute;
+  inset: -10vpx; // 稍微扩大一点覆盖边缘
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12vpx;
+  border: 1vpx solid rgba(255, 71, 87, 0.3);
+
+  .penalty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8vpx;
+    color: #ff4757;
+  }
+
+  .penalty-icon {
+    font-size: 32vpx;
+    margin-bottom: 4vpx;
+    animation: shake 5s ease-in-out infinite;
+  }
+
+  .penalty-text {
+    text-align: center;
+
+    .timer {
+      font-size: 24vpx;
+      font-weight: bold;
+      font-family: monospace;
+      text-shadow: 0 0 10vpx rgba(255, 71, 87, 0.5);
+    }
+
+    .tips {
+      font-size: 12vpx;
+      opacity: 0.8;
+      margin-top: 4vpx;
+    }
+
+    .forever-lock {
+      font-size: 18vpx;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  2% {
+    transform: rotate(-5deg);
+  }
+  4% {
+    transform: rotate(5deg);
+  }
+  6% {
+    transform: rotate(-5deg);
+  }
+  8% {
+    transform: rotate(0deg);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

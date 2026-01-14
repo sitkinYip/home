@@ -76,6 +76,7 @@ export interface LevelRecord {
     link?: string;
     query?: Record<string, string>;
   };
+  penaltyConfig?: number[];
 }
 
 /**
