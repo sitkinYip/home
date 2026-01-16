@@ -8,11 +8,12 @@ interface RequestOptions extends RequestInit {
 const DEFAULT_RETRIES = 3;
 const DEFAULT_RETRY_DELAY = 1000;
 const DEFAULT_TIMEOUT = 10000;
+const HOST = "https://api.sitkin.top/api/collections";
 
 /**
  * A wrapper around fetch with retry logic, timeout, and standardized error handling.
  */
-export async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
+export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const {
     retries = DEFAULT_RETRIES,
     retryDelay = DEFAULT_RETRY_DELAY,
@@ -20,6 +21,13 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
     showError = true,
     ...fetchOptions
   } = options;
+  // 如果是完整 URL 则直接使用，否则拼接 HOST，并处理路径前缀 /
+  const url =
+    path.startsWith("http://") || path.startsWith("https://")
+      ? path
+      : path.startsWith("/")
+        ? `${HOST}${path}`
+        : `${HOST}/${path}`;
 
   let attempt = 0;
 

@@ -160,6 +160,7 @@
                   :path="item.path"
                   :query="item.query"
                   :nextIndex="item.nextIndex"
+                  :title="item.title"
                 />
 
                 <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->

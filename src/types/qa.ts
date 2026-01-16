@@ -30,6 +30,7 @@ export interface ThreadItem {
   path?: string;
   query?: Record<string, string>;
   nextIndex?: number;
+  title?: string;
 }
 
 export type QuestionItemList = QuestionItem[];
@@ -47,7 +48,15 @@ export interface ParagraphConfig {
 }
 
 export type ParagraphConfigList = ParagraphConfig[];
-
+export interface TLetterecord {
+  paragraphConfigList: ParagraphConfigList;
+  bgImages?: string[];
+  from: string;
+  type: "modern" | "classical";
+  title?: string;
+  desc?: string;
+  bgImg?: string;
+}
 /**
  * 关卡数据结构 (对应服务端 API 返回的单个 item)
  */
@@ -79,6 +88,18 @@ export interface LevelRecord {
   penaltyConfig?: number[];
 }
 
+export interface IphraseItem {
+  text: string;
+  audio?: string;
+  duration?: number;
+}
+
+export type PhraseListRecord = {
+  phraseList: IphraseItem[];
+  takeABowList: IphraseItem[];
+  from: string;
+  title?: string;
+};
 /**
  * API 返回的包装结构
  */

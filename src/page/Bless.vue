@@ -1,384 +1,519 @@
 <template>
-    <div class="birthday-container">
-        <canvas ref="canvasRef"></canvas>
-        <div class="space-overlay"></div>
+  <div class="birthday-container">
+    <canvas ref="canvasRef"></canvas>
+    <div class="space-overlay"></div>
 
-        <Transition name="fade">
-            <div v-if="!started" class="overlay">
-                <div class="start-btn" @click="startNarrative">
-                    <span>点此 进入属于你的璀璨星空</span>
-                </div>
-            </div>
-        </Transition>
-
-        <!-- 这里可以放播放结束后的额外 UI 元件 -->
-        <div v-if="showFinalUI" class="final-content">
-            <!-- 例如：出现一封信 -->
-            <!-- <p class="final-hint">（星空已为你定格）</p> -->
-            <LyricsScrolling :data="mySubtitles" :defaultDuration="2500" />
+    <!-- 加载状态 -->
+    <Transition name="fade">
+      <div v-if="isLoading" class="overlay loading-state">
+        <div class="star-loader">
+          <div class="star-dust"></div>
+          <div class="loading-text">正在汇聚星光...</div>
         </div>
+      </div>
+    </Transition>
+
+    <!-- 错误状态 -->
+    <Transition name="fade">
+      <div v-if="isError" class="overlay error-state">
+        <div class="error-content">
+          <div class="void-star">✦</div>
+          <h2>星空沉寂</h2>
+          <p>这片星域似乎未被点亮<br />或者信使迷失在了银河中</p>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 正常开始按钮 -->
+    <Transition name="fade">
+      <div v-if="!started && !isLoading && !isError" class="overlay">
+        <div class="start-btn" @click="startNarrative">
+          <span>{{ btnText }}</span>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 这里可以放播放结束后的额外 UI 元件 -->
+    <div v-if="showFinalUI" class="final-content">
+      <!-- 例如：出现一封信 -->
+      <!-- <p class="final-hint">（星空已为你定格）</p> -->
+      <LyricsScrolling :data="mySubtitles" :defaultDuration="2500" />
     </div>
+  </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import LyricsScrolling from '../components/LyricsScrolling/LyricsScrolling.vue';
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { useRoute } from "vue-router";
+import LyricsScrolling from "../components/LyricsScrolling/LyricsScrolling.vue";
+import { fetchPhrase } from "@/server/qa";
+import type { IphraseItem } from "@/types/qa";
 
-const mySubtitles = [
-    { text: "遇到你后总自觉渺小", duration: 3000 }, // audio: "https://api.i-meto.com/meting/api?server=netease&type=url&id=1859652717&auth=ee8c2e9797cc452e1290754bc88bb81471466f64"
-    { text: "给不了你星辰皓月", duration: 2000 },
-    { text: "甚至给不了你完全没有焦虑的生活" }, // 不传时间，使用默认时间
-    { text: "但起码 在这个属于我的世界里" },
-    { text: "所有的星光 永远为你闪烁" },
-];
+const route = useRoute();
+const isLoading = ref(true);
+const isError = ref(false);
 
-const canvasRef = ref(null);
+const btnText = ref("点此 进入属于你的璀璨星空");
+const mySubtitles = ref<IphraseItem[]>([]);
+const phraseConfig = ref<IphraseItem[]>([]);
+
+const canvasRef = ref<HTMLCanvasElement | null>(null);
 const started = ref(false);
 const showFinalUI = ref(false); // 控制结束后显示的额外UI
 
-let ctx = null;
+let ctx: CanvasRenderingContext2D | null = null;
 let width = 0;
 let height = 0;
-let particles = [];
-let animationFrame = null;
-let currentTextLines = [];
-let currentAudio = null;
+let particles: Particle[] = [];
+let animationFrame: number | null = null;
+let currentTextLines: string[] = [];
+let currentAudio: HTMLAudioElement | null = null;
 
-/**
- * 核心配置：文字、音频、及后续逻辑
- */
-const phraseConfig = [
-    {
-        text: "我想给你所有的爱",
-        audio: "", // 填入你的录音文件路径, 如 "/audio/record1.mp3"
-        duration: 5000 // 该段文字停留时长
-    },
-    {
-        text: "给你 太古至永劫的思念",
-        audio: "", // 不传则不播放音频
-        duration: 5500
-    },
-    {
-        text: "生日快乐 我的女孩",
-        audio: "",
-        duration: 5000,
-    },
-    {
-        text: "生日快乐 陈晓滢",
-        audio: "",
-        duration: 8000,
-        keepLast: true // 结束后不消失，星星永远聚拢
+// 初始化数据
+const initData = async () => {
+  isLoading.value = true;
+  isError.value = false;
+  try {
+    const fromKey = route.query.from as string;
+    if (!fromKey) {
+      throw new Error("No identity provided");
     }
-];
+
+    const allItems = await fetchPhrase();
+    const matchedItem = allItems.find((item) => item.from === fromKey);
+
+    if (matchedItem) {
+      phraseConfig.value = matchedItem.phraseList || [];
+      mySubtitles.value = matchedItem.takeABowList || [];
+      if (matchedItem.title) {
+        btnText.value = matchedItem.title;
+      }
+    } else {
+      throw new Error("No matching record found");
+    }
+  } catch (e) {
+    console.warn("Load phrase failed", e);
+    isError.value = true;
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 // 自定义结束事件
 const onAllFinished = () => {
-    console.log("所有文案播放完毕");
-    showFinalUI.value = true;
-    // 你可以在这里写更多逻辑，比如跳转、弹出对话框等
+  console.log("所有文案播放完毕");
+  showFinalUI.value = true;
+  // 你可以在这里写更多逻辑，比如跳转、弹出对话框等
 };
 
 const config = {
-    particleCount: 2800,
-    colors: ['#FFFFFF', '#E1F5FE', '#B3E5FC', '#81D4FA', '#E0F7FA'],
-    fontSize: 0,
-    lineHeight: 0,
-    startY: 0
+  particleCount: 2800,
+  colors: ["#FFFFFF", "#E1F5FE", "#B3E5FC", "#81D4FA", "#E0F7FA"],
+  fontSize: 0,
+  lineHeight: 0,
+  startY: 0,
 };
 
 const mouse = { x: -1000, y: -1000, active: false };
-let mouseTimer = null;
+let mouseTimer: any = null;
 
 class Particle {
-    constructor() {
-        this.init();
+  x: number = 0;
+  y: number = 0;
+  destX: number = 0;
+  destY: number = 0;
+  vx: number = 0;
+  vy: number = 0;
+  radius: number = 0;
+  color: string = "";
+  alpha: number = 0;
+  isTargeting: boolean = false;
+  ease: number = 0;
+
+  constructor() {
+    this.init();
+  }
+  init() {
+    this.x = Math.random() * window.innerWidth;
+    this.y = Math.random() * window.innerHeight;
+    this.destX = this.x;
+    this.destY = this.y;
+    this.vx = (Math.random() - 0.5) * 1.5;
+    this.vy = (Math.random() - 0.5) * 1.5;
+    this.radius = Math.random() * 1.4 + 0.2;
+    this.color = config.colors[Math.floor(Math.random() * config.colors.length)];
+    this.alpha = Math.random() * 0.6 + 0.4;
+    this.isTargeting = false;
+    this.ease = 0.06 + Math.random() * 0.03;
+  }
+  update() {
+    if (this.isTargeting) {
+      this.x += (this.destX - this.x) * this.ease;
+      this.y += (this.destY - this.y) * this.ease;
+    } else {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > width) this.vx *= -1;
+      if (this.y < 0 || this.y > height) this.vy *= -1;
     }
-    init() {
-        this.x = Math.random() * window.innerWidth;
-        this.y = Math.random() * window.innerHeight;
-        this.destX = this.x;
-        this.destY = this.y;
-        this.vx = (Math.random() - 0.5) * 1.5;
-        this.vy = (Math.random() - 0.5) * 1.5;
-        this.radius = Math.random() * 1.4 + 0.2;
-        this.color = config.colors[Math.floor(Math.random() * config.colors.length)];
-        this.alpha = Math.random() * 0.6 + 0.4;
-        this.isTargeting = false;
-        this.ease = 0.06 + Math.random() * 0.03;
+    if (mouse.active) {
+      const dx = mouse.x - this.x;
+      const dy = mouse.y - this.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 60) {
+        const angle = Math.atan2(dy, dx);
+        this.x -= Math.cos(angle) * 5;
+        this.y -= Math.sin(angle) * 5;
+      }
     }
-    update() {
-        if (this.isTargeting) {
-            this.x += (this.destX - this.x) * this.ease;
-            this.y += (this.destY - this.y) * this.ease;
-        } else {
-            this.x += this.vx;
-            this.y += this.vy;
-            if (this.x < 0 || this.x > width) this.vx *= -1;
-            if (this.y < 0 || this.y > height) this.vy *= -1;
-        }
-        if (mouse.active) {
-            const dx = mouse.x - this.x;
-            const dy = mouse.y - this.y;
-            if (Math.sqrt(dx * dx + dy * dy) < 60) {
-                const angle = Math.atan2(dy, dx);
-                this.x -= Math.cos(angle) * 5;
-                this.y -= Math.sin(angle) * 5;
-            }
-        }
-    }
-    draw() {
-        ctx.globalAlpha = this.alpha;
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-    }
+  }
+  draw() {
+    if (!ctx) return;
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 // 获取文字采样点
-const getPixelPoints = (text) => {
-    const tempCanvas = document.createElement('canvas');
-    const tCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = width;
-    tempCanvas.height = height;
-    const isMobile = width < 768;
-    const fontSize = isMobile ? Math.floor(width / 9.2) : 75;
-    config.fontSize = fontSize;
-    tCtx.textBaseline = "middle";
-    tCtx.textAlign = "center";
-    tCtx.font = `bold ${fontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+const getPixelPoints = (text: string) => {
+  const tempCanvas = document.createElement("canvas");
+  const tCtx = tempCanvas.getContext("2d");
+  if (!tCtx) return [];
 
-    const lines = text.split(' ').filter(i => i.trim() !== '');
-    currentTextLines = lines;
-    const lineHeight = fontSize * 1.5;
-    config.lineHeight = lineHeight;
-    const totalH = lines.length * lineHeight;
-    const startY = (height / 2) - (totalH / 2) + (lineHeight / 2);
-    config.startY = startY;
+  tempCanvas.width = width;
+  tempCanvas.height = height;
+  const isMobile = width < 768;
+  const fontSize = isMobile ? Math.floor(width / 9.2) : 75;
+  config.fontSize = fontSize;
+  tCtx.textBaseline = "middle";
+  tCtx.textAlign = "center";
+  tCtx.font = `bold ${fontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
 
-    lines.forEach((line, index) => {
-        tCtx.strokeText(line, width / 2, startY + (index * lineHeight));
-        tCtx.fillText(line, width / 2, startY + (index * lineHeight));
-    });
+  const lines = text.split(" ").filter((i) => i.trim() !== "");
+  currentTextLines = lines;
+  const lineHeight = fontSize * 1.5;
+  config.lineHeight = lineHeight;
+  const totalH = lines.length * lineHeight;
+  const startY = height / 2 - totalH / 2 + lineHeight / 2;
+  config.startY = startY;
 
-    const imgData = tCtx.getImageData(0, 0, width, height).data;
-    const points = [];
-    const step = isMobile ? 2 : 3;
-    for (let y = 0; y < height; y += step) {
-        for (let x = 0; x < width; x += step) {
-            if (imgData[(y * width + x) * 4 + 3] > 110) {
-                points.push({ x, y });
-            }
-        }
+  lines.forEach((line, index) => {
+    tCtx.strokeText(line, width / 2, startY + index * lineHeight);
+    tCtx.fillText(line, width / 2, startY + index * lineHeight);
+  });
+
+  const imgData = tCtx.getImageData(0, 0, width, height).data;
+  const points = [];
+  const step = isMobile ? 2 : 3;
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
+      if (imgData[(y * width + x) * 4 + 3] > 110) {
+        points.push({ x, y });
+      }
     }
-    return points;
+  }
+  return points;
 };
 
 // 绘制底层描边底影
 const drawTextGhost = () => {
-    if (!started.value || currentTextLines.length === 0) return;
-    ctx.save();
-    ctx.font = `bold ${config.fontSize}px sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.strokeStyle = "rgba(129, 212, 250, 0.12)";
-    ctx.lineWidth = 1;
-    currentTextLines.forEach((line, index) => {
-        ctx.strokeText(line, width / 2, config.startY + (index * config.lineHeight));
-    });
-    ctx.restore();
+  if (!started.value || currentTextLines.length === 0 || !ctx) return;
+  ctx.save();
+  ctx.font = `bold ${config.fontSize}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.strokeStyle = "rgba(129, 212, 250, 0.12)";
+  ctx.lineWidth = 1;
+  currentTextLines.forEach((line, index) => {
+    ctx!.strokeText(line, width / 2, config.startY + index * config.lineHeight);
+  });
+  ctx.restore();
 };
 
 const animate = () => {
-    ctx.fillStyle = '#020408';
-    ctx.fillRect(0, 0, width, height);
-    drawTextGhost();
-    particles.forEach(p => {
-        p.update();
-        p.draw();
-    });
-    animationFrame = requestAnimationFrame(animate);
+  if (!ctx) return;
+  ctx.fillStyle = "#020408";
+  ctx.fillRect(0, 0, width, height);
+  drawTextGhost();
+  particles.forEach((p) => {
+    p.update();
+    p.draw();
+  });
+  animationFrame = requestAnimationFrame(animate);
 };
 
 // 音频播放逻辑
-const playVoice = (path) => {
-    if (!path) return;
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
-    currentAudio = new Audio(path);
-    currentAudio.play().catch(e => console.warn("音频播放被拦截:", e));
+const playVoice = (path?: string) => {
+  if (!path) return;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  currentAudio = new Audio(path);
+  currentAudio.play().catch((e) => console.warn("音频播放被拦截:", e));
 };
 
 // 核心叙事流程
 const startNarrative = async () => {
-    started.value = true;
+  if (phraseConfig.value.length === 0) return;
 
-    for (let i = 0; i < phraseConfig.length; i++) {
-        const item = phraseConfig[i];
+  started.value = true;
 
-        // 1. 播放音频
-        playVoice(item.audio);
+  for (let i = 0; i < phraseConfig.value.length; i++) {
+    const item = phraseConfig.value[i];
 
-        // 2. 汇聚粒子
-        const targetPoints = getPixelPoints(item.text);
-        const shuffledPoints = targetPoints.sort(() => 0.5 - Math.random());
-        particles.forEach((p, idx) => {
-            if (idx < shuffledPoints.length) {
-                p.destX = shuffledPoints[idx].x;
-                p.destY = shuffledPoints[idx].y;
-                p.isTargeting = true;
-            } else {
-                p.isTargeting = false;
-                p.vx = (Math.random() - 0.5) * 3;
-                p.vy = (Math.random() - 0.5) * 3;
-            }
-        });
+    // 1. 播放音频
+    playVoice(item.audio);
 
-        // 3. 等待展示时长
-        await new Promise(r => setTimeout(r, item.duration || 5000));
+    // 2. 汇聚粒子
+    const targetPoints = getPixelPoints(item.text);
+    const shuffledPoints = targetPoints.sort(() => 0.5 - Math.random());
+    particles.forEach((p, idx) => {
+      if (idx < shuffledPoints.length) {
+        p.destX = shuffledPoints[idx].x;
+        p.destY = shuffledPoints[idx].y;
+        p.isTargeting = true;
+      } else {
+        p.isTargeting = false;
+        p.vx = (Math.random() - 0.5) * 3;
+        p.vy = (Math.random() - 0.5) * 3;
+      }
+    });
 
-        // 4. 判断是否是最后一句且需要保留
-        if (i === phraseConfig.length - 1 && item.keepLast) {
-            onAllFinished();
-            return; // 流程终止，不执行下方的散开逻辑
-        }
+    // 3. 等待展示时长
+    await new Promise((r) => setTimeout(r, item.duration || 5000));
 
-        // 5. 散开逻辑
-        particles.forEach(p => {
-            p.isTargeting = false;
-            p.vx = (Math.random() - 0.5) * 12;
-            p.vy = (Math.random() - 0.5) * 12;
-        });
-        await new Promise(r => setTimeout(r, 1500));
-        currentTextLines = [];
+    // 4. 判断是否是最后一句且需要保留
+    // 这里如果 item 没有 keepLast 属性，TypeScript 可能会提示，注意 interface 定义
+    if (i === phraseConfig.value.length - 1) {
+      // 默认最后一句保留，或者根据数据
+      onAllFinished();
+      return;
     }
+
+    // 5. 散开逻辑
+    particles.forEach((p) => {
+      p.isTargeting = false;
+      p.vx = (Math.random() - 0.5) * 12;
+      p.vy = (Math.random() - 0.5) * 12;
+    });
+    await new Promise((r) => setTimeout(r, 1500));
+    currentTextLines = [];
+  }
 };
 
-const handleInteraction = (e) => {
-    mouse.active = true;
-    const pos = e.touches ? e.touches[0] : e;
-    mouse.x = pos.clientX;
-    mouse.y = pos.clientY;
-    clearTimeout(mouseTimer);
-    mouseTimer = setTimeout(() => { mouse.active = false; }, 800);
+const handleInteraction = (e: any) => {
+  mouse.active = true;
+  const pos = e.touches ? e.touches[0] : e;
+  mouse.x = pos.clientX;
+  mouse.y = pos.clientY;
+  clearTimeout(mouseTimer);
+  mouseTimer = setTimeout(() => {
+    mouse.active = false;
+  }, 800);
 };
 
 const resize = () => {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    if (canvasRef.value) {
-        canvasRef.value.width = width;
-        canvasRef.value.height = height;
-    }
+  width = window.innerWidth;
+  height = window.innerHeight;
+  if (canvasRef.value) {
+    canvasRef.value.width = width;
+    canvasRef.value.height = height;
+  }
 };
 
 onMounted(() => {
-    nextTick(() => {
-        ctx = canvasRef.value.getContext('2d');
-        resize();
-        for (let i = 0; i < config.particleCount; i++) {
-            particles.push(new Particle());
-        }
-        animate();
-        window.addEventListener('resize', resize);
-        window.addEventListener('mousemove', handleInteraction);
-        window.addEventListener('touchstart', handleInteraction, { passive: false });
-        window.addEventListener('touchmove', handleInteraction, { passive: false });
-    });
+  // 先初始化数据
+  initData();
+
+  nextTick(() => {
+    if (canvasRef.value) {
+      ctx = canvasRef.value.getContext("2d");
+      resize();
+      // 初始化粒子
+      for (let i = 0; i < config.particleCount; i++) {
+        particles.push(new Particle());
+      }
+      animate();
+      window.addEventListener("resize", resize);
+      window.addEventListener("mousemove", handleInteraction);
+      window.addEventListener("touchstart", handleInteraction, { passive: false });
+      window.addEventListener("touchmove", handleInteraction, { passive: false });
+    }
+  });
 });
 
 onUnmounted(() => {
-    cancelAnimationFrame(animationFrame);
-    if (currentAudio) currentAudio.pause();
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  if (currentAudio) currentAudio.pause();
 });
 </script>
 
 <style scoped>
 .birthday-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #020408;
-    overflow: hidden;
-    touch-action: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #020408;
+  overflow: hidden;
+  touch-action: none;
 }
 
 canvas {
-    display: block;
+  display: block;
 }
 
 .space-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    background: radial-gradient(circle at 50% 50%, rgba(0, 150, 255, 0.08) 0%, transparent 75%);
-    z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 150, 255, 0.08) 0%, transparent 75%);
+  z-index: 1;
 }
 
 .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
 }
 
 .start-btn {
-    padding: 16px 45px;
-    color: #fff;
-    font-weight: 200;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 40px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    letter-spacing: 6px;
-    cursor: pointer;
+  padding: 16px 45px;
+  color: #fff;
+  font-weight: 200;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  letter-spacing: 6px;
+  cursor: pointer;
+  transition: all 0.5s ease;
+}
+
+.start-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 20px rgba(135, 206, 250, 0.4);
+}
+
+/* Loading State */
+.loading-state {
+  flex-direction: column;
+}
+.star-loader {
+  position: relative;
+  text-align: center;
+}
+.loading-text {
+  margin-top: 15px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  letter-spacing: 4px;
+  animation: pulse 2s infinite ease-in-out;
+}
+.star-dust {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #81d4fa;
+  border-bottom-color: #81d4fa;
+  animation: spin 1.5s linear infinite;
+  box-shadow: 0 0 15px rgba(129, 212, 250, 0.2);
+}
+
+/* Error State */
+.error-state .error-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+}
+.void-star {
+  font-size: 40px;
+  color: #546e7a;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+.error-content h2 {
+  font-size: 18px;
+  letter-spacing: 6px;
+  font-weight: 300;
+  margin-bottom: 15px;
+}
+.error-content p {
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 200;
 }
 
 .final-content {
-    position: absolute;
-    bottom: 5%;
-    width: 100%;
-    text-align: center;
-    z-index: 10;
-    animation: fadeIn 3s ease forwards;
+  position: absolute;
+  bottom: 5%;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+  animation: fadeIn 3s ease forwards;
 }
 
 .final-hint {
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .fade-leave-active {
-    transition: opacity 2.5s ease;
+  transition: opacity 1.5s ease; /* 加快一点消失速度 */
 }
 
 .fade-leave-to {
-    opacity: 0;
+  opacity: 0;
 }
 </style>

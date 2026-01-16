@@ -67,6 +67,7 @@ const props = defineProps<{
   path?: string;
   query?: any;
   nextIndex?: string | number;
+  title?: string;
 }>();
 
 const emit = defineEmits(["action"]);
@@ -95,7 +96,7 @@ const typeLabel = computed(() => {
     letter: "星海情笺", // <-- 这里改成了更温柔的名字
     topic: "时空跃迁",
   };
-  return map[props.type] || "未知遗物";
+  return props.title || map[props.type] || "未知遗物";
 });
 
 const handleClick = (e: MouseEvent) => {
