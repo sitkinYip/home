@@ -10,10 +10,10 @@ const JsonGenerator = () => import("@/page/JsonGenerator/index.vue");
 
 const routes: RouteRecordRaw[] = [
   { path: "/", component: Home },
-  { path: "/letter", component: Letter },
+  { path: "/letter", component: Letter, meta: { title: "星海情笺" } },
   { path: "/questions", component: Questions, meta: { title: "寻宝游戏" } },
   { path: "/birthday", component: Birthday },
-  { path: "/bless", component: Bless, meta: { title: "夏夏生日快乐" } },
+  { path: "/bless", component: Bless, meta: { title: "专属星空" } },
   { path: "/jsonGenerator", component: JsonGenerator, meta: { title: "JSON生成器" } },
   {
     path: "/:pathMatch(.*)*",

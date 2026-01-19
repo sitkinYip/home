@@ -185,15 +185,72 @@ const getPixelPoints = (text: string) => {
   tempCanvas.width = width;
   tempCanvas.height = height;
   const isMobile = width < 768;
-  const fontSize = isMobile ? Math.floor(width / 9.2) : 75;
+
+  // 移动端粒子数量优化
+  if (isMobile) {
+    config.particleCount = 1800; // 减少粒子数以提升性能
+  }
+
+  // 动态字体大小计算
+  let fontSize = isMobile ? Math.floor(width / 8) : 75;
+  if (isMobile && text.length > 10) {
+    fontSize = Math.floor(width / 10);
+  }
+
   config.fontSize = fontSize;
   tCtx.textBaseline = "middle";
   tCtx.textAlign = "center";
   tCtx.font = `bold ${fontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
 
-  const lines = text.split(" ").filter((i) => i.trim() !== "");
+  // 自动换行逻辑
+  // 自动换行与手动换行逻辑
+  const maxLineWidth = width * 0.9;
+  const lines: string[] = [];
+
+  // 1. 先处理显式的换行符
+  // 注意：以防传过来的是转义后的 \n 字符串
+  const normalizedText = text.replace(/\\n/g, "\n");
+  const manualLines = normalizedText.split("\n");
+
+  manualLines.forEach((segment) => {
+    // 2. 对每一行手动换行的文本进行长度检测
+    const segmentMetrics = tCtx.measureText(segment);
+
+    // 如果是移动端或者该行超过最大宽度，则进行自动折行
+    if (isMobile || segmentMetrics.width > maxLineWidth) {
+      // 特殊处理空行（例如连续\n）
+      if (segment.length === 0) {
+        lines.push("");
+        return;
+      }
+
+      let currentLine = "";
+      for (let i = 0; i < segment.length; i++) {
+        const char = segment[i];
+        const testLine = currentLine + char;
+        const metrics = tCtx.measureText(testLine);
+
+        if (metrics.width > maxLineWidth && currentLine.length > 0) {
+          lines.push(currentLine);
+          currentLine = char;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+    } else {
+      // 既没有超过宽度，也不是移动端强制折行，直接添加
+      // 如果 segment 是空的（连续换行），也要 push 一个占位或者空行吗？
+      // 原逻辑里 lines 如果有空串可能会导致渲染问题 or empty loop
+      // 这里如果 segment 为空串，push 空串会导致 drawText loop 依然执行，可能没效果。
+      // 为了支持空行，可能需要确保 lines 里有空串，后续 drawText 时处理。
+      // 但粒子系统对于空行没有点，所以只会增加 startY offset。这正好就是空行效果。
+      lines.push(segment);
+    }
+  });
+
   currentTextLines = lines;
-  const lineHeight = fontSize * 1.5;
+  const lineHeight = fontSize * 1.4;
   config.lineHeight = lineHeight;
   const totalH = lines.length * lineHeight;
   const startY = height / 2 - totalH / 2 + lineHeight / 2;
@@ -207,9 +264,13 @@ const getPixelPoints = (text: string) => {
   const imgData = tCtx.getImageData(0, 0, width, height).data;
   const points = [];
   const step = isMobile ? 2 : 3;
+
+  // 优化采样密度
   for (let y = 0; y < height; y += step) {
     for (let x = 0; x < width; x += step) {
-      if (imgData[(y * width + x) * 4 + 3] > 110) {
+      // 提高移动端采样的阈值，减少粒子数，让图形更清晰一点但不过于密集
+      const threshold = isMobile ? 150 : 110;
+      if (imgData[(y * width + x) * 4 + 3] > threshold) {
         points.push({ x, y });
       }
     }
@@ -407,6 +468,31 @@ canvas {
 .start-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   box-shadow: 0 0 20px rgba(135, 206, 250, 0.4);
+}
+
+@media (max-width: 768px) {
+  .start-btn {
+    padding: 12px 30px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    width: 65%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .void-star {
+    font-size: 30px;
+  }
+
+  .error-content h2 {
+    font-size: 16px;
+  }
+
+  .error-content p {
+    font-size: 12px;
+  }
 }
 
 /* Loading State */
