@@ -206,8 +206,8 @@ export class Planet {
 
     const colors = [
       { start: "rgba(100, 149, 237, 0.2)", end: "rgba(100, 149, 237, 0)" }, // CornflowerBlue
-      { start: "rgba(216, 191, 216, 0.2)", end: "rgba(216, 191, 216, 0)" }, // Thistle
-      { start: "rgba(240, 230, 140, 0.15)", end: "rgba(240, 230, 140, 0)" }, // Khaki
+      { start: "rgba(216, 191, 216, 0.2)", end: "rgba(216, 191, 216, 0)" }, // Thistle (Purple)
+      { start: "rgba(255, 182, 193, 0.15)", end: "rgba(255, 182, 193, 0)" }, // LightPink
     ];
     const randColor = colors[Math.floor(Math.random() * colors.length)];
     this.color = randColor.start;
