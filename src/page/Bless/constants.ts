@@ -12,8 +12,8 @@ import { ParticleConfig } from "./types";
 export const PARTICLE_CONFIG: ParticleConfig = {
   // 粒子总数，根据需要动态调整（移动端会覆盖此值）
   particleCount: 2200,
-  // 粒子颜色盘：纯白、柔黄、浅蓝、淡青
-  colors: ["#ffffff", "#fffae3", "#b4e4ff", "#e0f7fa"],
+  // 粒子颜色盘：金、银、钻蓝、纯白 (Premium Starlight Palette)
+  colors: ["#FFD700", "#E0E0E0", "#B4E4FF", "#FFFFFF", "#F0F8FF"],
   fontSize: 0, // 将在运行时通过 canvas 计算动态设置
   lineHeight: 0, // 将在运行时计算
   startY: 0, // 将在运行时计算

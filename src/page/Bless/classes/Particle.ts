@@ -22,9 +22,12 @@ export class Particle {
   alpha: number = 0;
   isTargeting: boolean = false;
   ease: number = 0;
-  offset: number = 0; // 闪烁相位偏移
   width: number;
   height: number;
+
+  // 新增属性：用于模拟星星闪烁的参数
+  flickerSpeed: number = 0;
+  flickerOffset: number = 0;
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -42,13 +45,19 @@ export class Particle {
     this.destY = this.y;
     this.vx = (Math.random() - 0.5) * 1.5;
     this.vy = (Math.random() - 0.5) * 1.5;
-    this.radius = Math.random() * 1.4 + 0.4;
+    // 粒子稍微调小一点，显得更精致
+    this.radius = Math.random() * 1.2 + 0.3;
+
     // 从配置的颜色盘中随机取色
     this.color = PARTICLE_CONFIG.colors[Math.floor(Math.random() * PARTICLE_CONFIG.colors.length)];
     this.alpha = Math.random() * 0.6 + 0.4;
+
     this.isTargeting = false;
     this.ease = 0.05 + Math.random() * 0.05;
-    this.offset = Math.random() * Math.PI * 2;
+
+    // 闪烁参数初始化
+    this.flickerSpeed = 0.002 + Math.random() * 0.005;
+    this.flickerOffset = Math.random() * Math.PI * 2;
   }
 
   /**
@@ -58,17 +67,20 @@ export class Particle {
   update(mouse: MouseState) {
     if (this.isTargeting) {
       // 1. 缓动移动到目标位置 (destX, destY)
-      const dx = this.destX - this.x;
-      const dy = this.destY - this.y;
+      // 增加一点点躁动 (jitter)，模拟星团的不稳定性
+      const jitterX = (Math.random() - 0.5) * 0.3;
+      const jitterY = (Math.random() - 0.5) * 0.3;
+
+      const dx = this.destX + jitterX - this.x;
+      const dy = this.destY + jitterY - this.y;
       this.x += dx * this.ease;
       this.y += dy * this.ease;
 
-      // 2. 文字闪烁逻辑: 使用 Sine 波浪实现平滑呼吸
+      // 2. 文字闪烁逻辑: 模拟星星呼吸
       const now = Date.now();
-      // 周期大概 2-3秒
-      const oscillation = Math.sin(now * 0.003 + this.offset);
-      // alpha 在 0.6 ~ 1.0 之间波动
-      this.alpha = 0.6 + 0.4 * (0.5 + 0.5 * oscillation);
+      const oscillation = Math.sin(now * this.flickerSpeed + this.flickerOffset);
+      // alpha 在 0.5 ~ 1.0 之间波动，形成闪烁感
+      this.alpha = 0.5 + 0.5 * (0.5 + 0.5 * oscillation);
     } else {
       // 自由移动逻辑
       this.x += this.vx;
@@ -78,8 +90,8 @@ export class Particle {
       if (this.x < 0 || this.x > this.width) this.vx *= -1;
       if (this.y < 0 || this.y > this.height) this.vy *= -1;
 
-      // 自由漂浮时稍微变淡
-      if (this.alpha > 0.6) this.alpha -= 0.01;
+      // 自由漂浮时稍微变淡，营造景深感
+      if (this.alpha > 0.4) this.alpha -= 0.005;
     }
 
     // 鼠标交互：避开鼠标光标
@@ -97,28 +109,35 @@ export class Particle {
   }
 
   /**
-   * 绘制粒子
+   * 绘制粒子 - 升级为发光点
    * @param ctx Canvas 上下文
    */
   draw(ctx: CanvasRenderingContext2D | null) {
     if (!ctx) return;
+
     ctx.globalAlpha = this.alpha;
-    ctx.fillStyle = this.color;
 
-    // 增加光晕效果，但只在组成文字时启用以节省性能
-    if (this.isTargeting) {
-      // 为了性能，只对较大的粒子加光晕
-      if (this.radius > 1) {
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = this.color;
-      }
+    // 如果是组成文字的粒子，或者是较大的自由粒子，绘制辉光
+    if (this.isTargeting || (this.radius > 1 && this.alpha > 0.5)) {
+      // 绘制中心亮点
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 绘制外层辉光（简单模拟，避免性能开销过大）
+      // 这里不使用 shadowBlur，因为大量粒子 shadowBlur 会极卡
+      // 改用绘制一个半透明的大圆
+      ctx.globalAlpha = this.alpha * 0.3;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius * 2.5, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      ctx.shadowBlur = 0;
+      // 普通粒子
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
     }
-
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0; // 重置光晕
   }
 }

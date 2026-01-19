@@ -25,7 +25,7 @@
     </Transition>
 
     <!-- 状态 4: 播放结束后的额外 UI -->
-    <div v-if="showFinalUI" class="final-content">
+    <div v-if="showFinalUI" class="final-content" ref="finalUiRef">
       <LyricsScrolling :data="mySubtitles" :defaultDuration="2500" />
     </div>
   </div>
@@ -39,14 +39,15 @@
 
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute } from "vue-router";
-import LyricsScrolling from "../../components/LyricsScrolling/LyricsScrolling.vue"; // 相对路径引用上一级 components
+import LyricsScrolling from "../../components/LyricsScrolling/LyricsScrolling.vue";
 import { fetchPhrase } from "@/server/qa";
 import type { IphraseItem } from "@/types/qa";
+import gsap from "gsap"; // 引入 GSAP
 
 // 引入模块化后的逻辑
 import { PARTICLE_CONFIG } from "./constants";
 import { Particle } from "./classes/Particle";
-import { BgStar, ShootingStar } from "./classes/Star";
+import { BgStar, ShootingStar, Planet, Nebula } from "./classes/Star";
 import { getPixelPoints } from "./utils/canvasUtils";
 import { MouseState } from "./types";
 
@@ -62,6 +63,7 @@ const isLoading = ref(true);
 const isError = ref(false);
 const started = ref(false);
 const showFinalUI = ref(false);
+const finalUiRef = ref<HTMLElement | null>(null);
 
 const btnText = ref("点此 进入属于你的璀璨星空");
 const mySubtitles = ref<IphraseItem[]>([]);
@@ -78,16 +80,18 @@ let animationFrame: number | null = null;
 let particles: Particle[] = [];
 let bgStars: BgStar[] = [];
 let shootingStars: ShootingStar[] = [];
+let planets: Planet[] = [];
+let nebulas: Nebula[] = [];
 let currentTextLines: string[] = [];
 let currentAudio: HTMLAudioElement | null = null;
 
 // 交互状态
 const mouse: MouseState = { x: -1000, y: -1000, active: false };
+const parallax = { x: 0, y: 0 }; // 视差偏移量
 let mouseTimer: any = null;
 
 /**
  * 初始化数据逻辑
- * 从 URL 获取 ID 并拉取数据
  */
 const initData = async () => {
   isLoading.value = true;
@@ -124,6 +128,16 @@ const initData = async () => {
 const onAllFinished = () => {
   console.log("所有文案播放完毕");
   showFinalUI.value = true;
+  // 使用 GSAP 优雅入场
+  nextTick(() => {
+    if (finalUiRef.value) {
+      gsap.fromTo(
+        finalUiRef.value,
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 2, ease: "power2.out" },
+      );
+    }
+  });
 };
 
 /**
@@ -132,13 +146,17 @@ const onAllFinished = () => {
 const drawTextGhost = () => {
   if (!started.value || currentTextLines.length === 0 || !ctx) return;
   ctx.save();
+  // 视差层级：文字层跟随粒子，设定为 0.05
+  ctx.translate(parallax.x * 0.05, parallax.y * 0.05);
+
   // 使用更优雅的衬线体
-  ctx.font = `bold ${PARTICLE_CONFIG.fontSize}px "Songti SC", "SimSun", serif`;
+  ctx.font = `bold ${PARTICLE_CONFIG.fontSize}px "Cinzel", "Songti SC", "SimSun", serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = "rgba(129, 212, 250, 0.3)";
-  ctx.strokeStyle = "rgba(129, 212, 250, 0.08)";
+  // 增强辉光
+  ctx.shadowBlur = 30;
+  ctx.shadowColor = "rgba(135, 206, 250, 0.4)";
+  ctx.strokeStyle = "rgba(135, 206, 250, 0.05)";
   ctx.lineWidth = 1;
   currentTextLines.forEach((line, index) => {
     ctx!.strokeText(line, width / 2, PARTICLE_CONFIG.startY + index * PARTICLE_CONFIG.lineHeight);
@@ -151,18 +169,39 @@ const drawTextGhost = () => {
  */
 const animate = () => {
   if (!ctx) return;
-  // 清空画布 (保持透明以显示 CSS 背景)
+  // 清空画布
   ctx.clearRect(0, 0, width, height);
 
-  // 1. 绘制背景星星
+  // 0. 绘制背景层 (星球 & 星云) - 视差极小 (0.01)
+  ctx.save();
+  ctx.translate(parallax.x * 0.01, parallax.y * 0.01);
+
+  // 绘制星云
+  nebulas.forEach((n) => {
+    n.update();
+    n.draw(ctx);
+  });
+
+  // 绘制星球
+  planets.forEach((p) => {
+    p.draw(ctx);
+  });
+  ctx.restore();
+
+  // 1. 绘制背景星星 (视差系数 0.02 - 极远)
+  ctx.save();
+  ctx.translate(parallax.x * 0.02, parallax.y * 0.02);
   bgStars.forEach((star) => {
     star.update();
     star.draw(ctx);
   });
+  ctx.restore();
 
-  // 2. 绘制流星
-  if (Math.random() < 0.015) {
-    // 约 1.5% 概率每帧生成流星
+  // 2. 绘制流星 (视差系数 0.04 - 较远)
+  ctx.save();
+  ctx.translate(parallax.x * 0.04, parallax.y * 0.04);
+  if (Math.random() < 0.02) {
+    // 稍微提高概率
     shootingStars.push(new ShootingStar(width, height));
   }
   for (let i = shootingStars.length - 1; i >= 0; i--) {
@@ -172,15 +211,31 @@ const animate = () => {
       shootingStars.splice(i, 1);
     }
   }
+  ctx.restore();
 
-  // 3. 绘制文字残影
+  // 3. 绘制文字残影 (内部有自己的 save/restore)
   drawTextGhost();
 
-  // 4. 绘制粒子
+  // 4. 绘制粒子 (视差系数 0.05 - 中景)
+  ctx.save();
+  ctx.translate(parallax.x * 0.05, parallax.y * 0.05);
   particles.forEach((p) => {
     p.update(mouse);
     p.draw(ctx);
   });
+  ctx.restore();
+
+  // 缓动更新视差值
+  if (mouse.active) {
+    const targetParallaxX = (mouse.x - width / 2) * 0.5;
+    const targetParallaxY = (mouse.y - height / 2) * 0.5;
+    parallax.x += (targetParallaxX - parallax.x) * 0.05;
+    parallax.y += (targetParallaxY - parallax.y) * 0.05;
+  } else {
+    // 鼠标离开时缓慢回正
+    parallax.x += (0 - parallax.x) * 0.05;
+    parallax.y += (0 - parallax.y) * 0.05;
+  }
 
   animationFrame = requestAnimationFrame(animate);
 };
@@ -200,12 +255,14 @@ const playVoice = (path?: string) => {
 
 /**
  * 开始叙事流程
- * 核心逻辑：按顺序播放每一句 -> 音频 -> 粒子汇聚 -> 等待 -> 粒子散开
  */
 const startNarrative = async () => {
   if (phraseConfig.value.length === 0) return;
 
   started.value = true;
+
+  // 隐藏按钮后，先等待一小会，让用户沉浸在星空移动中
+  await new Promise((r) => setTimeout(r, 800));
 
   for (let i = 0; i < phraseConfig.value.length; i++) {
     const item = phraseConfig.value[i];
@@ -216,9 +273,8 @@ const startNarrative = async () => {
     // 2. 计算文字点集并设置粒子目标
     const result = getPixelPoints(item.text, width, height, PARTICLE_CONFIG);
     const targetPoints = result.points;
-    currentTextLines = result.lines; // 用于 Ghost 绘制
+    currentTextLines = result.lines;
 
-    // 随机打乱目标点，让汇聚过程更自然错落
     const shuffledPoints = targetPoints.sort(() => 0.5 - Math.random());
 
     particles.forEach((p, idx) => {
@@ -226,10 +282,8 @@ const startNarrative = async () => {
         p.destX = shuffledPoints[idx].x;
         p.destY = shuffledPoints[idx].y;
         p.isTargeting = true;
-        // 每次重新汇聚都重置缓动系数，产生错落感
-        p.ease = 0.05 + Math.random() * 0.05;
+        p.ease = 0.03 + Math.random() * 0.04; // 稍微调慢一点汇聚速度，更优雅
       } else {
-        // 多余的粒子让它在背景里漂浮
         p.isTargeting = false;
         p.vx = (Math.random() - 0.5) * 0.5;
         p.vy = (Math.random() - 0.5) * 0.5;
@@ -239,7 +293,7 @@ const startNarrative = async () => {
     // 3. 等待展示时长
     await new Promise((r) => setTimeout(r, item.duration || 5000));
 
-    // 4. 判断是否是最后一句且需要保留
+    // 4. 判断是否是最后一句
     if (i === phraseConfig.value.length - 1) {
       onAllFinished();
       return;
@@ -248,12 +302,12 @@ const startNarrative = async () => {
     // 5. 散开逻辑
     particles.forEach((p) => {
       p.isTargeting = false;
-      // 散开时稍微轻柔一点
-      p.vx = (Math.random() - 0.5) * 4;
-      p.vy = (Math.random() - 0.5) * 4;
+      p.vx = (Math.random() - 0.5) * 3;
+      p.vy = (Math.random() - 0.5) * 3;
     });
-    // 稍微等待粒子散开后再进行下一句
-    await new Promise((r) => setTimeout(r, 1200));
+
+    // 6. 稍微等待粒子散开
+    await new Promise((r) => setTimeout(r, 1500));
     currentTextLines = [];
   }
 };
@@ -269,12 +323,9 @@ const handleInteraction = (e: any) => {
   clearTimeout(mouseTimer);
   mouseTimer = setTimeout(() => {
     mouse.active = false;
-  }, 800);
+  }, 2000); // 增加空闲判定时间，保持视差
 };
 
-/**
- * 窗口大小调整处理
- */
 const resize = () => {
   width = window.innerWidth;
   height = window.innerHeight;
@@ -282,10 +333,19 @@ const resize = () => {
     canvasRef.value.width = width;
     canvasRef.value.height = height;
   }
-  // 重新初始化背景星星以覆盖新区域
   bgStars = [];
   for (let i = 0; i < 300; i++) {
     bgStars.push(new BgStar(width, height));
+  }
+
+  // 初始化星球 (1个)
+  planets = [];
+  planets.push(new Planet(width, height));
+
+  // 初始化星云 (3-5个)
+  nebulas = [];
+  for (let i = 0; i < 4; i++) {
+    nebulas.push(new Nebula(width, height));
   }
 };
 
@@ -319,7 +379,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Playfair+Display:ital@1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Playfair+Display:ital@0;1&display=swap");
 
 .birthday-container {
   position: fixed;
@@ -327,8 +387,13 @@ onUnmounted(() => {
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* Deep Space Gradient: 深邃宇宙背景 */
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  /* Deep Space Gradient: 升级后的深邃星云背景 */
+  background:
+    radial-gradient(circle at 50% 120%, #0b1026 10%, #000000 70%),
+    radial-gradient(ellipse at 80% 20%, rgba(20, 30, 60, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(40, 20, 60, 0.3) 0%, transparent 50%),
+    linear-gradient(to bottom, #000000 0%, #090a0f 100%);
+  background-blend-mode: screen, screen, normal;
   overflow: hidden;
   touch-action: none;
 }
@@ -344,8 +409,10 @@ canvas {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  /* Vignette Effect: 四周暗角 */
-  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+  /* Vignette Effect + Subtle Noise Texture: 暗角与噪点 */
+  background:
+    radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
   z-index: 1;
 }
 
@@ -355,25 +422,17 @@ canvas {
   width: 100%;
   text-align: center;
   z-index: 10;
-  animation: fadeIn 3s ease forwards;
+  opacity: 0; /* 初始隐藏，由 GSAP 控制 */
 }
 
+/* 移除旧的 fade 动画，改用 GSAP */
+.fade-enter-active,
 .fade-leave-active {
-  transition: opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 1s ease;
 }
 
+.fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>
