@@ -5,7 +5,7 @@ const Letter = () => import("@/page/Letter.vue");
 const Birthday = () => import("@/page/Birthday.vue");
 
 const Questions = () => import("@/page/Questions/index.vue");
-const Bless = () => import("@/page/Bless.vue");
+const Bless = () => import("@/page/Bless/index.vue");
 const JsonGenerator = () => import("@/page/JsonGenerator/index.vue");
 
 const routes: RouteRecordRaw[] = [
