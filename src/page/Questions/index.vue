@@ -306,7 +306,7 @@ const handleArtifactAction = (item: any) => {
       break;
     case "text":
       // 触发羊皮纸弹窗
-      magicScrollRef.value?.show(item.content);
+      magicScrollRef.value?.show(item);
       break;
   }
 };

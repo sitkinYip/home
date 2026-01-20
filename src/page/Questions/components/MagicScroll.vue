@@ -7,7 +7,7 @@
 
         <div class="scroll-paper">
           <div class="scroll-content-wrap">
-            <div class="scroll-title">神谕密卷</div>
+            <div class="scroll-title">{{ title || "神谕密卷" }}</div>
             <!-- 核心：渲染解析后的富文本 -->
             <div class="scroll-text" v-html="parsedText"></div>
           </div>
@@ -25,6 +25,7 @@ import { ref, computed } from "vue";
 
 const visible = ref(false);
 const rawText = ref("");
+const title = ref("");
 
 // 解析文字：支持 [[文本]] 高亮和 \n 换行
 const parsedText = computed(() => {
@@ -34,8 +35,9 @@ const parsedText = computed(() => {
     .replace(/\[\[(.*?)\]\]/g, '<span class="scroll-highlight">$1</span>');
 });
 
-const show = (content: string) => {
-  rawText.value = content;
+const show = (data: { title: string; content: string }) => {
+  rawText.value = data.content;
+  title.value = data.title;
   visible.value = true;
 };
 
