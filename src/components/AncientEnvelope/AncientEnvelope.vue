@@ -259,6 +259,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@import url("https://fonts.googleapis.com/css2?family=Long+Cang&display=swap");
 /* 容器：锁定全屏，背景保持深色 */
 .ancient-envelope-final {
   position: relative;
@@ -268,7 +269,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  font-family: "STKaiti", "KaiTi", "Noto Serif SC", serif !important;
+  font-family: "Long Cang", cursive !important;
 }
 
 /* 舞台：控制信封和初始动画范围 */
