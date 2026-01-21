@@ -26,7 +26,7 @@
 <script setup>
 import { mainStore } from "@/store";
 import { Error } from "@icon-park/vue-next";
-import { defaultImagesMap, guoHanImageMap } from "../assets/imgMap";
+import { defaultImagesMap } from "../assets/imgMap";
 
 const store = mainStore();
 const bgUrl = ref(null);
@@ -39,23 +39,15 @@ const props = defineProps({
   },
 });
 
-const imagesMap = props.imgType === '1' ? guoHanImageMap : defaultImagesMap;
+const imagesMap = defaultImagesMap;
 const imgLength = Object.keys(imagesMap).length;
 
 // 壁纸随机数
 const bgRandom = Math.floor(Math.random() * imgLength + 1);
 
 // 更换壁纸链接
-const changeBg = (type) => {
-  if (type == 0) {
-    bgUrl.value = imagesMap[`background${bgRandom}`];
-  } else if (type == 1) {
-    bgUrl.value = "https://blog.sitkin.top/upload/photo1.jpeg";
-  } else if (type == 2) {
-    bgUrl.value = "https://blog.sitkin.top/upload/Image_20240407_184501_821.jpg";
-  } else if (type == 3) {
-    bgUrl.value = "https://blog.sitkin.top/upload/Image_20240407_184457_312.jpg";
-  }
+const changeBg = () => {
+  bgUrl.value = imagesMap[`background${bgRandom}`];
 };
 
 // 图片加载完成
