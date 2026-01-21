@@ -24,7 +24,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4 # 已经是最新 v4
         with:
-          node-version: "18.x"
+          node-version: "22"
           cache: "pnpm"
 
       - name: Copy .env.example
