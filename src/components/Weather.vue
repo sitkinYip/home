@@ -18,10 +18,10 @@
 </template>
 
 <script setup>
-import { getAdcode, getWeather, getOtherWeather } from "@/api";
+import { getGeoWeather, getQWeatherNow, getIpLocation } from "@/api";
 import { Error } from "@icon-park/vue-next";
 
-// 高德开发者 Key
+// 和风天气 Key
 const mainKey = import.meta.env.VITE_WEATHER_KEY;
 
 // 天气数据
@@ -53,44 +53,68 @@ const getTemperature = (min, max) => {
 // 获取天气数据
 const getWeatherData = async () => {
   try {
-    // 获取地理位置信息
+    // 检查 Key 是否配置
     if (!mainKey) {
-      console.log("未配置，使用备用天气接口");
-      const result = await getOtherWeather();
-      console.log(result);
-      const data = result.result;
       weatherData.adCode = {
-        city: data.city.City || "未知地区",
-        // adcode: data.city.cityId,
+        city: "未配置",
+        adcode: null,
       };
-      weatherData.weather = {
-        weather: data.condition.day_weather,
-        temperature: getTemperature(data.condition.min_degree, data.condition.max_degree),
-        winddirection: data.condition.day_wind_direction,
-        windpower: data.condition.day_wind_power,
-      };
-    } else {
-      // 获取 Adcode
-      const adCode = await getAdcode(mainKey);
-      console.log(adCode);
-      if (adCode.infocode !== "10000") {
-        throw "地区查询失败";
-      }
-      weatherData.adCode = {
-        city: adCode.city,
-        adcode: adCode.adcode,
-      };
-      // 获取天气信息
-      const result = await getWeather(mainKey, weatherData.adCode.adcode);
-      weatherData.weather = {
-        weather: result.lives[0].weather,
-        temperature: result.lives[0].temperature,
-        winddirection: result.lives[0].winddirection,
-        windpower: result.lives[0].windpower,
-      };
+      onError("请在 .env 中配置和风天气 Key");
+      return;
     }
+
+    // 1. 获取地理位置
+    let locationParam = null;
+    try {
+      // 尝试通过 IP 获取位置 (https://ipapi.co/json/)
+      const ipLoc = await getIpLocation();
+      if (ipLoc.latitude && ipLoc.longitude) {
+        // 和风天气要求经度在前，纬度在后
+        locationParam = `${ipLoc.longitude.toFixed(2)},${ipLoc.latitude.toFixed(2)}`;
+      }
+    } catch (e) {
+      console.error("IP 定位失败，将尝试默认参数", e);
+    }
+
+    // 如果 IP 定位失败，尝试使用默认值 (可选: 北京 116.40,39.90 作为兜底，或者让 API 报错)
+    // 这里如果 params 为空，API 会报错，所以我们给个 fallback 或者抛出
+    if (!locationParam) {
+      console.warn("无法获取自动定位，尝试使用北京作为默认地点");
+      locationParam = "116.40,39.90";
+    }
+
+    // 2. 获取城市 ID (GeoAPI)
+    const geoResult = await getGeoWeather(mainKey, locationParam);
+    console.log("Geo Result:", geoResult);
+
+    if (geoResult.code !== "200") {
+      throw new Error(`位置查询失败: ${geoResult.code}`);
+    }
+
+    const { name, id } = geoResult.location[0];
+
+    weatherData.adCode = {
+      city: name,
+      adcode: id,
+    };
+
+    // 2. 获取实时天气
+    const weatherResult = await getQWeatherNow(mainKey, id);
+    console.log("Weather Result:", weatherResult);
+
+    if (weatherResult.code !== "200") {
+      throw new Error(`天气查询失败: ${weatherResult.code}`);
+    }
+
+    const now = weatherResult.now;
+    weatherData.weather = {
+      weather: now.text,
+      temperature: now.temp,
+      winddirection: now.windDir,
+      windpower: now.windScale,
+    };
   } catch (error) {
-    console.error("天气信息获取失败:" + error);
+    console.error("天气信息获取失败:", error);
     onError("天气信息获取失败");
   }
 };

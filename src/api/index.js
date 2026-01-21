@@ -67,9 +67,41 @@ export const getWeather = async (key, city) => {
   return await res.json();
 };
 
-// 获取教书先生天气 API
-// https://api.oioweb.cn/doc/weather/GetWeather
-export const getOtherWeather = async () => {
-  const res = await fetch("https://api.oioweb.cn/api/weather/GetWeather");
+/**
+ * 和风天气 API
+ * https://dev.qweather.com/
+ */
+
+// 获取 IP 地理位置 (ipwho.is)
+export const getIpLocation = async () => {
+  const res = await fetch("https://ipwho.is/");
+  return await res.json();
+};
+
+// 获取地理位置信息 (GeoAPI)
+// m954e55put.re.qweatherapi.com/geo/v2/city/lookup?location=116.40,39.90&key=YOUR_KEY
+export const getGeoWeather = async (key, location) => {
+  const res = await fetch(
+    `https://m954e55put.re.qweatherapi.com/geo/v2/city/lookup?location=${location}&key=${key}`,
+    {
+      headers: {
+        "X-QW-Api-Key": key,
+      },
+    }
+  );
+  return await res.json();
+};
+
+// 获取实时天气 (Weather API)
+// m954e55put.re.qweatherapi.com/v7/weather/now?location=101010100&key=YOUR_KEY
+export const getQWeatherNow = async (key, locationId) => {
+  const res = await fetch(
+    `https://m954e55put.re.qweatherapi.com/v7/weather/now?location=${locationId}&key=${key}`,
+    {
+      headers: {
+        "X-QW-Api-Key": key,
+      },
+    }
+  );
   return await res.json();
 };
