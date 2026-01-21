@@ -10,42 +10,48 @@ jobs:
     name: Build and deploy to server
     runs-on: ubuntu-latest
     steps:
-    - name: Verify rsync installation
-      run: rsync --version
+      - name: Verify rsync installation
+        run: rsync --version
 
-    - name: Check out git repository
-      uses: actions/checkout@v4 # 已经是最新 v4
+      - name: Check out git repository
+        uses: actions/checkout@v4 # 已经是最新 v4
 
-    - name: Install Node.js
-      uses: actions/setup-node@v4 # 已经是最新 v4
-      with:
-        node-version: "18.x"
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-    - name: Copy .env.example
-      run: |
-        if [ ! -f .env ]; then
-          cp .env.example .env
-        else
-          echo ".env file already exists. Skipping the copy step."
-        fi
+      - name: Install Node.js
+        uses: actions/setup-node@v4 # 已经是最新 v4
+        with:
+          node-version: "18.x"
+          cache: "pnpm"
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Copy .env.example
+        run: |
+          if [ ! -f .env ]; then
+            cp .env.example .env
+          else
+            echo ".env file already exists. Skipping the copy step."
+          fi
 
-    - name: Build Website
-      run: npm run build
-      env:
-        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: Install Dependencies
+        run: pnpm install
 
-    - name: Deploy
-      # 建议使用更新频率更高的 appleboy/scp-action 或者更新 easingthemes
-      # 这里先帮你把 easingthemes 尝试升级到 v5 左右的版本，或者保留原样
-      # 注意：v2.1.1 非常老了，建议使用下方的版本或替换
-      uses: easingthemes/ssh-deploy@main 
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
-        ARGS: '-avz --delete'
-        SOURCE: 'dist/'
-        REMOTE_HOST: ${{ secrets.HOST }}
-        REMOTE_USER: ${{ secrets.USERNAME }}
-        TARGET: ${{ secrets.SERVER_PATH }}
+      - name: Build Website
+        run: pnpm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Deploy
+        # 建议使用更新频率更高的 appleboy/scp-action 或者更新 easingthemes
+        # 这里先帮你把 easingthemes 尝试升级到 v5 左右的版本，或者保留原样
+        # 注意：v2.1.1 非常老了，建议使用下方的版本或替换
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          ARGS: "-avz --delete"
+          SOURCE: "dist/"
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.SERVER_PATH }}
