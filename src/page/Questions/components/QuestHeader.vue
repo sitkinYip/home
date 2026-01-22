@@ -73,40 +73,40 @@ defineEmits(["avatarClick", "headerClick"]);
   display: flex;
   align-items: center;
   justify-content: space-between; // 两端对齐
-  margin-bottom: 32px;
+  margin-bottom: 32vpx;
   width: 100%;
 
   .header-left {
     display: flex;
     align-items: center;
-    gap: 12px; // 头像与文字的间距
+    gap: 12vpx; // 头像与文字的间距
   }
 
   // 左侧：用户头像组件
   .user-avatar-wrap {
     position: relative;
-    width: 54px;
-    height: 54px;
+    width: 54vpx;
+    height: 54vpx;
     flex-shrink: 0;
 
     .avatar-frame {
       position: absolute;
-      inset: -4px;
-      border: 2px solid rgba($magic-gold, 0.5);
+      inset: -4vpx;
+      border: 2vpx solid rgba($magic-gold, 0.5);
       border-radius: 50%;
       &::before {
         content: "";
         position: absolute;
-        inset: -8px;
-        border: 1px dashed rgba($magic-gold, 0.3);
+        inset: -8vpx;
+        border: 1vpx dashed rgba($magic-gold, 0.3);
         border-radius: 50%;
         animation: rotateCW 10s linear infinite;
       }
       &::after {
         content: "";
         position: absolute;
-        inset: -4px;
-        border: 2px solid transparent;
+        inset: -4vpx;
+        border: 2vpx solid transparent;
         border-top-color: rgba($magic-gold, 0.6);
         border-bottom-color: rgba($magic-gold, 0.6);
         border-radius: 50%;
@@ -118,7 +118,7 @@ defineEmits(["avatarClick", "headerClick"]);
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      border: 2px solid #0a0e14;
+      border: 2vpx solid #0a0e14;
       display: block;
     }
 
@@ -130,7 +130,7 @@ defineEmits(["avatarClick", "headerClick"]);
       align-items: center;
       justify-content: center;
       color: $magic-gold;
-      font-size: 20px;
+      font-size: 20vpx;
     }
   }
 
@@ -140,34 +140,34 @@ defineEmits(["avatarClick", "headerClick"]);
     justify-content: center;
 
     .hero-name {
-      font-size: 18px; // 稍微调小一点，保证一行显示
+      font-size: 18vpx; // 稍微调小一点，保证一行显示
       font-weight: 800;
       margin: 0;
       color: #fff;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-      max-width: 180px; // 防止名字过长遮挡
+      text-shadow: 0 2vpx 8vpx rgba(0, 0, 0, 0.8);
+      max-width: 180vpx; // 防止名字过长遮挡
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .level-badge {
-      font-size: 10px;
+      font-size: 10vpx;
       color: $magic-gold;
-      letter-spacing: 1px;
+      letter-spacing: 1vpx;
       background: rgba(255, 215, 0, 0.1);
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-top: 4px;
-      border: 0.5px solid rgba($magic-gold, 0.3);
+      padding: 2vpx 8vpx;
+      border-radius: 4vpx;
+      margin-top: 4vpx;
+      border: 0.5vpx solid rgba($magic-gold, 0.3);
     }
   }
 
   // 右侧：状态指示器
   .status-indicator-wrap {
     position: relative;
-    width: 46px; // 比头像略小，主次分明
-    height: 46px;
+    width: 46vpx; // 比头像略小，主次分明
+    height: 46vpx;
     cursor: pointer;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
@@ -179,7 +179,7 @@ defineEmits(["avatarClick", "headerClick"]);
       height: 100%;
       background: $magic-gold;
       border-radius: 50%;
-      filter: blur(10px);
+      filter: blur(10vpx);
       opacity: 0.3;
       animation: pulse 2s infinite;
       transition:
@@ -189,7 +189,7 @@ defineEmits(["avatarClick", "headerClick"]);
       &.is-error-glow {
         background: $magic-red !important;
         opacity: 0.7 !important;
-        filter: blur(15px) !important; // 错误时光晕更扩散，更有反噬感
+        filter: blur(15vpx) !important; // 错误时光晕更扩散，更有反噬感
       }
       &.is-bingo-glow {
         background: $magic-green;
@@ -202,13 +202,13 @@ defineEmits(["avatarClick", "headerClick"]);
       width: 100%;
       height: 100%;
       background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba($magic-gold, 0.4);
+      backdrop-filter: blur(5vpx);
+      border: 1vpx solid rgba($magic-gold, 0.4);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 0 10px rgba($magic-gold, 0.1);
+      box-shadow: inset 0 0 10vpx rgba($magic-gold, 0.1);
     }
   }
 }

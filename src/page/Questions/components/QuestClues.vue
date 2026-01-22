@@ -50,13 +50,13 @@ defineEmits(["action", "preview"]);
   position: relative;
   overflow: hidden;
   background: $glass-bg;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid $glass-border;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  margin-bottom: 24px;
-  padding: 24px;
+  backdrop-filter: blur(20vpx);
+  -webkit-backdrop-filter: blur(20vpx);
+  border: 1vpx solid $glass-border;
+  border-radius: 20vpx;
+  box-shadow: 0 8vpx 32vpx 0 rgba(0, 0, 0, 0.3);
+  margin-bottom: 24vpx;
+  padding: 24vpx;
   transition:
     border-color 0.4s,
     box-shadow 0.4s;
@@ -81,37 +81,16 @@ defineEmits(["action", "preview"]);
 
 // 线索卡片
 .clue-card {
-  padding: 20px;
-  margin-bottom: 12px;
-  border: 1px solid rgba($magic-green, 0.4);
+  padding: 20vpx;
+  margin-bottom: 12vpx;
+  border: 1vpx solid rgba($magic-green, 0.4);
 
   .clue-header {
     text-align: center;
     color: $magic-green;
     font-weight: bold;
-    margin-bottom: 12px;
-    font-size: 14px;
-
-    // Header ornament styles if not global (implied from template usage but not in specific scss block provided for clue-card, maybe general?)
-    // Checking original vue file: <span class="header-ornament"></span>
-    // I don't see .header-ornament in style.scss provided earlier. Wait, let me check style.scss again later.
-    // If it's missing, I might need to infer or it's global.
-    // Ah, it might be in .q_title_row .ornament but here is .header-ornament
-    // Let's assume it was styling from scoped style.scss that I missed or it was implicit.
-    // Actually, looking at index.vue line 144: <span class="header-ornament"></span>
-    // Looking at style.scss line 451: .clue-card { ... }
-    // It seems .header-ornament is NOT defined in the provided style.scss!
-    // Wait, let's look at `index.vue` again.
-    // Line 76: <span class="ornament"></span> in .q_title_row
-    // Line 144: <span class="header-ornament"></span> in .clue-header
-    // In style.scss, .clue-header is defined (line 456), but not .header-ornament.
-    // Maybe it relies on global CSS or I missed something.
-    // Or maybe it's just empty span?
-    // Let's look closer at style.scss.
-    // It's possible the user didn't paste everything or I missed it.
-    // But I have the full file content.
-    // No .header-ornament in style.scss.
-    // I shall omit specific styles for it unless I see them, or maybe copy .ornament style.
+    margin-bottom: 12vpx;
+    font-size: 14vpx;
   }
 
   .clue-text {
@@ -119,14 +98,14 @@ defineEmits(["action", "preview"]);
     text-align: center;
     color: #ddd;
     font-style: italic;
-    margin-bottom: 12px;
+    margin-bottom: 12vpx;
   }
 
   .clue-btn {
     width: 100%;
-    height: 48px;
-    margin: 8px 0;
-    font-size: 15px;
+    height: 48vpx;
+    margin: 8vpx 0;
+    font-size: 15vpx;
   }
 }
 
@@ -137,11 +116,11 @@ defineEmits(["action", "preview"]);
   // wrapper
 }
 .direct-img-view {
-  margin-top: 10px;
+  margin-top: 10vpx;
   .clue-img {
     width: 100%;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8vpx;
+    border: 1vpx solid rgba(255, 255, 255, 0.1);
   }
 }
 

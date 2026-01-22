@@ -86,15 +86,15 @@ const handleFocus = (val: boolean) => {
   .input-wrapper {
     position: relative;
     background: rgba(0, 0, 0, 0.4);
-    border: 1px solid $glass-border;
-    border-radius: 12px;
+    border: 1vpx solid $glass-border;
+    border-radius: 12vpx;
     transition: all 0.3s ease;
-    margin-bottom: 16px;
+    margin-bottom: 16vpx;
     .magic-progress {
       position: absolute;
-      bottom: -1px;
+      bottom: -1vpx;
       left: 0;
-      height: 2px;
+      height: 2vpx;
       background: linear-gradient(to right, transparent, $magic-gold, transparent);
       transition: width 0.3s ease;
       opacity: 0.6;
@@ -102,20 +102,20 @@ const handleFocus = (val: boolean) => {
 
     &.is-focus {
       background: rgba(0, 0, 0, 0.6);
-      box-shadow: 0 0 15px rgba($magic-gold, 0.2);
+      box-shadow: 0 0 15vpx rgba($magic-gold, 0.2);
     }
     &.is-error {
       border-color: $magic-red !important;
-      box-shadow: 0 0 15px rgba($magic-red, 0.3);
+      box-shadow: 0 0 15vpx rgba($magic-red, 0.3);
     }
 
     .magic-input {
       width: 100%;
       background: transparent;
       border: none;
-      padding: 16px;
+      padding: 16vpx;
       color: #fff;
-      font-size: 16px;
+      font-size: 16vpx;
       outline: none;
       box-sizing: border-box;
       &::placeholder {
@@ -126,13 +126,13 @@ const handleFocus = (val: boolean) => {
 
   .magic-btn {
     width: 100%;
-    padding: 16px;
-    border-radius: 12px;
+    padding: 16vpx;
+    border-radius: 12vpx;
     border: none;
     background: linear-gradient(135deg, $magic-purple 0%, #4834d4 100%);
     color: #fff;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 18vpx;
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -147,7 +147,7 @@ const handleFocus = (val: boolean) => {
 
     &.btn-error {
       background: linear-gradient(135deg, $magic-red 0%, #c0392b 100%) !important;
-      box-shadow: 0 0 20px rgba($magic-red, 0.4);
+      box-shadow: 0 0 20vpx rgba($magic-red, 0.4);
       transform: scale(0.98);
     }
 
