@@ -27,6 +27,7 @@
       :is="currentComponent"
       v-bind="componentProps"
       class="letter-content-layer"
+      @open="handleOpenLetter"
     />
   </div>
 </template>
@@ -37,6 +38,8 @@ import { useRoute } from "vue-router";
 import { Compass } from "@element-plus/icons-vue";
 import { fetchLetter } from "@/server/qa";
 import type { TLetterecord } from "@/types/qa";
+
+let bgmAudio: HTMLAudioElement | null = null;
 
 const AncientEnvelope = defineAsyncComponent(
   () => import("../components/AncientEnvelope/AncientEnvelope.vue"),
@@ -154,8 +157,33 @@ const checkErrorState = () => {
   }
 };
 
+/**
+ * 处理开信事件：播放 BGM (解锁移动端音频限制)
+ */
+const handleOpenLetter = () => {
+  const letter = currentLetter.value;
+  if (!letter || !letter.mainAudio) return;
+
+  if (bgmAudio) {
+    bgmAudio.pause();
+    bgmAudio = null;
+  }
+
+  bgmAudio = new Audio(letter.mainAudio);
+  bgmAudio.loop = true;
+  bgmAudio.volume = 0.3; // BGM 音量降低
+  bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
+};
+
 onMounted(() => {
   initData();
+});
+
+onUnmounted(() => {
+  if (bgmAudio) {
+    bgmAudio.pause();
+    bgmAudio = null;
+  }
 });
 </script>
 

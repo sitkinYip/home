@@ -116,6 +116,8 @@ const props = withDefaults(defineProps<Props>(), {
   hintText: "点击开启信件",
 });
 
+const emit = defineEmits(["open"]);
+
 // --- 响应式状态 ---
 const isOpen = ref<boolean>(false); // 信件是否已开启
 const displayedParagraphs = ref<DisplayedParagraph[]>([]); // 实际渲染的段落数据
@@ -258,6 +260,8 @@ const typeText = async (): Promise<void> => {
  */
 const openLetter = (): void => {
   if (isOpen.value) return;
+
+  emit("open");
 
   // 解锁移动端音频自动播放权限（必须由用户交互触发）
   audioPlayer

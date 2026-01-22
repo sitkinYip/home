@@ -68,6 +68,7 @@ const finalUiRef = ref<HTMLElement | null>(null);
 const btnText = ref("点此 进入属于你的璀璨星空");
 const mySubtitles = ref<IphraseItem[]>([]);
 const phraseConfig = ref<IphraseItem[]>([]);
+const mainAudioUrl = ref("");
 
 // --- Canvas 相关 ---
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -84,6 +85,7 @@ let planets: Planet[] = [];
 let nebulas: Nebula[] = [];
 let currentTextLines: string[] = [];
 let currentAudio: HTMLAudioElement | null = null;
+let bgmAudio: HTMLAudioElement | null = null;
 
 // 交互状态
 const mouse: MouseState = { x: -1000, y: -1000, active: false };
@@ -110,6 +112,9 @@ const initData = async () => {
       mySubtitles.value = matchedItem.takeABowList || [];
       if (matchedItem.title) {
         btnText.value = matchedItem.title;
+      }
+      if (matchedItem.mainAudio) {
+        mainAudioUrl.value = matchedItem.mainAudio;
       }
     } else {
       throw new Error("No matching record found");
@@ -264,6 +269,18 @@ const startNarrative = async () => {
   // 隐藏按钮后，先等待一小会，让用户沉浸在星空移动中
   await new Promise((r) => setTimeout(r, 800));
 
+  // 0. 尝试播放 BGM (如果存在)
+  if (mainAudioUrl.value) {
+    if (bgmAudio) {
+      bgmAudio.pause();
+      bgmAudio = null;
+    }
+    bgmAudio = new Audio(mainAudioUrl.value);
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.3; // BGM 音量降低
+    bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
+  }
+
   for (let i = 0; i < phraseConfig.value.length; i++) {
     const item = phraseConfig.value[i];
 
@@ -374,6 +391,10 @@ onMounted(() => {
 onUnmounted(() => {
   if (animationFrame) cancelAnimationFrame(animationFrame);
   if (currentAudio) currentAudio.pause();
+  if (bgmAudio) {
+    bgmAudio.pause();
+    bgmAudio = null;
+  }
   window.removeEventListener("resize", resize);
 });
 </script>
@@ -388,8 +409,7 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   /* Deep Space Gradient: 升级后的深邃星云背景 */
-  background:
-    radial-gradient(circle at 50% 120%, #0b1026 10%, #000000 70%),
+  background: radial-gradient(circle at 50% 120%, #0b1026 10%, #000000 70%),
     radial-gradient(ellipse at 80% 20%, rgba(20, 30, 60, 0.4) 0%, transparent 50%),
     radial-gradient(ellipse at 20% 80%, rgba(40, 20, 60, 0.3) 0%, transparent 50%),
     linear-gradient(to bottom, #000000 0%, #090a0f 100%);
@@ -410,8 +430,7 @@ canvas {
   height: 100%;
   pointer-events: none;
   /* Vignette Effect + Subtle Noise Texture: 暗角与噪点 */
-  background:
-    radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%),
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
   z-index: 1;
 }

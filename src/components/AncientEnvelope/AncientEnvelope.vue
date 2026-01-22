@@ -102,6 +102,8 @@ const props = withDefaults(defineProps<Props>(), {
   images: () => [],
 });
 
+const emit = defineEmits(["open"]);
+
 // --- 响应式状态 (State) ---
 
 const isOpened = ref<boolean>(false); // 是否触发开启信封
@@ -146,6 +148,7 @@ const getParaStyle = (align?: string): Record<string, string> => {
 const handleOpen = async (): Promise<void> => {
   if (isOpened.value) return;
   isOpened.value = true;
+  emit("open");
 
   // 解锁移动端音频限制：必须在用户点击的同步线程中调用一次 play()
   if (audioPlayer.value) {
