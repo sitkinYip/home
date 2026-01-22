@@ -9,60 +9,15 @@
 
       <div class="quest-wrapper">
         <!-- 英雄状态栏 -->
-        <header class="hero-header">
-          <div class="header-left">
-            <!-- 新增：用户英雄头像 -->
-            <div class="user-avatar-wrap" @click="handleAvatarClick">
-              <div class="avatar-frame"></div>
-              <el-image
-                :src="questionsStore.qaInfo.avatar || '默认头像地址'"
-                class="user-avatar"
-                fit="cover"
-              >
-                <template #error>
-                  <div class="avatar-placeholder">
-                    {{ `${questionsStore.currentUserDisplay?.at?.(-1) ?? "旅"}` }}
-                  </div>
-                </template>
-              </el-image>
-            </div>
-
-            <!-- 英雄信息 -->
-            <div class="hero-info">
-              <h2 class="hero-name">{{ questionsStore.currentUserDisplay }}</h2>
-              <div class="level-badge">
-                RANK: {{ questionsStore.currentStep }} ·
-                {{ questionsStore.qaInfo?.rankName || "探索者" }}
-              </div>
-            </div>
-          </div>
-
-          <!-- 右侧：解谜状态指示器 -->
-          <div class="header-right" @click="handleHeaderClick">
-            <div class="status-indicator-wrap" :class="{ 'is-error-shake': isError }">
-              <!-- 动态光晕类：增加 is-error-glow -->
-              <div
-                class="avatar-glow"
-                :class="{
-                  'is-bingo-glow': isBinGo,
-                  'is-error-glow': isError,
-                }"
-              ></div>
-
-              <!-- 内部容器：增加 is-error-border -->
-              <div class="status-inner" :class="{ 'is-error-border': isError }">
-                <el-icon :size="toVpx(24)">
-                  <!-- 三态图标逻辑 -->
-                  <CircleClose v-if="isError" color="#ff4757" />
-                  <template v-else>
-                    <Lock v-if="!isBinGo" color="#ffd700" />
-                    <MagicStick v-else color="#2ecc71" />
-                  </template>
-                </el-icon>
-              </div>
-            </div>
-          </div>
-        </header>
+        <QuestHeader
+          :qa-info="questionsStore.qaInfo"
+          :current-user-display="questionsStore.currentUserDisplay"
+          :current-step="questionsStore.currentStep"
+          :is-error="isError"
+          :is-bin-go="isBinGo"
+          @avatar-click="handleAvatarClick"
+          @header-click="handleHeaderClick"
+        />
 
         <!-- 魔法交互面板 -->
         <main
@@ -83,98 +38,31 @@
             <QuestContent :list="questionsStore.qaInfo.question" @play-video="openVideo" />
 
             <!-- 答题输入区 -->
-            <div class="interaction-zone">
-              <!-- 选择题模式 -->
-              <template
-                v-if="
-                  questionsStore.qaInfo.type === 'MultipleChoice' &&
-                  questionsStore.qaInfo.options?.length
-                "
-              >
-                <MultipleChoiceOptions
-                  :options="questionsStore.qaInfo.options"
-                  v-model="userInput"
-                  :disabled="isBinGo"
-                  :penaltyEndTime="penaltyEndTime"
-                  :wrongCount="wrongCount"
-                  @play-video="openVideo"
-                />
-              </template>
-
-              <!-- 填空题模式 (默认) -->
-              <div
-                v-else
-                class="input-wrapper"
-                :class="{ 'is-focus': isInputFocus, 'is-error': isError }"
-                :style="{ '--power': `${inputMagicPower}px` }"
-              >
-                <input
-                  v-model="userInput"
-                  class="magic-input"
-                  :placeholder="questionsStore.qaInfo.placeholder || '在此刻下你的答案...'"
-                  @focus="isInputFocus = true"
-                  @blur="isInputFocus = false"
-                  @keyup.enter="onConfirmAnswer"
-                />
-                <!-- 增加一个魔力进度条，非常细微，在输入框底部 -->
-                <div class="magic-progress" :style="{ width: `${inputMagicPower}%` }"></div>
-              </div>
-
-              <button
-                @click="onConfirmAnswer"
-                class="magic-btn"
-                :class="{
-                  'btn-success': isBinGo,
-                  'btn-error': isError,
-                }"
-              >
-                <span class="btn-content">
-                  {{ isBinGo ? "挑战成功" : isError ? "咒语错误" : "确认答案" }}
-                </span>
-                <div class="btn-flare"></div>
-              </button>
-            </div>
+            <QuestInputRegion
+              :qa-info="questionsStore.qaInfo"
+              v-model="userInput"
+              :is-bin-go="isBinGo"
+              :is-error="isError"
+              :penalty-end-time="penaltyEndTime"
+              :wrong-count="wrongCount"
+              @submit="onConfirmAnswer"
+              @play-video="openVideo"
+            />
           </MagicAccordion>
         </main>
+
         <MagicScroll ref="magicScrollRef" />
+
         <!-- 线索展示（答对后呈现） -->
         <transition name="scroll-reveal">
-          <div class="magic-panel clue-card" v-show="isBinGo">
-            <div class="clue-header">
-              <span class="header-ornament"></span>
-              获取的神谕线索
-              <span class="header-ornament"></span>
-            </div>
-
-            <div class="as_content">
-              <div
-                v-for="(item, index) in questionsStore.qaInfo.thread"
-                :key="index"
-                class="as_item_wrapper"
-              >
-                <!-- 使用新组件 ClueArtifact -->
-                <ClueArtifact
-                  :type="item.type"
-                  :content="item.content"
-                  @action="handleArtifactAction(item)"
-                  :path="item.path"
-                  :query="item.query"
-                  :nextIndex="item.nextIndex"
-                  :title="item.title"
-                />
-
-                <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->
-                <div class="direct-img-view" v-if="item.type === 'img' && !item.content">
-                  <el-image
-                    :src="item.url"
-                    class="clue-img"
-                    @click="previewImage(item.imgList || [item.url!])"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <QuestClues
+            v-if="isBinGo"
+            :thread="questionsStore.qaInfo.thread"
+            @action="handleArtifactAction"
+            @preview="previewImage"
+          />
         </transition>
+
         <AdventurePortal
           v-show="!isDebug"
           :start-time="questionsStore.qaInfo.startTime"
@@ -197,180 +85,79 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed, nextTick } from "vue";
-import { Lock, MagicStick, CircleClose } from "@element-plus/icons-vue";
 import gsap from "gsap";
-import confetti from "canvas-confetti";
 import { useRouter } from "vue-router";
 import { useQuestionsStore } from "@/store/questions";
 
 import {
   getQueryParam,
   isTimeReached,
-  checkAnswer,
   filterSpecialChars,
   HeaderClickCounter,
   clickCounter,
 } from "@/utils/qa/questions";
-// import { fetchLevels } from "@/server/qa"; // 移入 store
-// import { LevelRecord } from "@/types/qa"; // 移入 store
+
+// Components
 import VideoPlayer from "@/components/VideoPlayer.vue";
 import VictoryAura from "./components/VictoryAura.vue";
 import AdventurePortal from "./components/AdventurePortal.vue";
-import ClueArtifact from "./components/ClueArtifact.vue";
-import { showImagePreview } from "vant";
 import MagicScroll from "./components/MagicScroll.vue";
-import { showNotify, showToast } from "vant";
 import QuestContent from "./components/QuestContent.vue";
 import AdventureLost from "./components/AdventureLost.vue";
-
-import MultipleChoiceOptions from "./components/MultipleChoiceOptions.vue";
 import MagicAccordion from "./components/MagicAccordion.vue";
 
+// New Components
+import QuestHeader from "./components/QuestHeader.vue";
+import QuestInputRegion from "./components/QuestInputRegion.vue";
+import QuestClues from "./components/QuestClues.vue";
+
+// Composables
+import { usePenalty } from "./composables/usePenalty";
+import { useAnswerCheck } from "./composables/useAnswerCheck";
+import { useArtifacts } from "./composables/useArtifacts";
+import { showNotify } from "vant";
+
 const questionsStore = useQuestionsStore();
-const magicScrollRef = ref<any>(null);
+const router = useRouter();
 const isDebug = getQueryParam("debug")?.[0] === "1";
+
+// Refs
+const magicScrollRef = ref<any>(null);
 const victoryAuraRef = ref<any>(null);
 const videoPlayerRef = ref<any>(null);
-const userInput = ref("");
-const isBinGo = ref(false);
-const isQuestionExpanded = ref(true);
-const isInputFocus = ref(false);
-const isError = ref(false); // 错误视觉状态
-// const allLevels = ref<LevelRecord[]>([]); // 移入 store
-// const qaInfo = ref<LevelRecord | null>(null); // 移入 store
-const router = useRouter();
 
+// Route / Query Params
 const qaIndexStr = getQueryParam("qa")?.[0] || "1";
 const currentStep = parseInt(qaIndexStr);
 const userId = getQueryParam("user")?.[0] || "";
-// const userName = ref("旅行者"); // 移入 store
-// const isLost = ref(false); // 移入 store
-// const hasFirstStep = ref(false); // 移入 store
 
-// const currentUserDisplay = computed(() => `${userName.value}`); // 移入 store getter
-const cacheKey = computed(() => questionsStore.getCacheKey(currentStep, userId));
+// Composables Init
+const {
+  wrongCount,
+  penaltyEndTime,
+  isError,
+  loadPenaltyState,
+  clearPenalty,
+  handleWrongHelper,
+  checkPenaltyTime,
+} = usePenalty(currentStep, userId, questionsStore);
 
-// 惩罚机制相关状态
-const wrongCount = ref(0);
-const penaltyEndTime = ref(0);
-const penaltyKey = computed(
-  () => `qa_penalty_${currentStep}_${userId}_${questionsStore.qaInfo?.updated || ""}`,
+const {
+  userInput,
+  isBinGo,
+  isQuestionExpanded,
+  cacheKey,
+  checkPersistentProgress,
+  verifyAnswer,
+  handleSuccess: execSuccess,
+} = useAnswerCheck(currentStep, userId, questionsStore);
+
+const { openVideo, openPage, previewImage, handleArtifactAction } = useArtifacts(
+  videoPlayerRef,
+  magicScrollRef,
 );
-// 默认惩罚配置: [第一次错误等待时间(ms), 第二次错误等待时间(ms), ...]
-// -1 代表永久锁定
-const defaultPenaltyConfig = [3 * 60 * 1000, -1];
 
-const currentPenaltyConfig = computed(() => {
-  // 如果服务端有下发 questionsStore.qaInfo.penaltyConfig 则使用它
-  // 否则使用默认的 defaultPenaltyConfig
-  return questionsStore.qaInfo?.penaltyConfig || defaultPenaltyConfig;
-});
-
-const initData = async () => {
-  // 调用 store 的 initData
-  await questionsStore.initData(currentStep, userId);
-
-  if (questionsStore.qaInfo) {
-    checkPersistentProgress();
-    loadPenaltyState(); // 加载惩罚状态
-
-    // 进场动画...
-    nextTick(() => {
-      // 任务面板滑入
-      gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
-      // 左侧英雄信息从左侧滑入
-      gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
-      // 右侧状态指示器从右侧滑入
-      gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
-    });
-  }
-};
-
-/**
- * 统一处理遗物点击动作
- */
-const handleArtifactAction = (item: any) => {
-  switch (item.type) {
-    case "url":
-      openPage(item.url);
-      break;
-    case "img":
-      // 使用 Vant 的 ImagePreview，支持双指缩放、左右滑动、手势关闭
-      showImagePreview({
-        images: item.imgList || [item.url!],
-        closeable: true,
-      });
-      break;
-    case "video":
-      openVideo(item.url!);
-      break;
-    case "text":
-      // 触发羊皮纸弹窗
-      magicScrollRef.value?.show(item);
-      break;
-  }
-};
-
-/**
- * 直接点击图片的预览
- */
-const previewImage = (images: string[]) => {
-  showImagePreview({
-    images: images,
-    closeable: true,
-    teleport: "body",
-  });
-};
-
-const checkPersistentProgress = () => {
-  const preData = questionsStore.getCachedProgress(currentStep, userId);
-  if (preData?.type === "bingo") {
-    isBinGo.value = true;
-    userInput.value = preData.input || "";
-    isQuestionExpanded.value = false; // 如果已答对，进场时自动折叠
-  }
-};
-
-// 加载惩罚状态
-const loadPenaltyState = () => {
-  try {
-    const raw = localStorage.getItem(penaltyKey.value);
-    if (raw) {
-      const data = JSON.parse(raw);
-      wrongCount.value = data.wrongCount || 0;
-      penaltyEndTime.value = data.penaltyEndTime || 0;
-    }
-  } catch (e) {
-    console.error("Failed to load penalty state", e);
-  }
-};
-
-// 保存惩罚状态
-const savePenaltyState = () => {
-  try {
-    localStorage.setItem(
-      penaltyKey.value,
-      JSON.stringify({
-        wrongCount: wrongCount.value,
-        penaltyEndTime: penaltyEndTime.value,
-      }),
-    );
-  } catch (e) {
-    console.error("Failed to save penalty state", e);
-  }
-};
-
-// 后门：清除惩罚
-const clearPenalty = () => {
-  localStorage.removeItem(penaltyKey.value);
-  wrongCount.value = 0;
-  penaltyEndTime.value = 0;
-  showToast("神力显现，惩罚已清除！");
-};
-
-// 头像点击计数器 (10次清除)
-const handleAvatarClick = clickCounter(clearPenalty, 10);
-
+// Helper Functions
 const talk = (msg: string, dur: number = 0): Promise<void> => {
   return new Promise((resolve) => {
     showNotify({
@@ -382,25 +169,38 @@ const talk = (msg: string, dur: number = 0): Promise<void> => {
   });
 };
 
+const reportAction = (content: string, title: string) => {
+  const nickName = questionsStore.qaInfo?.userName || "旅行者";
+  if (isDebug) return console.log(`报告：${title} -- 来自sitkin.top/${nickName}${content}`);
+  fetch(
+    `https://api.chuckfang.com/4acc3779/${title} -- 来自sitkin.top/${nickName}${content}`,
+  ).catch((e) => console.error("Report failed", e));
+};
+
+const handleAvatarClick = clickCounter(clearPenalty, 10);
+
+const handleHeaderClick = () => {
+  HeaderClickCounter(cacheKey.value);
+};
+
+const handleVictoryClose = () => {
+  console.log("英雄回到了主世界");
+  const { path, query = {}, link } = questionsStore.qaInfo?.FinalLevelConfig || {};
+  if (path) {
+    return router.replace({ path, query });
+  }
+  if (link) {
+    return openPage(link);
+  }
+};
+
+// Main Logic
 const onConfirmAnswer = async () => {
   if (isBinGo.value || !questionsStore.qaInfo) return;
   if (isError.value) return;
 
   // 检查是否处于惩罚期
-  if (penaltyEndTime.value > 0) {
-    // 如果是永久锁定 (-1) 或 当前时间还未到解锁时间
-    if (penaltyEndTime.value === -1 || Date.now() < penaltyEndTime.value) {
-      showNotify({
-        type: "warning",
-        message: "灵魂虚弱，暂时无法施法...",
-      });
-      return;
-    } else {
-      // 时间已过，重置倒计时（保留错误次数，以便下次错误的惩罚升级）
-      penaltyEndTime.value = 0;
-      savePenaltyState();
-    }
-  }
+  if (checkPenaltyTime()) return;
 
   if (!isDebug) {
     const { startTime, endTime } = questionsStore.qaInfo || {};
@@ -425,161 +225,37 @@ const onConfirmAnswer = async () => {
   }
 
   const ans = userInput.value.trim();
-
-  // 空答案不扣次数
   if (!ans) {
-    showNotify({
-      type: "warning",
-      position: "bottom",
-      message: "请输入咒语",
-    });
+    showNotify({ type: "warning", position: "bottom", message: "请输入咒语" });
     return;
   }
 
-  const answerList = questionsStore.qaInfo.answerList || [];
-  /* const isCorrect =
-    ans === questionsStore.qaInfo.answer || checkAnswer(ans, questionsStore.qaInfo.answer);
+  const isCorrect = verifyAnswer(ans);
 
-  const isListCorrect = !isCorrect
-    ? answerList?.find((item) => ans === item || checkAnswer(ans, item)) || null
-    : true; */
-  let isFinalCorrect =
-    ans === questionsStore.qaInfo.answer || checkAnswer(ans, questionsStore.qaInfo.answer);
-
-  // 步骤 2: 如果第一步没通过，再进行第二步检查
-  if (!isFinalCorrect) {
-    // 使用 !! 将 .find() 的结果（找到的字符串或 undefined）强制转换为布尔值
-    isFinalCorrect = !!answerList?.find((item) => ans === item || checkAnswer(ans, item));
-  }
-  if (isFinalCorrect) {
-    handleSuccess();
+  if (isCorrect) {
+    await execSuccess(talk, victoryAuraRef, reportAction, openVideo, videoPlayerRef);
   } else {
-    handleWrongAnswer(ans);
+    handleWrongHelper(ans, reportAction, filterSpecialChars);
   }
 };
 
-const handleWrongAnswer = (ans: string) => {
-  triggerErrorEffect();
+const initData = async () => {
+  await questionsStore.initData(currentStep, userId);
 
-  // 增加错误次数
-  wrongCount.value++;
+  if (questionsStore.qaInfo) {
+    checkPersistentProgress();
+    loadPenaltyState();
 
-  // 计算惩罚时间
-  // count从1开始，config索引从0开始，所以索引是 count - 1
-  const configIndex = Math.min(wrongCount.value - 1, currentPenaltyConfig.value.length - 1);
-  const duration = currentPenaltyConfig.value[configIndex];
-
-  if (duration === -1) {
-    penaltyEndTime.value = -1; // 永久锁定
-  } else {
-    penaltyEndTime.value = Date.now() + duration;
+    nextTick(() => {
+      // 动画入场
+      gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
+      gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
+      gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
+    });
   }
-
-  savePenaltyState();
-
-  const filteredInput = filterSpecialChars(ans);
-  if (ans) {
-    reportAction(`答错了第${currentStep}题，回答的是${filteredInput}`, "错误通知");
-  }
-
-  let msg = "咒语无效，请再次思索...";
-  if (penaltyEndTime.value === -1) {
-    msg = "咒语反噬，灵魂已被永久封印！";
-  } else {
-    msg = `咒语反噬！需等待恢复魔力...`;
-  }
-
-  showNotify({
-    type: "danger",
-    position: "bottom",
-    message: msg,
-  });
-};
-
-const triggerErrorEffect = () => {
-  isError.value = false; // 先重置，确保能重复触发 CSS 动画
-  // gsap.to(".quest-card", { duration: 0.1, x: 10, repeat: 20, yoyo: true });
-  setTimeout(() => {
-    isError.value = true;
-    setTimeout(() => {
-      isError.value = false;
-    }, 1500); // 状态保持时长
-  }, 20);
-};
-
-const inputMagicPower = computed(() => {
-  const length = userInput.value.length;
-  return Math.min(length * 5, 100); // 最大 100%
-});
-
-const handleSuccess = async () => {
-  if (!questionsStore.qaInfo) return;
-
-  confetti({
-    particleCount: 150,
-    spread: 70,
-    origin: { y: 0.6 },
-    colors: ["#ffd700", "#ffffff", "#8a2be2"],
-  });
-
-  localStorage.setItem(
-    cacheKey.value,
-    JSON.stringify({
-      type: "bingo",
-      date: Date.now(),
-      input: userInput.value,
-    }),
-  );
-
-  // 答对清除惩罚记录
-  localStorage.removeItem(penaltyKey.value);
-
-  isBinGo.value = true;
-  const autoPlayVideo = questionsStore.qaInfo.thread.find(
-    (t) => t.type === "video" && t.state === "ckickplay",
-  );
-  if (autoPlayVideo && videoPlayerRef.value) {
-    openVideo(autoPlayVideo.url!);
-  }
-
-  reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
-
-  if (questionsStore.qaInfo?.isFinalLevel) {
-    await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
-    isQuestionExpanded.value = false; // 成功后折叠
-    victoryAuraRef.value?.startEffect(); // 启动终极特效
-  } else {
-    await talk("契约达成！真理已现。", 1000);
-    isQuestionExpanded.value = false; // 成功后折叠
-  }
-};
-
-const reportAction = (content: string, title: string) => {
-  const nickName = questionsStore.qaInfo?.userName || "旅行者";
-  if (isDebug) return console.log(`报告：${title} -- 来自sitkin.top/${nickName}${content}`);
-  fetch(
-    `https://api.chuckfang.com/4acc3779/${title} -- 来自sitkin.top/${nickName}${content}`,
-  ).catch((e) => console.error("Report failed", e));
-};
-
-const openVideo = (url: string) => videoPlayerRef.value?.open(url);
-const openPage = (url?: string) => url && window.open(url);
-const handleHeaderClick = () => {
-  HeaderClickCounter(cacheKey.value);
 };
 
 onMounted(initData);
-
-const handleVictoryClose = () => {
-  console.log("英雄回到了主世界");
-  const { path, query = {}, link } = questionsStore.qaInfo?.FinalLevelConfig || {};
-  if (path) {
-    return router.replace({ path, query });
-  }
-  if (link) {
-    return openPage(link);
-  }
-};
 </script>
 
 <style lang="scss" scoped>
