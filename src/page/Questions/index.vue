@@ -436,10 +436,22 @@ const onConfirmAnswer = async () => {
     return;
   }
 
-  const isCorrect =
+  const answerList = questionsStore.qaInfo.answerList || [];
+  /* const isCorrect =
     ans === questionsStore.qaInfo.answer || checkAnswer(ans, questionsStore.qaInfo.answer);
 
-  if (isCorrect) {
+  const isListCorrect = !isCorrect
+    ? answerList?.find((item) => ans === item || checkAnswer(ans, item)) || null
+    : true; */
+  let isFinalCorrect =
+    ans === questionsStore.qaInfo.answer || checkAnswer(ans, questionsStore.qaInfo.answer);
+
+  // 步骤 2: 如果第一步没通过，再进行第二步检查
+  if (!isFinalCorrect) {
+    // 使用 !! 将 .find() 的结果（找到的字符串或 undefined）强制转换为布尔值
+    isFinalCorrect = !!answerList?.find((item) => ans === item || checkAnswer(ans, item));
+  }
+  if (isFinalCorrect) {
     handleSuccess();
   } else {
     handleWrongAnswer(ans);

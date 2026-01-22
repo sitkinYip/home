@@ -56,6 +56,8 @@ export interface TLetterecord {
   title?: string;
   desc?: string;
   bgImg?: string;
+  /* 页面主音频 一般用于当前页面播放背景音乐之类的场景 */
+  mainAudio?: string;
 }
 /**
  * 关卡数据结构 (对应服务端 API 返回的单个 item)
@@ -68,6 +70,7 @@ export interface LevelRecord {
   step: number; // 对应原来的 qaIndex
   question: QuestionItemList;
   answer: string;
+  answerList?: string[];
   placeholder: string;
   thread: ThreadItemList;
   userName: string;
@@ -99,6 +102,8 @@ export type PhraseListRecord = {
   takeABowList: IphraseItem[];
   from: string;
   title?: string;
+  /* 页面主音频 一般用于当前页面播放背景音乐之类的场景 */
+  mainAudio?: string;
 };
 /**
  * API 返回的包装结构
