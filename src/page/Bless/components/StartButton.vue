@@ -27,7 +27,7 @@ defineEmits(["start"]);
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap");
+@import "@/assets/fonts/Cinzel/font.css";
 
 .overlay {
   position: absolute;

@@ -262,7 +262,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Long+Cang&display=swap");
+@import "@/assets/fonts/LongCang/font.css";
 /* 容器：锁定全屏，背景保持深色 */
 .ancient-envelope-final {
   position: relative;

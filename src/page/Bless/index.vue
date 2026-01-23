@@ -400,7 +400,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Playfair+Display:ital@0;1&display=swap");
+@import "@/assets/fonts/Cinzel/font.css";
+@import "@/assets/fonts/PlayfairDisplay/font.css";
 
 .birthday-container {
   position: fixed;

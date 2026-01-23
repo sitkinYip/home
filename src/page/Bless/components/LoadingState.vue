@@ -16,7 +16,7 @@
 
 <style scoped>
 /* 引入更高级的字体 */
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&display=swap");
+@import "@/assets/fonts/Cinzel/font.css";
 
 .loading-state {
   position: absolute;

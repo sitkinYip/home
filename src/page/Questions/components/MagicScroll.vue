@@ -157,7 +157,8 @@ defineExpose({ show });
 
 <style lang="scss" scoped>
 // 引入字体：Cinzel (标题) 和 Crimson Text (正文)
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap");
+@import "@/assets/fonts/Cinzel/font.css";
+@import "@/assets/fonts/CrimsonText/font.css";
 
 .scroll-overlay {
   position: fixed;
