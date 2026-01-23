@@ -139,6 +139,7 @@ const {
   loadPenaltyState,
   clearPenalty,
   handleWrongHelper,
+  handleWrongWithoutPenalty,
   checkPenaltyTime,
 } = usePenalty(currentStep, userId, questionsStore);
 
@@ -198,9 +199,10 @@ const handleVictoryClose = () => {
 const onConfirmAnswer = async () => {
   if (isBinGo.value || !questionsStore.qaInfo) return;
   if (isError.value) return;
+  const isMultipleChoice = questionsStore.qaInfo?.type === "MultipleChoice";
 
   // 检查是否处于惩罚期
-  if (checkPenaltyTime()) return;
+  if (checkPenaltyTime() && isMultipleChoice) return;
 
   if (!isDebug) {
     const { startTime, endTime } = questionsStore.qaInfo || {};
@@ -235,7 +237,13 @@ const onConfirmAnswer = async () => {
   if (isCorrect) {
     await execSuccess(talk, victoryAuraRef, reportAction, openVideo, videoPlayerRef);
   } else {
-    handleWrongHelper(ans, reportAction, filterSpecialChars);
+    // 选择题使用惩罚机制，填空题不使用惩罚机制
+    console.log("isMultipleChoice", isMultipleChoice);
+    if (isMultipleChoice) {
+      handleWrongHelper(ans, reportAction, filterSpecialChars);
+    } else {
+      handleWrongWithoutPenalty(ans, reportAction, filterSpecialChars);
+    }
   }
 };
 

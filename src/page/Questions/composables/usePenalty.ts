@@ -94,7 +94,32 @@ export function usePenalty(
   };
 
   /**
-   * 处理答错逻辑
+   * 处理填空题答错逻辑（不累计惩罚，仅触发视觉效果和通知）
+   * @param ans 用户输入的答案
+   * @param reportAction 上报行为的回调函数
+   * @param filterSpecialChars 过滤特殊字符的工具函数
+   */
+  const handleWrongWithoutPenalty = (
+    ans: string,
+    reportAction: (content: string, title: string) => void,
+    filterSpecialChars: (str: string) => string,
+  ) => {
+    triggerErrorEffect();
+
+    const filteredInput = filterSpecialChars(ans);
+    if (ans) {
+      reportAction(`答错了第${currentStep}题，回答的是${filteredInput}`, "错误通知");
+    }
+
+    showNotify({
+      type: "danger",
+      position: "bottom",
+      message: "咒语无效，请再次思索...",
+    });
+  };
+
+  /**
+   * 处理选择题答错逻辑（累计惩罚）
    * @param ans 用户输入的答案
    * @param reportAction 上报行为的回调函数
    * @param filterSpecialChars 过滤特殊字符的工具函数
@@ -142,23 +167,33 @@ export function usePenalty(
   };
 
   /**
+   * 检查是否处于惩罚期（不显示提示，仅状态判断）
+   */
+  const isPenalized = (): boolean => {
+    // 永久锁定
+    if (penaltyEndTime.value === -1) return true;
+    // 临时锁定且未过期
+    if (penaltyEndTime.value > 0 && Date.now() < penaltyEndTime.value) return true;
+    // 时间已过，重置
+    if (penaltyEndTime.value > 0) {
+      penaltyEndTime.value = 0;
+      savePenaltyState();
+    }
+    return false;
+  };
+
+  /**
    * 检查是否处于惩罚期，如果是则返回 true 并提示
    */
   const checkPenaltyTime = (): boolean => {
-    if (penaltyEndTime.value > 0) {
-      // 如果是永久锁定 (-1) 或 当前时间还未到解锁时间
-      if (penaltyEndTime.value === -1 || Date.now() < penaltyEndTime.value) {
-        showNotify({
-          type: "warning",
-          message: "灵魂虚弱，暂时无法施法...",
-        });
-        return true; // 处于惩罚中
-      } else {
-        // 时间已过，重置倒计时（保留错误次数）
-        penaltyEndTime.value = 0;
-        savePenaltyState();
-        return false;
-      }
+    if (isPenalized()) {
+      const msg =
+        penaltyEndTime.value === -1 ? "灵魂已被永久封印，无法施法..." : "灵魂虚弱，暂时无法施法...";
+      showNotify({
+        type: "warning",
+        message: msg,
+      });
+      return true;
     }
     return false;
   };
@@ -172,6 +207,8 @@ export function usePenalty(
     clearPenalty,
     triggerErrorEffect,
     handleWrongHelper,
+    handleWrongWithoutPenalty,
+    isPenalized,
     checkPenaltyTime,
   };
 }
