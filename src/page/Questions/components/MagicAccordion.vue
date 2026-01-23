@@ -116,8 +116,6 @@ $magic-gold: #ffd700;
 
   &.expanded {
     position: relative;
-    padding: 12vpx 0;
-
     .expanded-icon {
       position: absolute;
       right: 0;

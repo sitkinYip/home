@@ -2,7 +2,7 @@
   <div id="Questions">
     <div class="adventure-container" v-if="questionsStore.qaInfo">
       <!-- 动态背景层 -->
-      <div class="magic-bg"></div>
+      <div class="magic-bg" :style="mainBgImgStyle"></div>
       <div class="overlay"></div>
 
       <VideoPlayer ref="videoPlayerRef" />
@@ -70,6 +70,20 @@
         />
         <VictoryAura ref="victoryAuraRef" @close="handleVictoryClose" />
       </div>
+
+      <!-- 背景音乐授权提示 -->
+      <BgmAuthHint
+        :visible="bgm.showAuthHint.value"
+        @authorize="bgm.authorize"
+        @dismiss="bgm.dismissAuthHint"
+      />
+
+      <!-- 背景音乐悬浮控制球 -->
+      <BgmFloatButton
+        :visible="bgm.hasBgm.value"
+        :is-playing="bgm.isPlaying.value"
+        @toggle="bgm.toggle"
+      />
     </div>
     <!-- 迷失状态展示 -->
     <AdventureLost
@@ -88,6 +102,7 @@ import { ref, onMounted, computed, nextTick } from "vue";
 import gsap from "gsap";
 import { useRouter } from "vue-router";
 import { useQuestionsStore } from "@/store/questions";
+import { useBgm } from "./composables/useBgm";
 
 import {
   getQueryParam,
@@ -109,6 +124,8 @@ import MagicAccordion from "./components/MagicAccordion.vue";
 // New Components
 import QuestHeader from "./components/QuestHeader.vue";
 import QuestInputRegion from "./components/QuestInputRegion.vue";
+import BgmAuthHint from "./components/BgmAuthHint.vue";
+import BgmFloatButton from "./components/BgmFloatButton.vue";
 import QuestClues from "./components/QuestClues.vue";
 
 // Composables
@@ -157,6 +174,20 @@ const { openVideo, openPage, previewImage, handleArtifactAction } = useArtifacts
   videoPlayerRef,
   magicScrollRef,
 );
+
+// 背景音乐 Composable
+const bgm = useBgm();
+
+// 背景图样式计算
+const mainBgImgStyle = computed(() => {
+  const bgImg = questionsStore.qaInfo?.mainBgImg;
+  if (bgImg) {
+    return {
+      backgroundImage: `url(${bgImg})`,
+    };
+  }
+  return {};
+});
 
 // Helper Functions
 const talk = (msg: string, dur: number = 0): Promise<void> => {
@@ -253,6 +284,11 @@ const initData = async () => {
   if (questionsStore.qaInfo) {
     checkPersistentProgress();
     loadPenaltyState();
+
+    // 初始化背景音乐
+    if (questionsStore.qaInfo.mainAudio) {
+      bgm.initBgm(questionsStore.qaInfo.mainAudio);
+    }
 
     nextTick(() => {
       // 动画入场
