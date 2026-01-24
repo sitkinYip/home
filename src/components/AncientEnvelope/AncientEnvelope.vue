@@ -393,9 +393,6 @@ onUnmounted(() => {
   overflow-y: hidden !important;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* iOS 渲染修复：创建独立合成层 */
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .paper-border-inner::-webkit-scrollbar {
@@ -405,20 +402,13 @@ onUnmounted(() => {
 /* 核心排版：原生竖排流实现 */
 .paper-content-area {
   writing-mode: vertical-rl !important;
-  /* 文字从上往下排列 */
   text-orientation: upright !important;
-  /* 确保文字方向保持直立而非旋转 */
   height: 100%;
   min-width: 100%;
   line-height: 40px !important;
-  /* 锁定行高（在此模式下为列宽）为 40px */
   font-size: 24px !important;
   color: #1a1a1a !important;
-  /* iOS 渲染修复：强制创建 GPU 层并禁用优化 */
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  -webkit-font-smoothing: antialiased;
-  /* 背景格线：通过渐变实现，并设置 background-size 匹配 line-height */
+  /* 背景格线 */
   background-image: linear-gradient(
     to left,
     rgba(163, 46, 46, 0.2) 1px,
@@ -426,7 +416,6 @@ onUnmounted(() => {
   ) !important;
   background-size: 40px 100% !important;
   background-position: right top !important;
-  /* 起点从最右侧开始 */
   background-repeat: repeat-x !important;
 }
 
@@ -440,17 +429,10 @@ onUnmounted(() => {
 
 .v-char {
   display: inline;
-  /* iOS Safari 竖排文字颜色修复：使用 -webkit-text-fill-color 强制渲染 */
   color: #1a1a1a !important;
-  -webkit-text-fill-color: #1a1a1a !important;
   font-weight: 600 !important;
-  /* 强制 GPU 渲染 + 禁用字体优化 */
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  -webkit-font-smoothing: antialiased;
-  /* 确保文字立即可见 */
-  opacity: 1 !important;
-  visibility: visible !important;
+  /* iOS Safari 竖排文字颜色渲染修复：强制描边触发文字绘制 */
+  -webkit-text-stroke: 0.01px #1a1a1a;
 }
 
 .v-cursor {
