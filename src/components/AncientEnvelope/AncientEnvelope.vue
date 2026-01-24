@@ -435,6 +435,11 @@ onUnmounted(() => {
   display: inline;
   color: #1a1a1a !important;
   font-weight: 600 !important;
+  /* iOS Safari 竖排文字渲染修复：强制开启 GPU 合成层 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .v-cursor {
