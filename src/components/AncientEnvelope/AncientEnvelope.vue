@@ -393,6 +393,9 @@ onUnmounted(() => {
   overflow-y: hidden !important;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* iOS 渲染修复：创建独立合成层 */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .paper-border-inner::-webkit-scrollbar {
@@ -411,6 +414,10 @@ onUnmounted(() => {
   /* 锁定行高（在此模式下为列宽）为 40px */
   font-size: 24px !important;
   color: #1a1a1a !important;
+  /* iOS 渲染修复：强制创建 GPU 层并禁用优化 */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-font-smoothing: antialiased;
   /* 背景格线：通过渐变实现，并设置 background-size 匹配 line-height */
   background-image: linear-gradient(
     to left,
@@ -433,13 +440,17 @@ onUnmounted(() => {
 
 .v-char {
   display: inline;
+  /* iOS Safari 竖排文字颜色修复：使用 -webkit-text-fill-color 强制渲染 */
   color: #1a1a1a !important;
+  -webkit-text-fill-color: #1a1a1a !important;
   font-weight: 600 !important;
-  /* iOS Safari 竖排文字渲染修复：强制开启 GPU 合成层 */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  /* 强制 GPU 渲染 + 禁用字体优化 */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-font-smoothing: antialiased;
+  /* 确保文字立即可见 */
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .v-cursor {
