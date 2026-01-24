@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showImagePreview } from "vant";
 
@@ -63,6 +63,45 @@ const router = useRouter();
 const visible = ref(false);
 const rawText = ref("");
 const title = ref("");
+
+// 字体是否已加载的标记，避免重复加载
+let fontsLoaded = false;
+
+/**
+ * 动态加载字体 CSS
+ * 只在组件首次展示时加载，不阻塞首屏渲染
+ */
+const loadFonts = () => {
+  if (fontsLoaded) return;
+  fontsLoaded = true;
+
+  const fontUrls = [
+    new URL("@/assets/fonts/Cinzel/font.css", import.meta.url).href,
+    new URL("@/assets/fonts/CrimsonText/font.css", import.meta.url).href,
+  ];
+
+  fontUrls.forEach((url) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = url;
+    document.head.appendChild(link);
+  });
+};
+
+/**
+ * 组件挂载后，在页面空闲时预加载字体
+ * 这样既不阻塞首屏渲染，又能在用户打开弹窗前准备好字体
+ */
+onMounted(() => {
+  // 使用 requestIdleCallback 在浏览器空闲时加载
+  // 如果浏览器不支持，则退化为 setTimeout
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => loadFonts(), { timeout: 3000 });
+  } else {
+    // 延迟 1 秒后加载，确保首屏资源优先
+    setTimeout(loadFonts, 1000);
+  }
+});
 
 // 增加定义内容段落的接口
 interface ContentSegment {
@@ -125,6 +164,8 @@ const parsedContent = computed<ContentSegment[]>(() => {
 });
 
 const show = (data: { title: string; content: string }) => {
+  // 展示时才加载字体，不阻塞首屏
+  loadFonts();
   rawText.value = data.content;
   title.value = data.title;
   visible.value = true;
@@ -156,9 +197,7 @@ defineExpose({ show });
 </script>
 
 <style lang="scss" scoped>
-// 引入字体：Cinzel (标题) 和 Crimson Text (正文)
-@import "@/assets/fonts/Cinzel/font.css";
-@import "@/assets/fonts/CrimsonText/font.css";
+// 字体通过 JS 动态加载，参见 loadFonts() 方法
 
 .scroll-overlay {
   position: fixed;
