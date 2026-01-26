@@ -202,6 +202,8 @@ const startTypewriting = async (): Promise<void> => {
 
       // 关键步骤：等待 Vue 将新字符渲染到 DOM
       await nextTick();
+      // iOS Safari 移动端强制重绘修复：解决竖排文字动态追加不显示的问题
+      forceRepaint();
       // 渲染后执行滚动定位
       autoScroll();
       // 等待设置的打字速度间隔
@@ -231,6 +233,25 @@ const startSlideshow = (): void => {
 const autoScroll = (): void => {
   if (isUserInteracting || !scrollContainer.value) return;
   scrollContainer.value.scrollLeft = -scrollContainer.value.scrollWidth;
+};
+
+/**
+ * iOS Safari 移动端强制重绘修复
+ * 原理：在竖排模式下动态追加内容时，iOS Safari 可能不会立即触发重绘
+ * 通过读取 offsetHeight 强制浏览器执行同步回流(reflow)，从而触发文字渲染
+ * 这是一个已知的 WebKit 渲染 bug 的 workaround
+ */
+const forceRepaint = (): void => {
+  if (!scrollContainer.value) return;
+  // 读取布局属性强制同步回流
+  void scrollContainer.value.offsetHeight;
+  // 备用方案：通过微小的 transform 变化触发 GPU 层重绘
+  scrollContainer.value.style.transform = "translateZ(0)";
+  requestAnimationFrame(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.style.transform = "";
+    }
+  });
 };
 
 /**
@@ -431,8 +452,16 @@ onUnmounted(() => {
   display: inline;
   color: #1a1a1a !important;
   font-weight: 600 !important;
-  /* iOS Safari 竖排文字颜色渲染修复：强制描边触发文字绘制 */
+  /* iOS Safari 竖排文字颜色渲染修复：多重策略 */
   -webkit-text-stroke: 0.01px #1a1a1a;
+  /* 强制 GPU 加速渲染，避免延迟绘制 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  /* 声明将变化的属性，提示浏览器优化 */
+  will-change: contents;
+  /* 强制创建独立绘制层 */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .v-cursor {
