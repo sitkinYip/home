@@ -42,6 +42,7 @@ declare module 'vue' {
     Links: typeof import('./src/components/Links.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
     LyricsScrolling: typeof import('./src/components/LyricsScrolling/LyricsScrolling.vue')['default']
+    MagicLetter: typeof import('./src/components/MagicLetter/MagicLetter.vue')['default']
     Message: typeof import('./src/components/Message.vue')['default']
     MoreContent: typeof import('./src/components/MoreContent.vue')['default']
     Music: typeof import('./src/components/Music.vue')['default']

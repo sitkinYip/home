@@ -47,6 +47,7 @@ const AncientEnvelope = defineAsyncComponent(
 const LetterComponent = defineAsyncComponent(
   () => import("../components/LetterComponent/LetterComponent.vue"),
 );
+const MagicLetter = defineAsyncComponent(() => import("../components/MagicLetter/MagicLetter.vue"));
 
 const route = useRoute();
 const isError = ref(false);
@@ -67,7 +68,14 @@ const currentLetter = computed(() => {
  */
 const currentComponent = computed(() => {
   if (!currentLetter.value) return null;
-  return currentLetter.value.type === "classical" ? AncientEnvelope : LetterComponent;
+  switch (currentLetter.value.type) {
+    case "classical":
+      return AncientEnvelope;
+    case "magic":
+      return MagicLetter;
+    default:
+      return LetterComponent;
+  }
 });
 
 /**
