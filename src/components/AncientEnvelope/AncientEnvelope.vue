@@ -36,9 +36,14 @@
                 :style="getParaStyle(p.align)"
               >
                 <!-- 遍历渲染已打出的字，v-char 负责垂直堆叠 -->
-                <span v-for="(char, cIdx) in p.displayed" :key="cIdx" class="v-char">{{
-                  char
-                }}</span>
+                <!-- iOS 移动端需要额外的 ios-fix 类来应用强制重绘动画 -->
+                <span
+                  v-for="(char, cIdx) in p.displayed"
+                  :key="cIdx"
+                  class="v-char"
+                  :class="{ 'ios-fix': isIOSMobile }"
+                  >{{ char }}</span
+                >
                 <!-- 打字机光标：仅在当前正在录入的段落末尾闪烁 -->
                 <span v-if="isTyping && index === renderedParagraphs.length - 1" class="v-cursor"
                   >|</span
@@ -120,6 +125,22 @@ const scrollContainer = ref<HTMLElement | null>(null);
 // 定时器与交互状态
 let slideshowTimer: ReturnType<typeof setInterval> | null = null;
 let isUserInteracting: boolean = false; // 用户是否正在手动滑动（此时禁用自动滚动定位）
+
+/**
+ * 检测是否为 iOS 移动端设备
+ * 用于针对性地应用 iOS Safari 渲染 bug 的修复措施
+ */
+const isIOSMobile = (() => {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  // 检测 iOS 设备（iPhone, iPad, iPod）且非桌面模式
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPad with iPadOS
+  // 排除桌面 Safari（桌面 Safari 没有这个问题）
+  const isMobile = /Mobile|Android/.test(ua) || navigator.maxTouchPoints > 1;
+  return isIOS && isMobile;
+})();
 
 /**
  * 计算属性：将速度转换为 CSS 变量，供样式动画参考
@@ -242,7 +263,9 @@ const autoScroll = (): void => {
  * 这是一个已知的 WebKit 渲染 bug 的 workaround
  */
 const forceRepaint = (): void => {
-  if (!scrollContainer.value) return;
+  // 仅在 iOS 移动端执行强制重绘，其他平台无需此操作
+  if (!isIOSMobile || !scrollContainer.value) return;
+
   const container = scrollContainer.value;
   // 策略1：强制同步回流
   void container.offsetHeight;
@@ -452,11 +475,16 @@ onUnmounted(() => {
 }
 
 .v-char {
-  /* 使用 inline-block 替代 inline，iOS Safari 对 inline-block 的重绘更可靠 */
-  display: inline-block;
+  display: inline;
   color: #1a1a1a !important;
   font-weight: 600 !important;
-  /* iOS Safari 竖排文字颜色渲染修复：多重策略 */
+}
+
+/* iOS Safari 移动端专用修复样式 - 仅在检测到 iOS 移动设备时通过 JS 添加此类 */
+.v-char.ios-fix {
+  /* 使用 inline-block 替代 inline，iOS Safari 对 inline-block 的重绘更可靠 */
+  display: inline-block;
+  /* iOS Safari 竖排文字颜色渲染修复 */
   -webkit-text-stroke: 0.01px #1a1a1a;
   /* 强制 GPU 加速渲染 */
   -webkit-transform: translateZ(0);
