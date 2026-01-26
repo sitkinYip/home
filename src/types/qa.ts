@@ -58,6 +58,7 @@ export interface TLetterecord {
   bgImg?: string;
   /* 页面主音频 一般用于当前页面播放背景音乐之类的场景 */
   mainAudio?: string;
+  hintText?: string;
 }
 /**
  * 关卡数据结构 (对应服务端 API 返回的单个 item)

@@ -96,7 +96,9 @@ const componentProps = computed<any>(() => {
     paragraphs: letter.paragraphConfigList,
     images: letter.bgImages || [], // 信纸背景轮播
     speed: 100,
-    hintText: letter.title || (letter.type === "classical" ? "亲启" : "点击开启"),
+    hintText: letter.hintText || (letter.type === "classical" ? "亲启" : "点击开启"),
+    title: letter.title,
+    desc: letter.desc,
     // Modern 组件特有
     styleType: letter.type === "modern" ? "modern" : undefined,
   };

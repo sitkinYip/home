@@ -1,132 +1,142 @@
 <template>
-  <div class="magic-letter-container" :class="{ 'letter-opened': isOpen }">
-    <!-- 魔法粒子层 - 金色星尘 -->
+  <div class="magic-letter-container">
+    <!-- 背景层（高斯模糊） -->
+    <div class="blur-backdrop"></div>
+
+    <!-- 魔法粒子层 -->
     <div class="stardust-layer">
       <div
-        v-for="i in 40"
+        v-for="i in 35"
         :key="'star-' + i"
         class="stardust"
         :style="{
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
-          animationDelay: `${Math.random() * 6}s`,
-          animationDuration: `${4 + Math.random() * 4}s`,
-          '--size': `${2 + Math.random() * 4}px`,
+          animationDelay: `${Math.random() * 5}s`,
+          animationDuration: `${3 + Math.random() * 3}s`,
+          '--size': `${2 + Math.random() * 3}px`,
         }"
       ></div>
     </div>
 
-    <!-- 神秘光晕效果 -->
-    <div class="mystic-glow"></div>
-
-    <!-- ============ 信封状态 ============ -->
-    <div v-if="!isOpen" class="envelope-stage" @click="openLetter">
-      <!-- 漂浮的信封 -->
-      <div class="hogwarts-envelope">
+    <!-- ============ 信封 ============ -->
+    <div
+      class="envelope-scene"
+      :class="{
+        'envelope-opening': isEnvelopeOpening,
+        'envelope-opened': isEnvelopeOpened,
+      }"
+    >
+      <div class="envelope" @click="startOpen">
         <!-- 信封主体 -->
         <div class="envelope-body">
-          <!-- 顶部三角封口 -->
-          <div class="envelope-flap"></div>
+          <!-- 信封背面 -->
+          <div class="envelope-back"></div>
+
+          <!-- 信封内侧（信纸从这里飞出） -->
+          <div class="envelope-inner"></div>
+
+          <!-- 信封盖子顶部 -->
+          <div class="envelope-flap-top">
+            <div class="flap-shadow"></div>
+          </div>
+
+          <!-- 信封正面底部 -->
+          <div class="envelope-front">
+            <!-- 收信地址 -->
+            <div class="recipient-info">
+              <p class="recipient-name">{{ title }}</p>
+              <p class="recipient-addr">{{ desc }}</p>
+            </div>
+          </div>
 
           <!-- 封蜡印章 -->
-          <div class="wax-seal" :class="{ breaking: isSealBreaking }">
-            <div class="seal-shine"></div>
-            <div class="seal-emblem">
-              <span class="emblem-h">H</span>
+          <div class="wax-seal" :class="{ 'seal-pop': isSealPopping }">
+            <div class="seal-glow"></div>
+            <div class="seal-body">
+              <span class="seal-h">H</span>
             </div>
-            <!-- 印章碎裂火花 -->
-            <div v-if="isSealBreaking" class="seal-sparks">
-              <div v-for="i in 12" :key="'spark-' + i" class="spark"></div>
-            </div>
-          </div>
-
-          <!-- 收信人地址（羽毛笔手写风格） -->
-          <div class="recipient-address">
-            <p class="address-main">To: The Chosen One</p>
-            <p class="address-sub">A Mysterious Place</p>
-            <p class="address-sub">Somewhere Magical</p>
           </div>
         </div>
 
-        <!-- 信封悬浮光效 -->
-        <div class="envelope-glow"></div>
+        <!-- 提示文字 -->
+        <p class="tap-hint" v-if="!isEnvelopeOpening">
+          <span>{{ hintText }}</span>
+        </p>
       </div>
-
-      <!-- 开启提示 -->
-      <p class="open-hint">
-        <span class="hint-magic">{{ hintText }}</span>
-      </p>
     </div>
 
-    <!-- ============ 羊皮纸信件状态（全屏） ============ -->
-    <transition name="parchment-reveal">
-      <div v-if="isOpen" class="parchment-fullscreen">
-        <!-- 羊皮纸边缘装饰 -->
-        <div class="parchment-edges">
-          <div class="edge-top"></div>
-          <div class="edge-bottom"></div>
-          <div class="edge-left"></div>
-          <div class="edge-right"></div>
+    <!-- ============ 飞出的信纸 ============ -->
+    <div
+      class="letter-scene"
+      :class="{
+        'letter-flying': isLetterFlying,
+        'letter-arrived': isLetterArrived,
+      }"
+    >
+      <div class="letter-parchment">
+        <!-- 羊皮纸纹理 -->
+        <div class="parchment-texture"></div>
+
+        <!-- 装饰边框 -->
+        <div class="parchment-border">
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
         </div>
 
-        <!-- 四角魔法符文 -->
-        <div class="corner-rune top-left">✦</div>
-        <div class="corner-rune top-right">✦</div>
-        <div class="corner-rune bottom-left">✦</div>
-        <div class="corner-rune bottom-right">✦</div>
+        <!-- 魔法装饰符文 -->
+        <div class="rune rune-top">❧</div>
+        <div class="rune rune-bottom">❧</div>
 
-        <!-- 背景轮播图 -->
-        <div class="parchment-bg-layer" v-if="images && images.length > 0">
+        <!-- 背景轮播 -->
+        <div class="letter-bg-carousel" v-if="images && images.length > 0">
           <transition-group name="fade">
             <div
               v-for="(img, index) in images"
               :key="img"
               v-show="currentImgIndex === index"
-              class="parchment-bg-img"
+              class="letter-bg-img"
               :style="{ backgroundImage: `url(${img})` }"
             ></div>
           </transition-group>
         </div>
 
-        <!-- 滚动内容区 -->
-        <div class="parchment-content" ref="scrollContainer" @touchstart="onUserTouch">
-          <div class="content-inner">
-            <!-- 信件标题装饰 -->
-            <div class="letter-header">
-              <div class="header-flourish left">⚜</div>
-              <div class="header-flourish right">⚜</div>
+        <!-- 内容滚动区 -->
+        <div class="letter-scroll" ref="scrollContainer" @touchstart="onUserTouch">
+          <div class="letter-content">
+            <!-- 装饰头部 -->
+            <div class="content-header">
+              <span class="header-deco">✦ ✦ ✦</span>
             </div>
 
-            <!-- 段落渲染 -->
+            <!-- 段落 -->
             <div
               v-for="(p, index) in displayedParagraphs"
               :key="index"
-              class="magic-paragraph"
+              class="para"
               :style="{ textAlign: p.align }"
             >
-              <p class="magic-text">
+              <p class="para-text">
                 {{ p.currentText }}
-                <!-- 魔法羽毛笔光标 -->
-                <span class="quill-cursor" v-if="isTyping && activeParagraphIndex === index">
-                  ✒️
-                </span>
+                <span class="quill" v-if="isTyping && activeParagraphIndex === index">✒</span>
               </p>
             </div>
 
-            <!-- 底部留白 -->
+            <!-- 底部 -->
             <div class="content-footer"></div>
           </div>
         </div>
 
-        <!-- 羊皮纸边缘烧焦/做旧效果 -->
-        <div class="parchment-aged-overlay"></div>
+        <!-- 边缘做旧效果 -->
+        <div class="aged-edges"></div>
       </div>
-    </transition>
+    </div>
 
-    <!-- 开信魔法爆发效果 -->
-    <div v-if="showMagicBurst" class="magic-explosion">
-      <div class="explosion-ring"></div>
-      <div v-for="i in 24" :key="'exp-' + i" class="explosion-spark"></div>
+    <!-- 魔法火花（开信时） -->
+    <div v-if="showSparks" class="magic-sparks">
+      <div v-for="i in 16" :key="'sp-' + i" class="spark-dot"></div>
     </div>
   </div>
 </template>
@@ -134,9 +144,6 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted } from "vue";
 
-/**
- * 段落配置项接口
- */
 interface ParagraphConfig {
   content: string;
   align?: "left" | "center" | "right";
@@ -155,6 +162,8 @@ interface Props {
   images?: string[];
   carouselInterval?: number;
   hintText?: string;
+  title?: string;
+  desc?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -162,19 +171,26 @@ const props = withDefaults(defineProps<Props>(), {
   speed: 80,
   images: () => [],
   carouselInterval: 5000,
-  hintText: "轻触封蜡，开启魔法信件",
+  hintText: "轻触封蜡开启信件",
+  title: "Mr./Ms. Recipient",
+  desc: "The Magical World",
 });
 
 const emit = defineEmits(["open"]);
 
-// --- 响应式状态 ---
-const isOpen = ref<boolean>(false);
-const isSealBreaking = ref<boolean>(false);
-const showMagicBurst = ref<boolean>(false);
+// 动画阶段状态
+const isEnvelopeOpening = ref(false); // 信封正在打开
+const isEnvelopeOpened = ref(false); // 信封已完全打开并消失
+const isSealPopping = ref(false); // 封蜡弹开
+const isLetterFlying = ref(false); // 信纸正在飞出
+const isLetterArrived = ref(false); // 信纸到达最终位置
+const showSparks = ref(false); // 显示魔法火花
+
+// 内容状态
 const displayedParagraphs = ref<DisplayedParagraph[]>([]);
-const isTyping = ref<boolean>(false);
-const activeParagraphIndex = ref<number>(0);
-const currentImgIndex = ref<number>(0);
+const isTyping = ref(false);
+const activeParagraphIndex = ref(0);
+const currentImgIndex = ref(0);
 const scrollContainer = ref<HTMLDivElement | null>(null);
 
 let carouselTimer: ReturnType<typeof setInterval> | null = null;
@@ -186,15 +202,12 @@ declare global {
   }
 }
 
-const audioPlayer: HTMLAudioElement = new Audio();
+const audioPlayer = new Audio();
 
 const playAudioSync = (url: string): Promise<void> => {
   return new Promise((resolve) => {
     audioPlayer.src = url;
-    audioPlayer.play().catch((err) => {
-      console.warn("音频播放失败:", err);
-      resolve();
-    });
+    audioPlayer.play().catch(() => resolve());
     audioPlayer.onended = () => resolve();
     audioPlayer.onerror = () => resolve();
   });
@@ -207,7 +220,7 @@ watch(
     nextTick(() => {
       const el = scrollContainer.value;
       if (el) {
-        const atBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 100;
+        const atBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 80;
         if (atBottom) {
           el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
         }
@@ -217,7 +230,7 @@ watch(
   { deep: true },
 );
 
-const onUserTouch = (): void => {
+const onUserTouch = () => {
   if (isTyping.value) {
     isUserInteracting = true;
     if (window?.scrollResetTimer) clearTimeout(window.scrollResetTimer);
@@ -227,17 +240,17 @@ const onUserTouch = (): void => {
   }
 };
 
-const lockBodyScroll = (): void => {
+const lockBodyScroll = () => {
   document.body.style.overflow = "hidden";
   document.body.style.touchAction = "none";
 };
 
-const unlockBodyScroll = (): void => {
+const unlockBodyScroll = () => {
   document.body.style.overflow = "";
   document.body.style.touchAction = "";
 };
 
-const typeText = async (): Promise<void> => {
+const typeText = async () => {
   isTyping.value = true;
 
   for (let i = 0; i < (props.paragraphs?.length || 0); i++) {
@@ -250,7 +263,7 @@ const typeText = async (): Promise<void> => {
     });
 
     if (config.delay) {
-      await new Promise((resolve) => setTimeout(resolve, config.delay));
+      await new Promise((r) => setTimeout(r, config.delay));
     }
 
     const text = config.content || "";
@@ -261,42 +274,51 @@ const typeText = async (): Promise<void> => {
 
     for (const char of text) {
       displayedParagraphs.value[i].currentText += char;
-      await new Promise((resolve) => setTimeout(resolve, props.speed));
+      await new Promise((r) => setTimeout(r, props.speed));
     }
 
     if (audioPromise) await audioPromise;
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((r) => setTimeout(r, 250));
   }
 
   isTyping.value = false;
 };
 
-const openLetter = (): void => {
-  if (isOpen.value) return;
+/**
+ * 开启信件的完整动画序列
+ */
+const startOpen = () => {
+  if (isEnvelopeOpening.value) return;
 
   emit("open");
-
   audioPlayer
     .play()
     .then(() => audioPlayer.pause())
     .catch(() => {});
+  lockBodyScroll();
 
-  // 封蜡碎裂
-  isSealBreaking.value = true;
+  // 阶段1：封蜡弹开 + 魔法火花
+  isSealPopping.value = true;
+  showSparks.value = true;
 
-  // 魔法爆发
+  // 阶段2：信封盖子打开
   setTimeout(() => {
-    showMagicBurst.value = true;
-  }, 400);
+    isEnvelopeOpening.value = true;
+  }, 300);
 
-  // 信封消失，羊皮纸出现
+  // 阶段3：信纸开始飞出
   setTimeout(() => {
-    isOpen.value = true;
-    lockBodyScroll();
-    showMagicBurst.value = false;
-  }, 1000);
+    isLetterFlying.value = true;
+    showSparks.value = false;
+  }, 800);
 
-  // 开始打字
+  // 阶段4：信封消失，信纸到达
+  setTimeout(() => {
+    isEnvelopeOpened.value = true;
+    isLetterArrived.value = true;
+  }, 1400);
+
+  // 阶段5：开始打字
   setTimeout(() => {
     typeText();
     if (props.images && props.images.length > 1) {
@@ -304,7 +326,7 @@ const openLetter = (): void => {
         currentImgIndex.value = (currentImgIndex.value + 1) % props.images!.length;
       }, props.carouselInterval);
     }
-  }, 1500);
+  }, 1800);
 };
 
 onUnmounted(() => {
@@ -316,24 +338,19 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ========================================
-   哈利波特魔法信件 - 极致魔法世界风格
-   ======================================== */
+/* =============================================
+   哈利波特魔法信件 - 连贯开信动画版
+   ============================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Dancing+Script:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Dancing+Script:wght@500;700&display=swap");
 
 .magic-letter-container {
-  --parchment-light: #f5e6c8;
-  --parchment-mid: #e8d4a8;
-  --parchment-dark: #c9a86c;
-  --parchment-edge: #8b6914;
-  --ink-color: #1a0a00;
+  --parchment: #f3e5c3;
+  --parchment-dark: #d4b896;
+  --ink: #1a0800;
   --seal-red: #8b0000;
-  --seal-dark: #4a0000;
   --gold: #ffd700;
-  --gold-dim: #b8860b;
-  --magic-purple: #4a0080;
-  --night-blue: #0a0020;
+  --gold-dim: #c9a227;
 
   position: fixed;
   inset: 0;
@@ -342,17 +359,20 @@ onUnmounted(() => {
   align-items: center;
   z-index: 2000;
   overflow: hidden;
-
-  /* 神秘夜空背景 */
-  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74, 0, 128, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(139, 0, 0, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 50, 100, 0.15) 0%, transparent 50%),
-    linear-gradient(180deg, #0d0221 0%, #0a0015 50%, #05000a 100%);
+  background: linear-gradient(135deg, #0d0221 0%, #1a0a2e 40%, #0a0015 100%);
 }
 
-/* ========================================
-   星尘粒子效果
-   ======================================== */
+/* 高斯模糊背景层 */
+.blur-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(139, 0, 0, 0.1) 0%, transparent 40%);
+  backdrop-filter: blur(2px);
+  z-index: 0;
+}
+
+/* 星尘粒子 */
 .stardust-layer {
   position: absolute;
   inset: 0;
@@ -367,346 +387,267 @@ onUnmounted(() => {
   background: var(--gold);
   border-radius: 50%;
   box-shadow:
-    0 0 calc(var(--size) * 2) var(--gold),
-    0 0 calc(var(--size) * 4) rgba(255, 215, 0, 0.5);
-  animation: stardust-float var(--duration, 5s) ease-in-out infinite;
+    0 0 6px var(--gold),
+    0 0 12px rgba(255, 215, 0, 0.6);
+  animation: dust-float 4s ease-in-out infinite;
   opacity: 0;
 }
 
-@keyframes stardust-float {
+@keyframes dust-float {
   0%,
   100% {
     opacity: 0;
     transform: translateY(0) scale(0.5);
   }
-  20% {
-    opacity: 1;
+  30% {
+    opacity: 0.9;
   }
   50% {
-    opacity: 0.8;
-    transform: translateY(-40px) scale(1);
+    opacity: 0.7;
+    transform: translateY(-30px) scale(1);
   }
-  80% {
-    opacity: 1;
+  70% {
+    opacity: 0.9;
   }
 }
 
-/* 神秘光晕 */
-.mystic-glow {
+/* =============================================
+   信封场景
+   ============================================= */
+.envelope-scene {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 300px;
-  height: 300px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
-  animation: glow-pulse 4s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-@keyframes glow-pulse {
-  0%,
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.3);
-    opacity: 0.8;
-  }
-}
-
-.letter-opened .mystic-glow {
-  display: none;
-}
-
-/* ========================================
-   信封阶段
-   ======================================== */
-.envelope-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
   z-index: 10;
+  transition: all 0.6s ease;
+}
+
+.envelope-scene.envelope-opened {
+  opacity: 0;
+  transform: scale(0.8) translateY(50px);
+  pointer-events: none;
+}
+
+.envelope {
+  position: relative;
   cursor: pointer;
 }
 
-.hogwarts-envelope {
+.envelope-body {
   position: relative;
-  width: min(320px, 85vw);
-  height: min(200px, 52vw);
-  animation: envelope-hover 3s ease-in-out infinite;
+  width: min(300px, 80vw);
+  height: min(190px, 50vw);
+  animation: envelope-float 3.5s ease-in-out infinite;
 }
 
-@keyframes envelope-hover {
+.envelope-scene.envelope-opening .envelope-body {
+  animation: none;
+}
+
+@keyframes envelope-float {
   0%,
   100% {
     transform: translateY(0) rotate(-0.5deg);
   }
   50% {
-    transform: translateY(-12px) rotate(0.5deg);
+    transform: translateY(-8px) rotate(0.5deg);
   }
 }
 
-.envelope-body {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(160deg, #d4b896 0%, #c4a67a 40%, #a8895c 100%);
-  border-radius: 3px;
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(139, 105, 20, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  overflow: hidden;
+/* 信封背面 */
+.envelope-back {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, #c9a86c 0%, #a8895c 60%, #8b7355 100%);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
-/* 纸张纹理 */
-.envelope-body::before {
+.envelope-back::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
-  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+  border-radius: 4px;
 }
 
-/* 信封三角封口 */
-.envelope-flap {
+/* 信封内侧 */
+.envelope-inner {
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  right: 5%;
+  height: 50%;
+  background: #b89a6a;
+  z-index: 1;
+}
+
+/* 信封盖子（三角形） */
+.envelope-flap-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 55%;
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+}
+
+.envelope-flap-top::before {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 0;
   height: 0;
-  border-left: calc(min(320px, 85vw) / 2) solid transparent;
-  border-right: calc(min(320px, 85vw) / 2) solid transparent;
-  border-top: calc(min(200px, 52vw) * 0.45) solid #b89a6a;
-  z-index: 2;
+  border-left: calc(min(300px, 80vw) / 2) solid transparent;
+  border-right: calc(min(300px, 80vw) / 2) solid transparent;
+  border-top: calc(min(190px, 50vw) * 0.5) solid #b8956f;
 }
 
-.envelope-flap::after {
-  content: "";
+.flap-shadow {
   position: absolute;
-  top: calc(-1 * min(200px, 52vw) * 0.45);
-  left: calc(-1 * min(320px, 85vw) / 2);
+  top: 0;
+  left: 0;
   width: 0;
   height: 0;
-  border-left: calc(min(320px, 85vw) / 2) solid transparent;
-  border-right: calc(min(320px, 85vw) / 2) solid transparent;
-  border-top: calc(min(200px, 52vw) * 0.45) solid rgba(0, 0, 0, 0.1);
+  border-left: calc(min(300px, 80vw) / 2) solid transparent;
+  border-right: calc(min(300px, 80vw) / 2) solid transparent;
+  border-top: calc(min(190px, 50vw) * 0.5) solid rgba(0, 0, 0, 0.1);
+}
+
+.envelope-scene.envelope-opening .envelope-flap-top {
+  transform: rotateX(-170deg);
+}
+
+/* 信封正面 */
+.envelope-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 55%;
+  background: linear-gradient(180deg, #d4ad6a 0%, #c49a52 100%);
+  border-radius: 0 0 4px 4px;
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.recipient-info {
+  text-align: center;
+  font-family: "Dancing Script", cursive;
+  color: var(--ink);
+  margin-top: 10px;
+}
+
+.recipient-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.recipient-addr {
+  font-size: 12px;
+  margin: 0;
+  opacity: 0.7;
 }
 
 /* 封蜡印章 */
 .wax-seal {
   position: absolute;
-  top: calc(min(200px, 52vw) * 0.45 - 28px);
+  top: calc(min(190px, 50vw) * 0.5 - 24px);
   left: 50%;
   transform: translateX(-50%);
-  width: 56px;
-  height: 56px;
-  z-index: 5;
-  cursor: pointer;
+  width: 48px;
+  height: 48px;
+  z-index: 10;
   transition: transform 0.3s ease;
 }
 
 .wax-seal:hover {
-  transform: translateX(-50%) scale(1.1);
+  transform: translateX(-50%) scale(1.08);
 }
 
-.seal-shine {
+.seal-glow {
   position: absolute;
-  inset: -8px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 60%);
+  inset: -10px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 60%);
   border-radius: 50%;
-  animation: shine-pulse 2s ease-in-out infinite;
+  animation: glow-pulse 2s ease-in-out infinite;
 }
 
-@keyframes shine-pulse {
+@keyframes glow-pulse {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.5;
     transform: scale(1);
   }
   50% {
-    opacity: 0.9;
+    opacity: 1;
     transform: scale(1.15);
   }
 }
 
-.seal-emblem {
+.seal-body {
   position: relative;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 30% 25%, #c41e3a 0%, transparent 40%),
-    radial-gradient(circle at 70% 75%, #3a0000 0%, transparent 40%),
-    linear-gradient(145deg, #a00020 0%, #6b0000 50%, #3a0000 100%);
+  background: radial-gradient(circle at 35% 30%, #c41e3a 0%, var(--seal-red) 50%, #4a0000 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.6),
-    inset 0 2px 4px rgba(255, 150, 100, 0.2),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba(139, 0, 0, 0.4);
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 180, 120, 0.2),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.4);
   border: 2px solid #500000;
 }
 
-.emblem-h {
+.seal-h {
   font-family: "Cinzel", serif;
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 600;
   color: var(--gold);
   text-shadow:
-    0 0 10px var(--gold),
-    0 0 20px rgba(255, 215, 0, 0.5),
-    1px 1px 2px rgba(0, 0, 0, 0.8);
+    0 0 8px var(--gold),
+    1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
-/* 封蜡碎裂 */
-.wax-seal.breaking .seal-emblem {
-  animation: seal-shatter 0.6s ease-out forwards;
+/* 封蜡弹开 */
+.wax-seal.seal-pop {
+  animation: seal-pop 0.4s ease-out forwards;
 }
 
-@keyframes seal-shatter {
+@keyframes seal-pop {
   0% {
-    transform: scale(1);
+    transform: translateX(-50%) scale(1);
   }
-  30% {
-    transform: scale(1.2);
+  40% {
+    transform: translateX(-50%) scale(1.3);
   }
   100% {
-    transform: scale(0);
+    transform: translateX(-50%) scale(0) rotate(180deg);
     opacity: 0;
   }
 }
 
-.seal-sparks {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-}
-
-.spark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  background: var(--gold);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--gold);
-  animation: spark-fly 0.8s ease-out forwards;
-}
-
-.spark:nth-child(1) {
-  --spark-angle: 0deg;
-}
-.spark:nth-child(2) {
-  --spark-angle: 30deg;
-}
-.spark:nth-child(3) {
-  --spark-angle: 60deg;
-}
-.spark:nth-child(4) {
-  --spark-angle: 90deg;
-}
-.spark:nth-child(5) {
-  --spark-angle: 120deg;
-}
-.spark:nth-child(6) {
-  --spark-angle: 150deg;
-}
-.spark:nth-child(7) {
-  --spark-angle: 180deg;
-}
-.spark:nth-child(8) {
-  --spark-angle: 210deg;
-}
-.spark:nth-child(9) {
-  --spark-angle: 240deg;
-}
-.spark:nth-child(10) {
-  --spark-angle: 270deg;
-}
-.spark:nth-child(11) {
-  --spark-angle: 300deg;
-}
-.spark:nth-child(12) {
-  --spark-angle: 330deg;
-}
-
-@keyframes spark-fly {
-  0% {
-    transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateY(70px);
-    opacity: 0;
-  }
-}
-
-/* 收信人地址 */
-.recipient-address {
-  position: absolute;
-  bottom: 20%;
-  left: 50%;
-  transform: translateX(-50%);
+/* 提示文字 */
+.tap-hint {
+  margin-top: 30px;
+  font-family: "Dancing Script", cursive;
+  font-size: 15px;
+  color: var(--gold);
+  text-shadow: 0 0 12px var(--gold);
+  animation: hint-glow 2s ease-in-out infinite;
   text-align: center;
-  font-family: "Dancing Script", cursive;
-  color: var(--ink-color);
-  z-index: 1;
 }
 
-.address-main {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.address-sub {
-  font-size: 13px;
-  opacity: 0.7;
-  margin: 2px 0;
-}
-
-/* 信封光效 */
-.envelope-glow {
-  position: absolute;
-  inset: -20px;
-  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.15) 0%, transparent 60%);
-  pointer-events: none;
-  animation: envelope-glow-pulse 3s ease-in-out infinite;
-}
-
-@keyframes envelope-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* 开启提示 */
-.open-hint {
-  font-family: "Dancing Script", cursive;
-  font-size: 16px;
-  margin: 0;
-}
-
-.hint-magic {
-  color: var(--gold);
-  text-shadow:
-    0 0 15px var(--gold),
-    0 0 30px rgba(255, 215, 0, 0.5);
-  animation: hint-shimmer 2s ease-in-out infinite;
-}
-
-@keyframes hint-shimmer {
+@keyframes hint-glow {
   0%,
   100% {
     opacity: 0.6;
@@ -716,463 +657,350 @@ onUnmounted(() => {
   }
 }
 
-/* ========================================
-   全屏羊皮纸信件
-   ======================================== */
-.parchment-fullscreen {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-
-  /* 羊皮纸背景 */
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at 30% 20%, #f8ecd0 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, #e8d4a8 0%, transparent 50%),
-    linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 30%, #dcc498 70%, #c9a86c 100%);
-
-  box-shadow: inset 0 0 100px rgba(139, 105, 20, 0.2);
-}
-
-/* 羊皮纸边缘装饰（焦黄做旧） */
-.parchment-edges {
+/* =============================================
+   信纸场景
+   ============================================= */
+.letter-scene {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.edge-top,
-.edge-bottom,
-.edge-left,
-.edge-right {
-  position: absolute;
-  background: linear-gradient(to bottom, rgba(139, 105, 20, 0.4) 0%, transparent 100%);
-}
-
-.edge-top {
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 30px;
-  background: linear-gradient(to bottom, rgba(101, 67, 33, 0.5) 0%, transparent 100%);
-}
-
-.edge-bottom {
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  background: linear-gradient(to top, rgba(101, 67, 33, 0.6) 0%, transparent 100%);
-}
-
-.edge-left {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 20px;
-  background: linear-gradient(to right, rgba(101, 67, 33, 0.4) 0%, transparent 100%);
-}
-
-.edge-right {
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 20px;
-  background: linear-gradient(to left, rgba(101, 67, 33, 0.4) 0%, transparent 100%);
-}
-
-/* 四角魔法符文 */
-.corner-rune {
-  position: absolute;
-  font-size: 24px;
-  color: var(--gold-dim);
-  opacity: 0.6;
-  text-shadow: 0 0 10px var(--gold);
   z-index: 5;
-  animation: rune-glow 3s ease-in-out infinite;
+  opacity: 0;
+  transform: translateY(100px) scale(0.5) rotateX(30deg);
+  transition: none;
+  pointer-events: none;
 }
 
-.corner-rune.top-left {
-  top: 15px;
-  left: 15px;
-}
-.corner-rune.top-right {
-  top: 15px;
-  right: 15px;
-}
-.corner-rune.bottom-left {
-  bottom: 15px;
-  left: 15px;
-}
-.corner-rune.bottom-right {
-  bottom: 15px;
-  right: 15px;
+.letter-scene.letter-flying {
+  opacity: 1;
+  transform: translateY(-20px) scale(0.9) rotateX(5deg);
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes rune-glow {
-  0%,
-  100% {
-    opacity: 0.4;
-    text-shadow: 0 0 5px var(--gold);
-  }
-  50% {
-    opacity: 0.8;
-    text-shadow:
-      0 0 15px var(--gold),
-      0 0 25px rgba(255, 215, 0, 0.5);
-  }
+.letter-scene.letter-arrived {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateX(0);
+  transition: all 0.5s ease-out;
+  pointer-events: auto;
+}
+
+.letter-parchment {
+  position: relative;
+  width: min(360px, 88vw);
+  height: min(520px, 75vh);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(255, 215, 0, 0.1);
+}
+
+/* 羊皮纸纹理 */
+.parchment-texture {
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 25% 15%, #faf3e0 0%, transparent 40%),
+    radial-gradient(ellipse at 75% 85%, #e8d8b8 0%, transparent 40%),
+    linear-gradient(180deg, #f5e8d0 0%, #ecdfc0 40%, #e0d0a8 100%);
+  z-index: 0;
+}
+
+/* 装饰边框 */
+.parchment-border {
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(139, 105, 20, 0.25);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gold-dim);
+  opacity: 0.5;
+}
+
+.corner.tl {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+.corner.tr {
+  top: -2px;
+  right: -2px;
+  border-left: none;
+  border-bottom: none;
+}
+.corner.bl {
+  bottom: -2px;
+  left: -2px;
+  border-right: none;
+  border-top: none;
+}
+.corner.br {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* 符文装饰 */
+.rune {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  color: var(--gold-dim);
+  opacity: 0.5;
+  z-index: 3;
+}
+
+.rune-top {
+  top: 18px;
+}
+.rune-bottom {
+  bottom: 18px;
+  transform: translateX(-50%) rotate(180deg);
 }
 
 /* 背景轮播 */
-.parchment-bg-layer {
+.letter-bg-carousel {
   position: absolute;
   inset: 0;
-  z-index: 0;
-  opacity: 0.15;
+  z-index: 1;
+  opacity: 0.12;
   pointer-events: none;
 }
 
-.parchment-bg-img {
+.letter-bg-img {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-size: cover;
   background-position: center;
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 2s ease;
+  transition: opacity 1.5s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
 
-/* 滚动内容区 */
-.parchment-content {
-  flex: 1;
+/* 内容滚动区 */
+.letter-scroll {
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 50px 25px 80px;
   z-index: 2;
+  padding: 50px 24px 60px;
+  box-sizing: border-box;
 }
 
-.parchment-content::-webkit-scrollbar {
-  width: 6px;
+.letter-scroll::-webkit-scrollbar {
+  width: 4px;
 }
 
-.parchment-content::-webkit-scrollbar-track {
-  background: rgba(139, 105, 20, 0.1);
+.letter-scroll::-webkit-scrollbar-thumb {
+  background: rgba(139, 105, 20, 0.25);
+  border-radius: 2px;
 }
 
-.parchment-content::-webkit-scrollbar-thumb {
-  background: rgba(139, 105, 20, 0.3);
-  border-radius: 3px;
+.letter-content {
+  max-width: 100%;
 }
 
-.content-inner {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* 信件标题装饰 */
-.letter-header {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  margin-bottom: 30px;
-  font-size: 20px;
+.content-header {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 14px;
   color: var(--gold-dim);
-  opacity: 0.7;
+  opacity: 0.6;
+  letter-spacing: 8px;
 }
 
-.header-flourish {
-  animation: flourish-shimmer 4s ease-in-out infinite;
+.para {
+  margin-bottom: 6px;
 }
 
-.header-flourish.right {
-  animation-delay: 2s;
-}
-
-@keyframes flourish-shimmer {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-    text-shadow: 0 0 10px var(--gold);
-  }
-}
-
-/* 魔法段落 */
-.magic-paragraph {
-  margin-bottom: 8px;
-}
-
-.magic-text {
+.para-text {
   font-family: "Dancing Script", cursive;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 500;
-  color: var(--ink-color);
-  line-height: 1.8;
+  color: var(--ink);
+  line-height: 1.75;
   margin: 0;
-  text-shadow: 0 1px 1px rgba(139, 105, 20, 0.1);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* 羽毛笔光标 */
-.quill-cursor {
+.quill {
   display: inline-block;
-  font-size: 18px;
-  margin-left: 4px;
-  animation: quill-write 0.4s ease-in-out infinite;
+  margin-left: 3px;
+  animation: write 0.35s ease-in-out infinite;
 }
 
-@keyframes quill-write {
+@keyframes write {
   0%,
   100% {
-    transform: rotate(-8deg) translateY(0);
+    transform: rotate(-6deg);
   }
   50% {
-    transform: rotate(8deg) translateY(-3px);
+    transform: rotate(6deg) translateY(-2px);
   }
 }
 
 .content-footer {
-  height: 60px;
+  height: 50px;
 }
 
-/* 羊皮纸做旧覆盖层 */
-.parchment-aged-overlay {
+/* 边缘做旧 */
+.aged-edges {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 3;
-  background: radial-gradient(ellipse at 10% 10%, rgba(139, 105, 20, 0.15) 0%, transparent 30%),
-    radial-gradient(ellipse at 90% 90%, rgba(139, 105, 20, 0.15) 0%, transparent 30%),
-    radial-gradient(ellipse at 90% 10%, rgba(101, 67, 33, 0.1) 0%, transparent 25%),
-    radial-gradient(ellipse at 10% 90%, rgba(101, 67, 33, 0.1) 0%, transparent 25%);
+  z-index: 4;
+  box-shadow:
+    inset 0 0 60px rgba(139, 105, 20, 0.15),
+    inset 0 0 20px rgba(101, 67, 33, 0.1);
+  border-radius: 6px;
 }
 
-/* 过渡动画 */
-.parchment-reveal-enter-active {
-  animation: parchment-unfold 0.8s ease-out;
-}
-
-@keyframes parchment-unfold {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) rotate(5deg);
-    filter: brightness(2);
-  }
-  50% {
-    filter: brightness(1.5);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-    filter: brightness(1);
-  }
-}
-
-/* ========================================
-   魔法爆发效果
-   ======================================== */
-.magic-explosion {
-  position: fixed;
+/* =============================================
+   魔法火花
+   ============================================= */
+.magic-sparks {
+  position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -60%);
   pointer-events: none;
-  z-index: 200;
+  z-index: 20;
 }
 
-.explosion-ring {
+.spark-dot {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  border: 3px solid var(--gold);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: ring-expand 0.8s ease-out forwards;
-}
-
-@keyframes ring-expand {
-  0% {
-    width: 20px;
-    height: 20px;
-    opacity: 1;
-  }
-  100% {
-    width: 300px;
-    height: 300px;
-    opacity: 0;
-  }
-}
-
-.explosion-spark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background: var(--gold);
   border-radius: 50%;
   box-shadow:
-    0 0 10px var(--gold),
-    0 0 20px var(--gold);
-  animation: explosion-fly 0.8s ease-out forwards;
+    0 0 8px var(--gold),
+    0 0 16px rgba(255, 215, 0, 0.7);
+  animation: spark-burst 0.7s ease-out forwards;
 }
 
-.explosion-spark:nth-child(2) {
-  --exp-angle: 0deg;
+.spark-dot:nth-child(1) {
+  --a: 0deg;
 }
-.explosion-spark:nth-child(3) {
-  --exp-angle: 15deg;
+.spark-dot:nth-child(2) {
+  --a: 22.5deg;
 }
-.explosion-spark:nth-child(4) {
-  --exp-angle: 30deg;
+.spark-dot:nth-child(3) {
+  --a: 45deg;
 }
-.explosion-spark:nth-child(5) {
-  --exp-angle: 45deg;
+.spark-dot:nth-child(4) {
+  --a: 67.5deg;
 }
-.explosion-spark:nth-child(6) {
-  --exp-angle: 60deg;
+.spark-dot:nth-child(5) {
+  --a: 90deg;
 }
-.explosion-spark:nth-child(7) {
-  --exp-angle: 75deg;
+.spark-dot:nth-child(6) {
+  --a: 112.5deg;
 }
-.explosion-spark:nth-child(8) {
-  --exp-angle: 90deg;
+.spark-dot:nth-child(7) {
+  --a: 135deg;
 }
-.explosion-spark:nth-child(9) {
-  --exp-angle: 105deg;
+.spark-dot:nth-child(8) {
+  --a: 157.5deg;
 }
-.explosion-spark:nth-child(10) {
-  --exp-angle: 120deg;
+.spark-dot:nth-child(9) {
+  --a: 180deg;
 }
-.explosion-spark:nth-child(11) {
-  --exp-angle: 135deg;
+.spark-dot:nth-child(10) {
+  --a: 202.5deg;
 }
-.explosion-spark:nth-child(12) {
-  --exp-angle: 150deg;
+.spark-dot:nth-child(11) {
+  --a: 225deg;
 }
-.explosion-spark:nth-child(13) {
-  --exp-angle: 165deg;
+.spark-dot:nth-child(12) {
+  --a: 247.5deg;
 }
-.explosion-spark:nth-child(14) {
-  --exp-angle: 180deg;
+.spark-dot:nth-child(13) {
+  --a: 270deg;
 }
-.explosion-spark:nth-child(15) {
-  --exp-angle: 195deg;
+.spark-dot:nth-child(14) {
+  --a: 292.5deg;
 }
-.explosion-spark:nth-child(16) {
-  --exp-angle: 210deg;
+.spark-dot:nth-child(15) {
+  --a: 315deg;
 }
-.explosion-spark:nth-child(17) {
-  --exp-angle: 225deg;
-}
-.explosion-spark:nth-child(18) {
-  --exp-angle: 240deg;
-}
-.explosion-spark:nth-child(19) {
-  --exp-angle: 255deg;
-}
-.explosion-spark:nth-child(20) {
-  --exp-angle: 270deg;
-}
-.explosion-spark:nth-child(21) {
-  --exp-angle: 285deg;
-}
-.explosion-spark:nth-child(22) {
-  --exp-angle: 300deg;
-}
-.explosion-spark:nth-child(23) {
-  --exp-angle: 315deg;
-}
-.explosion-spark:nth-child(24) {
-  --exp-angle: 330deg;
-}
-.explosion-spark:nth-child(25) {
-  --exp-angle: 345deg;
+.spark-dot:nth-child(16) {
+  --a: 337.5deg;
 }
 
-@keyframes explosion-fly {
+@keyframes spark-burst {
   0% {
-    transform: translate(-50%, -50%) rotate(var(--exp-angle)) translateY(0);
+    transform: rotate(var(--a)) translateY(0);
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -50%) rotate(var(--exp-angle)) translateY(120px);
+    transform: rotate(var(--a)) translateY(80px);
     opacity: 0;
   }
 }
 
-/* ========================================
+/* =============================================
    移动端适配
-   ======================================== */
+   ============================================= */
 @media (max-width: 480px) {
-  .hogwarts-envelope {
-    width: 88vw;
-    height: 55vw;
+  .envelope-body {
+    width: 85vw;
+    height: 54vw;
   }
 
   .wax-seal {
-    width: 48px;
-    height: 48px;
-    top: calc(55vw * 0.45 - 24px);
+    width: 42px;
+    height: 42px;
+    top: calc(54vw * 0.5 - 21px);
   }
 
-  .emblem-h {
-    font-size: 22px;
-  }
-
-  .address-main {
-    font-size: 16px;
-  }
-
-  .address-sub {
-    font-size: 11px;
-  }
-
-  .parchment-content {
-    padding: 40px 20px 70px;
-  }
-
-  .magic-text {
-    font-size: 18px;
-    line-height: 1.7;
-  }
-
-  .corner-rune {
+  .seal-h {
     font-size: 18px;
   }
 
-  .letter-header {
-    margin-bottom: 20px;
+  .recipient-name {
+    font-size: 14px;
+  }
+
+  .letter-parchment {
+    width: 92vw;
+    height: 72vh;
+  }
+
+  .para-text {
+    font-size: 17px;
+  }
+
+  .letter-scroll {
+    padding: 40px 18px 50px;
   }
 }
 
 @media (max-width: 360px) {
-  .magic-text {
-    font-size: 16px;
-  }
-
-  .parchment-content {
-    padding: 35px 15px 60px;
+  .para-text {
+    font-size: 15px;
   }
 }
 
-/* iOS 安全区适配 */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .parchment-content {
-    padding-top: calc(50px + env(safe-area-inset-top));
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+/* iOS 安全区 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .letter-scroll {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom));
   }
 }
 </style>
