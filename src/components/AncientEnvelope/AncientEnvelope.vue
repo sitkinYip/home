@@ -243,14 +243,17 @@ const autoScroll = (): void => {
  */
 const forceRepaint = (): void => {
   if (!scrollContainer.value) return;
-  // 读取布局属性强制同步回流
-  void scrollContainer.value.offsetHeight;
-  // 备用方案：通过微小的 transform 变化触发 GPU 层重绘
-  scrollContainer.value.style.transform = "translateZ(0)";
+  const container = scrollContainer.value;
+  // 策略1：强制同步回流
+  void container.offsetHeight;
+  // 策略2：切换 visibility 强制重绘整个层
+  container.style.visibility = "hidden";
+  void container.offsetHeight; // 再次触发回流
+  container.style.visibility = "visible";
+  // 策略3：强制整个文档重绘（最后手段）
+  document.body.style.zoom = "1.0001";
   requestAnimationFrame(() => {
-    if (scrollContainer.value) {
-      scrollContainer.value.style.transform = "";
-    }
+    document.body.style.zoom = "1";
   });
 };
 
@@ -449,19 +452,31 @@ onUnmounted(() => {
 }
 
 .v-char {
-  display: inline;
+  /* 使用 inline-block 替代 inline，iOS Safari 对 inline-block 的重绘更可靠 */
+  display: inline-block;
   color: #1a1a1a !important;
   font-weight: 600 !important;
   /* iOS Safari 竖排文字颜色渲染修复：多重策略 */
   -webkit-text-stroke: 0.01px #1a1a1a;
-  /* 强制 GPU 加速渲染，避免延迟绘制 */
+  /* 强制 GPU 加速渲染 */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
-  /* 声明将变化的属性，提示浏览器优化 */
-  will-change: contents;
   /* 强制创建独立绘制层 */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  /* 持续微动画强制 iOS 不断重绘每个字符 */
+  animation: ios-repaint-fix 0.01s infinite;
+}
+
+/* iOS Safari 强制重绘动画 - 几乎不可见的微小变化 */
+@keyframes ios-repaint-fix {
+  0%,
+  100% {
+    opacity: 0.9999;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .v-cursor {
