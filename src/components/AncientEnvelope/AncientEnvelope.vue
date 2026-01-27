@@ -319,7 +319,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  font-family: "Long Cang", cursive !important;
+  font-family: "Long Cang", cursive;
 }
 
 /* 舞台：控制信封和初始动画范围 */
@@ -356,12 +356,12 @@ onUnmounted(() => {
 }
 
 .env-back {
-  background-color: #b89a6b !important;
+  background-color: #b89a6b;
   z-index: 1;
 }
 
 .env-front {
-  background-color: #d2b48c !important;
+  background-color: #d2b48c;
   z-index: 11;
   display: flex;
   justify-content: center;
@@ -373,7 +373,7 @@ onUnmounted(() => {
 .red-box-main {
   width: 70px;
   height: 240px;
-  border: 3px solid #a32e2e !important;
+  border: 3px solid #a32e2e;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -384,14 +384,14 @@ onUnmounted(() => {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid #a32e2e !important;
+  border: 1px solid #a32e2e;
 }
 
 .calligraphy {
   writing-mode: vertical-rl;
-  font-size: 32px !important;
-  color: #1a1a1a !important;
-  font-weight: bold !important;
+  font-size: 32px;
+  color: #1a1a1a;
+  font-weight: bold;
   letter-spacing: 12px;
 }
 
@@ -400,7 +400,7 @@ onUnmounted(() => {
   position: absolute;
   width: 190px;
   height: 360px;
-  background-color: #fdf5e6 !important;
+  background-color: #fdf5e6;
   z-index: 5;
   padding: 15px;
   box-sizing: border-box;
@@ -416,28 +416,28 @@ onUnmounted(() => {
 
 /* 最终居中形态：采用 fixed 定位确保不被父容器裁切 */
 .is-zoom-center {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  width: 90vw !important;
-  height: 82vh !important;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 90vw;
+  height: 82vh;
   max-width: 420px;
-  transform: translate(-50%, -50%) !important;
+  transform: translate(-50%, -50%);
   z-index: 100;
 }
 
 .paper-border-outer {
   height: 100%;
-  border: 2px solid #a32e2e !important;
+  border: 2px solid #a32e2e;
   padding: 2px;
 }
 
 .paper-border-inner {
   position: relative;
   height: 100%;
-  border: 1px solid #a32e2e !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
+  border: 1px solid #a32e2e;
+  overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -448,22 +448,18 @@ onUnmounted(() => {
 
 /* 核心排版：原生竖排流实现 */
 .paper-content-area {
-  writing-mode: vertical-rl !important;
-  text-orientation: upright !important;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
   height: 100%;
   min-width: 100%;
-  line-height: 40px !important;
-  font-size: 24px !important;
-  color: #1a1a1a !important;
+  line-height: 40px;
+  font-size: 24px;
+  color: #1a1a1a;
   /* 背景格线 */
-  background-image: linear-gradient(
-    to left,
-    rgba(163, 46, 46, 0.2) 1px,
-    transparent 1px
-  ) !important;
-  background-size: 40px 100% !important;
-  background-position: right top !important;
-  background-repeat: repeat-x !important;
+  background-image: linear-gradient(to left, rgba(163, 46, 46, 0.2) 1px, transparent 1px);
+  background-size: 40px 100%;
+  background-position: right top;
+  background-repeat: repeat-x;
 }
 
 .para-column-group {
@@ -476,8 +472,8 @@ onUnmounted(() => {
 
 .v-char {
   display: inline;
-  color: #1a1a1a !important;
-  font-weight: 600 !important;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 /* iOS Safari 移动端专用修复样式 - 仅在检测到 iOS 移动设备时通过 JS 添加此类 */
@@ -509,7 +505,7 @@ onUnmounted(() => {
 
 .v-cursor {
   display: inline-block;
-  color: #a32e2e !important;
+  color: #a32e2e;
   font-weight: bold;
   animation: blink 0.8s infinite;
   transform: translateY(-4px);
@@ -526,7 +522,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.15 !important;
+  opacity: 0.15;
   pointer-events: none;
   overflow: hidden;
 }

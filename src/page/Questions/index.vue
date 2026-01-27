@@ -58,6 +58,7 @@
           <QuestClues
             v-if="isBinGo"
             :thread="questionsStore.qaInfo.thread"
+            :title="questionsStore.qaInfo.answerTitle"
             @action="handleArtifactAction"
             @preview="previewImage"
           />

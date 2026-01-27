@@ -404,7 +404,7 @@ onUnmounted(() => {
   height: 100%;
   padding: 0px 25px;
   box-sizing: border-box;
-  overflow-y: auto !important;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   line-height: var(--letter-line-height);
   background-image: repeating-linear-gradient(

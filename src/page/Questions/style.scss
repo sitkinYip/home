@@ -153,7 +153,8 @@
       opacity: 0.6;
     }
     50% { 
-      transform: translateY(-30vpx) scale(1.1); 
+      // -30vpx ÷ 390 × 100 = -7.69231vw
+      transform: translateY(-7.69231vw) scale(1.1); 
       opacity: 1;
     }
 }
@@ -164,34 +165,35 @@
 }
 
 // 错误反馈动画：抖动
+// 10vpx ÷ 390 × 100 = 2.5641vw, 5vpx = 1.28205vw
 @keyframes magic-shake {
   0%,
   100% {
     transform: translateX(0) rotate(0);
   }
   15% {
-    transform: translateX(-10vpx) rotate(-1deg);
+    transform: translateX(-2.5641vw) rotate(-1deg);
   }
   30% {
-    transform: translateX(10vpx) rotate(1deg);
+    transform: translateX(2.5641vw) rotate(1deg);
   }
   45% {
-    transform: translateX(-10vpx) rotate(-1deg);
+    transform: translateX(-2.5641vw) rotate(-1deg);
   }
   60% {
-    transform: translateX(10vpx) rotate(1deg);
+    transform: translateX(2.5641vw) rotate(1deg);
   }
   75% {
-    transform: translateX(-5vpx) rotate(-0.5deg);
+    transform: translateX(-1.28205vw) rotate(-0.5deg);
   }
   90% {
-    transform: translateX(5vpx) rotate(0.5deg);
+    transform: translateX(1.28205vw) rotate(0.5deg);
   }
 }
 
 .shake-animation {
   // forwards 保证动画结束后状态（如果需要）
-  animation: magic-shake 1.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: magic-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   border-color: rgba($magic-red, 0.6) !important;
   // 增加一个淡红色的发光
   box-shadow: 0 0 30vpx rgba($magic-red, 0.2);
@@ -252,5 +254,6 @@
 }
 .scroll-reveal-enter-from {
   opacity: 0;
-  transform: translateY(30vpx);
+  // 30vpx ÷ 390 × 100 = 7.69231vw
+  transform: translateY(7.69231vw);
 }

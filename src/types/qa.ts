@@ -67,6 +67,7 @@ export interface LevelRecord {
   type?: "FillInTheBlank" | "MultipleChoice"; // 填空题或选择题 不填默认为填空题
   options?: OptionItemList;
   title?: string;
+  answerTitle?: string;
   id: string;
   step: number; // 对应原来的 qaIndex
   question: QuestionItemList;

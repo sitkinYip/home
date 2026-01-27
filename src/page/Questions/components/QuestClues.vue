@@ -1,9 +1,35 @@
 <template>
-  <div class="magic-panel clue-card">
+  <div class="magic-panel clue-card" :class="{ 'fullscreen-mode': isFullscreen }">
+    <!-- 全屏遮罩层（仅在全屏时渲染） -->
+    <transition name="fullscreen-backdrop">
+      <div v-if="isFullscreen" class="fullscreen-backdrop" @click="exitFullscreen"></div>
+    </transition>
+
+    <!-- 魔法粒子效果 -->
+    <transition name="particles-fade">
+      <div v-if="isFullscreen" class="magic-particles">
+        <span v-for="n in 25" :key="n" class="particle" :style="getParticleStyle(n)"></span>
+      </div>
+    </transition>
+
     <div class="clue-header">
       <span class="header-ornament"></span>
-      获取的神谕线索
+      {{ title || "获得线索" }}
       <span class="header-ornament"></span>
+
+      <!-- 全屏切换按钮 -->
+      <div class="fullscreen-toggle" @click="toggleFullscreen">
+        <div class="toggle-crystal">
+          <div class="crystal-inner">
+            <span class="toggle-rune">{{ isFullscreen ? "✕" : "⛶" }}</span>
+          </div>
+          <div class="crystal-glow"></div>
+        </div>
+        <div class="toggle-orbits">
+          <span class="orbit orbit-1"></span>
+          <span class="orbit orbit-2"></span>
+        </div>
+      </div>
     </div>
 
     <div class="as_content">
@@ -33,13 +59,58 @@
 </template>
 
 <script lang="ts" setup>
+import { ref } from "vue";
 import ClueArtifact from "./ClueArtifact.vue";
+import { ThreadItemList } from "@/types/qa";
 
 defineProps<{
-  thread: any[];
+  thread: ThreadItemList;
+  title?: string;
 }>();
 
 defineEmits(["action", "preview"]);
+
+const isFullscreen = ref(false);
+
+// 控制滚动条显示
+const setScrollLock = (lock: boolean) => {
+  document.body.style.overflow = lock ? "hidden" : "";
+  // 同时处理 .adventure-container 滚动容器
+  const container = document.querySelector(".adventure-container") as HTMLElement;
+  if (container) {
+    container.style.overflow = lock ? "hidden" : "";
+  }
+};
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value;
+  setScrollLock(isFullscreen.value);
+};
+
+const exitFullscreen = () => {
+  isFullscreen.value = false;
+  setScrollLock(false);
+};
+
+/**
+ * 生成粒子随机样式
+ */
+const getParticleStyle = (_index: number) => {
+  const size = 2 + Math.random() * 4;
+  const left = Math.random() * 100;
+  const delay = Math.random() * 3;
+  const duration = 4 + Math.random() * 4;
+  const hue = 30 + Math.random() * 40; // 金色到橙色
+
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    animationDelay: `${delay}s`,
+    animationDuration: `${duration}s`,
+    backgroundColor: `hsl(${hue}, 85%, 55%)`,
+  };
+};
 </script>
 
 <style lang="scss" scoped>
@@ -59,7 +130,8 @@ defineEmits(["action", "preview"]);
   padding: 24vpx;
   transition:
     border-color 0.4s,
-    box-shadow 0.4s;
+    box-shadow 0.4s,
+    all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   &::before {
     content: "";
     position: absolute;
@@ -86,11 +158,22 @@ defineEmits(["action", "preview"]);
   border: 1vpx solid rgba($magic-green, 0.4);
 
   .clue-header {
+    position: relative;
     text-align: center;
     color: $magic-green;
     font-weight: bold;
     margin-bottom: 12vpx;
     font-size: 14vpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8vpx;
+  }
+
+  .header-ornament {
+    flex: 1;
+    height: 1vpx;
+    background: linear-gradient(to right, transparent, rgba($magic-green, 0.4), transparent);
   }
 
   .clue-text {
@@ -109,6 +192,383 @@ defineEmits(["action", "preview"]);
   }
 }
 
+// ===== 全屏切换按钮 =====
+.fullscreen-toggle {
+  position: absolute;
+  top: 50%;
+  right: -4vpx;
+  transform: translateY(-50%);
+  width: 32vpx;
+  height: 32vpx;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+
+  .toggle-crystal {
+    position: relative;
+    width: 26vpx;
+    height: 26vpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .crystal-inner {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba($magic-green, 0.8) 0%,
+        rgba(darken($magic-green, 15%), 0.9) 50%,
+        rgba(darken($magic-green, 25%), 0.85) 100%
+      );
+      border-radius: 50%;
+      border: 1.5vpx solid rgba($magic-green, 0.6);
+      box-shadow:
+        0 0 12vpx rgba($magic-green, 0.4),
+        0 0 24vpx rgba($magic-green, 0.2),
+        inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
+        inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+
+      .toggle-rune {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 12vpx;
+        font-weight: 300;
+        text-shadow:
+          0 0 6px rgba(255, 255, 255, 0.8),
+          0 0 12px rgba($magic-green, 0.6);
+      }
+    }
+
+    .crystal-glow {
+      position: absolute;
+      inset: -6vpx;
+      background: radial-gradient(circle, rgba($magic-green, 0.25) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: crystal-pulse 2s ease-in-out infinite alternate;
+    }
+  }
+
+  .toggle-orbits {
+    position: absolute;
+    inset: -4vpx;
+    pointer-events: none;
+
+    .orbit {
+      position: absolute;
+      inset: 0;
+      border: 1vpx solid transparent;
+      border-top-color: rgba($magic-green, 0.4);
+      border-radius: 50%;
+      animation: orbit-rotate 3s linear infinite;
+
+      &.orbit-1 {
+        animation-duration: 2.5s;
+      }
+
+      &.orbit-2 {
+        inset: -3vpx;
+        border-top-color: rgba($magic-green, 0.25);
+        animation-duration: 3.5s;
+        animation-direction: reverse;
+      }
+    }
+  }
+
+  &:active {
+    .toggle-crystal .crystal-inner {
+      transform: scale(0.9);
+      box-shadow:
+        0 0 18vpx rgba($magic-green, 0.6),
+        0 0 36vpx rgba($magic-green, 0.3),
+        inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
+        inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+// ===== 全屏模式样式 =====
+.fullscreen-mode {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  // 顶部 padding 加上安全区域（刘海屏/灵动岛）
+  padding: calc(60vpx + env(safe-area-inset-top, 0px)) 24vpx 24vpx !important;
+  border-radius: 0 !important;
+  z-index: 9000 !important;
+  overflow: hidden !important; // 外层不滚动
+  background: rgba(10, 14, 20, 0.98) !important;
+  border: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+
+  // 自定义滚动条 - 更细且半透明
+  &::-webkit-scrollbar {
+    width: 4vpx;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba($magic-green, 0.3);
+    border-radius: 2vpx;
+    &:hover {
+      background: rgba($magic-green, 0.5);
+    }
+  }
+
+  // 增强的毛玻璃效果
+  backdrop-filter: blur(30vpx) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(30vpx) saturate(1.3) !important;
+
+  // 魔法边框光效
+  box-shadow:
+    inset 0 0 100vpx rgba($magic-green, 0.08),
+    inset 0 0 200vpx rgba($magic-gold, 0.05) !important;
+
+  .clue-header {
+    position: fixed;
+    // 顶部偏移加上安全区域
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    padding: 16vpx 24vpx;
+    background: rgba(10, 14, 20, 0.95);
+    backdrop-filter: blur(20vpx);
+    -webkit-backdrop-filter: blur(20vpx);
+    z-index: 10;
+    border-bottom: 1vpx solid rgba($magic-green, 0.3);
+    margin-bottom: 0;
+  }
+
+  .fullscreen-toggle {
+    right: 16vpx;
+
+    .toggle-crystal .crystal-inner {
+      background: linear-gradient(
+        135deg,
+        rgba(180, 130, 70, 0.9) 0%,
+        rgba(139, 90, 43, 0.95) 50%,
+        rgba(100, 60, 20, 0.9) 100%
+      );
+      border-color: rgba($magic-gold, 0.6);
+      box-shadow:
+        0 0 12vpx rgba($magic-gold, 0.4),
+        0 0 24vpx rgba($magic-gold, 0.2),
+        inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
+        inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
+    }
+
+    .crystal-glow {
+      background: radial-gradient(circle, rgba($magic-gold, 0.3) 0%, transparent 70%);
+    }
+
+    .orbit {
+      border-top-color: rgba($magic-gold, 0.4) !important;
+    }
+  }
+
+  .as_content {
+    flex: 1;
+    padding-top: 8vpx;
+    overflow-y: auto; // 内容区域滚动
+    overflow-x: hidden;
+
+    // 自定义滚动条 - 更细且半透明
+    &::-webkit-scrollbar {
+      width: 4vpx;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba($magic-green, 0.3);
+      border-radius: 2vpx;
+      &:hover {
+        background: rgba($magic-green, 0.5);
+      }
+    }
+  }
+}
+
+// ===== 全屏背景遮罩 =====
+.fullscreen-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at center,
+    rgba($magic-green, 0.08) 0%,
+    rgba(10, 14, 20, 0.98) 70%
+  );
+
+  // 梦幻光晕
+  &::before {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 300vpx;
+    height: 300vpx;
+    background: radial-gradient(circle, rgba($magic-gold, 0.12) 0%, transparent 60%);
+    animation: glow-float 8s ease-in-out infinite alternate;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 20%;
+    right: 10%;
+    width: 250vpx;
+    height: 250vpx;
+    background: radial-gradient(circle, rgba($magic-purple, 0.1) 0%, transparent 60%);
+    animation: glow-float 10s ease-in-out infinite alternate-reverse;
+  }
+}
+
+// ===== 魔法粒子 =====
+.magic-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+
+  .particle {
+    position: absolute;
+    bottom: -10%;
+    border-radius: 50%;
+    box-shadow:
+      0 0 6px currentColor,
+      0 0 12px currentColor;
+    animation: float-up 6s ease-in-out infinite;
+    opacity: 0;
+  }
+}
+
+// ===== 动画 =====
+@keyframes sweep-light {
+  0% {
+    transform: translateX(-100%) rotate(-45deg);
+  }
+  20%,
+  100% {
+    transform: translateX(100%) rotate(-45deg);
+  }
+}
+
+@keyframes crystal-pulse {
+  from {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes orbit-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-110vh) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes glow-float {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(-30vpx) scale(1.1);
+    opacity: 1;
+  }
+}
+
+// ===== 过渡动画 =====
+.fullscreen-backdrop-enter-active {
+  animation: backdrop-in 0.5s ease-out;
+}
+.fullscreen-backdrop-leave-active {
+  animation: backdrop-out 0.4s ease-in;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.particles-fade-enter-active {
+  animation: particles-in 0.6s ease-out;
+}
+.particles-fade-leave-active {
+  animation: particles-out 0.3s ease-in;
+}
+
+@keyframes particles-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes particles-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .as_content {
   // container for items
 }
@@ -121,16 +581,6 @@ defineEmits(["action", "preview"]);
     width: 100%;
     border-radius: 8vpx;
     border: 1vpx solid rgba(255, 255, 255, 0.1);
-  }
-}
-
-@keyframes sweep-light {
-  0% {
-    transform: translateX(-100%) rotate(-45deg);
-  }
-  20%,
-  100% {
-    transform: translateX(100%) rotate(-45deg);
   }
 }
 </style>

@@ -1,10 +1,37 @@
 <!-- components/MagicScroll.vue -->
 <template>
-  <transition name="letter-unfold">
+  <transition name="magic-scroll">
     <div v-if="visible" class="scroll-overlay" @click.self="handleClose">
+      <!-- 魔法粒子背景 -->
+      <div class="magic-particles">
+        <span v-for="n in 20" :key="n" class="particle" :style="getParticleStyle(n)"></span>
+      </div>
+
+      <!-- 光芒效果 -->
+      <div class="magic-glow"></div>
+
       <div class="scroll-body">
-        <!-- 移除卷轴杆，改为纯信纸 -->
+        <!-- 外部关闭按钮 - 魔法水晶风格 -->
+        <div class="magic-close-btn" @click="handleClose">
+          <div class="close-crystal">
+            <div class="crystal-inner">
+              <span class="close-rune">✕</span>
+            </div>
+            <div class="crystal-glow"></div>
+          </div>
+          <div class="close-orbits">
+            <span class="orbit orbit-1"></span>
+            <span class="orbit orbit-2"></span>
+          </div>
+        </div>
+
+        <!-- 信纸主体 -->
         <div class="scroll-paper">
+          <div class="paper-corner paper-corner-tl"></div>
+          <div class="paper-corner paper-corner-tr"></div>
+          <div class="paper-corner paper-corner-bl"></div>
+          <div class="paper-corner paper-corner-br"></div>
+
           <div class="scroll-content-wrap">
             <div class="scroll-title">{{ title || "神谕密卷" }}</div>
             <!-- 核心：渲染解析后的富文本 -->
@@ -43,11 +70,6 @@
               </template>
             </div>
           </div>
-          <div class="scroll-footer">
-            <div class="wax-seal-btn" @click="handleClose">
-              <span class="seal-text">封</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -66,6 +88,26 @@ const title = ref("");
 
 // 字体是否已加载的标记，避免重复加载
 let fontsLoaded = false;
+
+/**
+ * 生成粒子随机样式
+ */
+const getParticleStyle = (index: number) => {
+  const size = 2 + Math.random() * 4;
+  const left = Math.random() * 100;
+  const delay = Math.random() * 3;
+  const duration = 3 + Math.random() * 4;
+  const hue = 30 + Math.random() * 30; // 金色到橙色
+
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    animationDelay: `${delay}s`,
+    animationDuration: `${duration}s`,
+    backgroundColor: `hsl(${hue}, 80%, 60%)`,
+  };
+};
 
 /**
  * 动态加载字体 CSS
@@ -203,14 +245,81 @@ defineExpose({ show });
   position: fixed;
   inset: 0;
   z-index: 10005;
-  background: rgba(10, 10, 15, 0.85); // 更深邃的背景
-  backdrop-filter: blur(8vpx);
+  // 透明背景，带有轻微的魔法紫色调
+  background: rgba(20, 15, 35, 0.65);
+  backdrop-filter: blur(16vpx) saturate(1.2);
+  -webkit-backdrop-filter: blur(16vpx) saturate(1.2);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40vpx;
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  perspective: 1500vpx; // 为3D展开做准备
+  perspective: 1500vpx;
+  overflow: hidden;
+}
+
+// 魔法粒子
+.magic-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+
+  .particle {
+    position: absolute;
+    bottom: -10%;
+    border-radius: 50%;
+    box-shadow:
+      0 0 6px currentColor,
+      0 0 12px currentColor;
+    animation: float-up 6s ease-in-out infinite;
+    opacity: 0;
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-110vh) scale(1);
+    opacity: 0;
+  }
+}
+
+// 中央光芒
+.magic-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 600vpx;
+  height: 600vpx;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(218, 165, 32, 0.15) 0%,
+    rgba(139, 90, 43, 0.08) 30%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: glow-pulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes glow-pulse {
+  from {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
 }
 
 .scroll-body {
@@ -222,21 +331,135 @@ defineExpose({ show });
   align-items: center;
 }
 
+// 魔法水晶关闭按钮
+.magic-close-btn {
+  position: absolute;
+  top: -20vpx;
+  right: -10vpx;
+  width: 48vpx;
+  height: 48vpx;
+  z-index: 10;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .close-crystal {
+    position: relative;
+    width: 36vpx;
+    height: 36vpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .crystal-inner {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba(180, 130, 70, 0.9) 0%,
+        rgba(139, 90, 43, 0.95) 50%,
+        rgba(100, 60, 20, 0.9) 100%
+      );
+      border-radius: 50%;
+      border: 2vpx solid rgba(218, 165, 32, 0.6);
+      box-shadow:
+        0 0 15vpx rgba(218, 165, 32, 0.4),
+        0 0 30vpx rgba(218, 165, 32, 0.2),
+        inset 0 2vpx 4vpx rgba(255, 255, 255, 0.3),
+        inset 0 -2vpx 4vpx rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+
+      .close-rune {
+        color: rgba(255, 245, 220, 0.9);
+        font-size: 16vpx;
+        font-weight: 300;
+        text-shadow:
+          0 0 8px rgba(255, 215, 0, 0.8),
+          0 0 16px rgba(255, 215, 0, 0.4);
+      }
+    }
+
+    .crystal-glow {
+      position: absolute;
+      inset: -8vpx;
+      background: radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: crystal-pulse 2s ease-in-out infinite alternate;
+    }
+  }
+
+  // 环绕轨道效果
+  .close-orbits {
+    position: absolute;
+    inset: -6vpx;
+    pointer-events: none;
+
+    .orbit {
+      position: absolute;
+      inset: 0;
+      border: 1vpx solid transparent;
+      border-top-color: rgba(218, 165, 32, 0.5);
+      border-radius: 50%;
+      animation: orbit-rotate 3s linear infinite;
+
+      &.orbit-1 {
+        animation-duration: 3s;
+      }
+
+      &.orbit-2 {
+        inset: -4vpx;
+        border-top-color: rgba(218, 165, 32, 0.3);
+        animation-duration: 4s;
+        animation-direction: reverse;
+      }
+    }
+  }
+
+  &:active {
+    .close-crystal .crystal-inner {
+      transform: scale(0.9);
+      box-shadow:
+        0 0 20vpx rgba(218, 165, 32, 0.6),
+        0 0 40vpx rgba(218, 165, 32, 0.3),
+        inset 0 2vpx 4vpx rgba(255, 255, 255, 0.3),
+        inset 0 -2vpx 4vpx rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+@keyframes crystal-pulse {
+  from {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes orbit-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // 羊皮纸信纸主体
 .scroll-paper {
   width: 90%;
   position: relative;
-  /****************************************
-   * 信纸质感：
-   * 1. 基础色 #f4e4bc
-   * 2. 噪点滤镜
-   * 3. 模拟折痕 (三折页效果)
-   ****************************************/
   background-color: #f4e4bc;
-  background-image: 
+  background-image:
     // 噪点纹理
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E"),
-    // 折痕效果：两条隐约的横线
+    // 折痕效果
     linear-gradient(
         to bottom,
         transparent 33%,
@@ -246,22 +469,19 @@ defineExpose({ show });
         rgba(139, 69, 19, 0.08) 66.5%,
         transparent 67%
       ),
-    // 整体陈旧感渐变
     radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(160, 120, 60, 0.1) 80%);
 
   box-shadow:
     0 10vpx 30vpx rgba(0, 0, 0, 0.5),
-    0 1vpx 3vpx rgba(0, 0, 0, 0.2); // 纸张立体感
+    0 1vpx 3vpx rgba(0, 0, 0, 0.2),
+    0 0 60vpx rgba(218, 165, 32, 0.15);
 
   padding: 40vpx 30vpx;
-  // 最小高度稍微高一点，体现信纸的修长
   min-height: 400vpx;
   max-height: 70vh;
   overflow-y: auto;
 
-  // 边缘整齐，稍微有点做旧的边框线
   border: 1vpx solid rgba(139, 90, 43, 0.2);
-  // 可选：加个双线边框装饰
   outline: 4vpx double rgba(139, 90, 43, 0.15);
   outline-offset: -12vpx;
 
@@ -275,9 +495,91 @@ defineExpose({ show });
     border-radius: 2vpx;
   }
 
+  // 角落装饰
+  .paper-corner {
+    position: absolute;
+    width: 24vpx;
+    height: 24vpx;
+    pointer-events: none;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      background: linear-gradient(45deg, rgba(139, 90, 43, 0.4) 0%, rgba(218, 165, 32, 0.3) 100%);
+    }
+
+    &.paper-corner-tl {
+      top: 8vpx;
+      left: 8vpx;
+      &::before {
+        width: 100%;
+        height: 2vpx;
+        top: 0;
+        left: 0;
+      }
+      &::after {
+        width: 2vpx;
+        height: 100%;
+        top: 0;
+        left: 0;
+      }
+    }
+
+    &.paper-corner-tr {
+      top: 8vpx;
+      right: 8vpx;
+      &::before {
+        width: 100%;
+        height: 2vpx;
+        top: 0;
+        right: 0;
+      }
+      &::after {
+        width: 2vpx;
+        height: 100%;
+        top: 0;
+        right: 0;
+      }
+    }
+
+    &.paper-corner-bl {
+      bottom: 8vpx;
+      left: 8vpx;
+      &::before {
+        width: 100%;
+        height: 2vpx;
+        bottom: 0;
+        left: 0;
+      }
+      &::after {
+        width: 2vpx;
+        height: 100%;
+        bottom: 0;
+        left: 0;
+      }
+    }
+
+    &.paper-corner-br {
+      bottom: 8vpx;
+      right: 8vpx;
+      &::before {
+        width: 100%;
+        height: 2vpx;
+        bottom: 0;
+        right: 0;
+      }
+      &::after {
+        width: 2vpx;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+      }
+    }
+  }
+
   .scroll-content-wrap {
     position: relative;
-    // 添加一个装饰性边框（内嵌）
     &::before {
       content: "";
       position: absolute;
@@ -297,11 +599,11 @@ defineExpose({ show });
 
   .scroll-title {
     font-family: "Cinzel", "Georgia", serif;
-    font-size: 22vpx; // 稍微改小一点点，为了信纸排版
+    font-size: 22vpx;
     color: #4e342e;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 32vpx; // 增加间距
+    margin-bottom: 32vpx;
     letter-spacing: 2vpx;
     text-shadow: 0 1vpx 2vpx rgba(255, 255, 255, 0.5);
 
@@ -310,41 +612,48 @@ defineExpose({ show });
     justify-content: center;
     &::before,
     &::after {
-      content: "~"; // 用波浪号代替星星
-      color: #8d6e63;
-      font-size: 16vpx;
+      content: "✦";
+      color: #a0795a;
+      font-size: 12vpx;
       margin: 0 12vpx;
-      opacity: 0.6;
-      font-weight: normal;
+      opacity: 0.7;
+      animation: star-twinkle 2s ease-in-out infinite alternate;
+    }
+    &::after {
+      animation-delay: 1s;
+    }
+  }
+
+  @keyframes star-twinkle {
+    from {
+      opacity: 0.4;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1.1);
     }
   }
 
   .scroll-text {
     font-family: "Crimson Text", "Georgia", serif;
     font-size: 17vpx;
-    line-height: 2; // 行高加大，可以在线之间写字的感觉
+    line-height: 2;
     color: #3e2723;
     text-align: justify;
     letter-spacing: 0.5vpx;
 
-    // 模拟信纸横线 (可选，这里还是保持干净吧，太多横线影响阅读)
-    // background-image: repeating-linear-gradient(transparent, transparent 31vpx, rgba(0,0,0,0.05) 32vpx);
-    // background-attachment: local;
-
-    // 解析后的高亮样式：魔法红墨水
     :deep(.scroll-highlight) {
       color: #9a0007;
       font-weight: 700;
       background: transparent;
       padding: 0 2vpx;
-      // 模拟羽毛笔加粗书写的效果
       text-shadow: 0 0 1vpx rgba(154, 0, 7, 0.1);
       border-bottom: 1.5vpx solid rgba(154, 0, 7, 0.3);
     }
 
-    // 链接/路由样式
     :deep(.scroll-link) {
-      color: #0d47a1; // 皇家蓝
+      color: #0d47a1;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
@@ -358,7 +667,6 @@ defineExpose({ show });
       }
     }
 
-    // 图片容器样式
     :deep(.scroll-image-wrap) {
       margin: 16vpx 0;
       width: 100%;
@@ -366,11 +674,10 @@ defineExpose({ show });
       justify-content: center;
 
       .scroll-img {
-        // 让图片看起来像贴在羊皮纸上的老照片
         box-shadow: 2vpx 2vpx 5vpx rgba(0, 0, 0, 0.3);
         border: 4vpx solid #fff;
-        transform: rotate(-1deg); // 稍微歪一点
-        filter: sepia(0.3) contrast(1.1); // 复古滤镜
+        transform: rotate(-1deg);
+        filter: sepia(0.3) contrast(1.1);
         max-width: 90%;
         transition: transform 0.3s ease;
 
@@ -382,81 +689,177 @@ defineExpose({ show });
   }
 }
 
-// 底部火漆印章按钮
-.scroll-footer {
-  margin-top: 50vpx;
-  margin-bottom: 20vpx;
-  display: flex;
-  justify-content: center;
-  position: relative;
-  width: 100%;
-}
+/* 华丽魔法卷轴动画 */
+.magic-scroll-enter-active {
+  animation: overlay-fade-in 0.4s ease-out;
 
-.wax-seal-btn {
-  // 保持之前的火漆印章样式，非常符合信纸
-  position: relative;
-  width: 56vpx;
-  height: 56vpx;
-  background: radial-gradient(circle at 30% 30%, #d32f2f, #b71c1c, #5d0000);
-  border-radius: 50%;
-  box-shadow:
-    0 4vpx 12vpx rgba(0, 0, 0, 0.4),
-    inset 2vpx 2vpx 5vpx rgba(255, 255, 255, 0.2),
-    inset -2vpx -2vpx 5vpx rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -3vpx;
-    background: inherit;
-    border-radius: 43% 57% 41% 59% / 54% 42% 58% 46%;
-    z-index: -1;
-    filter: blur(0.6vpx);
+  .magic-particles {
+    animation: particles-appear 0.6s ease-out;
   }
 
-  // 印章内部图案 (文字)
-  .seal-text {
-    color: rgba(60, 0, 0, 0.6);
-    font-size: 14vpx;
-    font-weight: 900;
-    font-family: serif;
-    letter-spacing: 1vpx;
-    text-shadow: 0 1vpx 1vpx rgba(255, 255, 255, 0.1);
-    border: 2vpx solid rgba(60, 0, 0, 0.3);
-    border-radius: 50%;
-    width: 40vpx;
-    height: 40vpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: rotate(-10deg);
-    box-shadow: inset 0 1vpx 2vpx rgba(0, 0, 0, 0.2);
+  .magic-glow {
+    animation: glow-expand 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-/* 信纸展开动画 */
-.letter-unfold-enter-active,
-.letter-unfold-leave-active {
-  transition: opacity 0.5s ease;
   .scroll-body {
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    animation: scroll-unfold 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .magic-close-btn {
+    animation: close-btn-appear 0.6s ease-out 0.4s both;
+  }
+
+  .scroll-paper {
+    animation: paper-glow 0.8s ease-out;
   }
 }
 
-.letter-unfold-enter-from,
-.letter-unfold-leave-to {
-  opacity: 0;
+.magic-scroll-leave-active {
+  animation: overlay-fade-out 0.5s ease-in;
+
+  .magic-particles {
+    animation: particles-disappear 0.4s ease-in;
+  }
+
+  .magic-glow {
+    animation: glow-shrink 0.5s ease-in;
+  }
+
   .scroll-body {
-    // 3D 翻转展开效果
-    transform: translateY(-20vpx) rotateX(-15deg) scale(0.95);
+    animation: scroll-fold 0.5s cubic-bezier(0.55, 0, 1, 0.45);
+  }
+
+  .magic-close-btn {
+    animation: close-btn-disappear 0.3s ease-in;
+  }
+}
+
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12vpx);
+  }
+}
+
+@keyframes overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes particles-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes particles-disappear {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes glow-expand {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  to {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes glow-shrink {
+  from {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+}
+
+@keyframes scroll-unfold {
+  0% {
+    opacity: 0;
+    transform: translateY(-40vpx) rotateX(-30deg) scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(10vpx) rotateX(5deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+}
+
+@keyframes scroll-fold {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30vpx) rotateX(20deg) scale(0.8);
+  }
+}
+
+@keyframes close-btn-appear {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes close-btn-disappear {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0) rotate(180deg);
+  }
+}
+
+@keyframes paper-glow {
+  0% {
+    box-shadow:
+      0 10vpx 30vpx rgba(0, 0, 0, 0.5),
+      0 1vpx 3vpx rgba(0, 0, 0, 0.2),
+      0 0 0 rgba(218, 165, 32, 0);
+  }
+  50% {
+    box-shadow:
+      0 10vpx 30vpx rgba(0, 0, 0, 0.5),
+      0 1vpx 3vpx rgba(0, 0, 0, 0.2),
+      0 0 100vpx rgba(218, 165, 32, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 10vpx 30vpx rgba(0, 0, 0, 0.5),
+      0 1vpx 3vpx rgba(0, 0, 0, 0.2),
+      0 0 60vpx rgba(218, 165, 32, 0.15);
   }
 }
 </style>

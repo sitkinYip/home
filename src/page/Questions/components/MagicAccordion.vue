@@ -1,10 +1,20 @@
 <template>
-  <div class="magic-accordion" :class="{ 'is-collapsed': !modelValue, 'is-disabled': disabled }">
+  <div
+    class="magic-accordion"
+    :class="{
+      'is-collapsed': !modelValue,
+      'is-disabled': disabled,
+      'is-animating': isAnimating,
+    }"
+  >
+    <!-- 魔法光晕背景 -->
+    <div class="magic-glow" :class="{ active: !modelValue }"></div>
+
     <!-- 头部区域 (可点击) -->
     <div class="accordion-header" @click="handleToggle">
-      <transition name="fade" mode="out-in">
+      <transition name="header-switch" mode="out-in">
         <!-- 展开状态：显示原来的 Header Slot -->
-        <div class="header-content expanded" v-if="modelValue">
+        <div class="header-content expanded" v-if="modelValue" key="expanded">
           <slot name="header"></slot>
           <!-- 展开时的收起图标 (仅在非禁用时显示) -->
           <div class="toggle-icon-wrap expanded-icon" v-if="!disabled">
@@ -13,31 +23,40 @@
         </div>
 
         <!-- 收起状态：显示华丽的文案 -->
-        <div class="header-content collapsed" v-else>
+        <div class="header-content collapsed" v-else key="collapsed">
           <div class="magic-success-banner">
-            <span class="banner-ornament left"></span>
-            <span class="banner-text">✨ 谜题已解 · 点击回顾 ✨</span>
-            <span class="banner-ornament right"></span>
+            <!-- 魔法粒子 -->
+            <div class="magic-particles">
+              <span v-for="i in 6" :key="i" class="particle" :style="{ '--i': i }"></span>
+            </div>
+            <span class="banner-ornament left">
+              <span class="ornament-glow"></span>
+            </span>
+            <span class="banner-text">
+              <span class="text-shimmer">✨ 谜题已解 · 点击回顾 ✨</span>
+            </span>
+            <span class="banner-ornament right">
+              <span class="ornament-glow"></span>
+            </span>
           </div>
         </div>
       </transition>
     </div>
 
     <!-- 内容区域 (折叠动画) -->
-    <div
-      class="accordion-body"
-      ref="bodyRef"
-      :style="{ maxHeight: modelValue ? scrollHeight + 'px' : '0' }"
-    >
+    <div class="accordion-body" ref="bodyRef" :style="bodyStyle">
+      <!-- 内容容器 - 保持固定宽度避免换行 -->
       <div class="body-inner" ref="innerRef">
         <slot></slot>
       </div>
+      <!-- 展开/收起时的魔法边缘光效 -->
+      <div class="edge-glow" :class="{ active: isAnimating }"></div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed } from "vue";
 import { ArrowDown } from "@element-plus/icons-vue";
 
 interface Props {
@@ -49,18 +68,44 @@ const props = defineProps<Props>();
 const emit = defineEmits(["update:modelValue"]);
 
 const innerRef = ref<HTMLElement | null>(null);
+const bodyRef = ref<HTMLElement | null>(null);
 const scrollHeight = ref(1000); // 初始给个足够大的值，之后动态获取
+const isAnimating = ref(false);
+
+// 计算 body 样式，使用 opacity 配合 max-height 实现更平滑的过渡
+const bodyStyle = computed(() => {
+  if (props.modelValue) {
+    return {
+      maxHeight: scrollHeight.value + "px",
+      opacity: "1",
+    };
+  }
+  return {
+    maxHeight: "0px",
+    opacity: "0",
+  };
+});
 
 const updateHeight = () => {
   if (innerRef.value) {
-    scrollHeight.value = innerRef.value.scrollHeight;
+    // 添加一些余量避免边界情况
+    scrollHeight.value = innerRef.value.scrollHeight + 10;
   }
 };
 
+// 监听展开状态变化，触发动画标记
 watch(
   () => props.modelValue,
-  (val) => {
+  (val, oldVal) => {
+    if (val !== oldVal) {
+      isAnimating.value = true;
+      // 动画持续时间后移除标记
+      setTimeout(() => {
+        isAnimating.value = false;
+      }, 600);
+    }
     if (val) {
+      // 展开时立即更新高度
       updateHeight();
     }
   },
@@ -70,11 +115,21 @@ let resizeObserver: ResizeObserver | null = null;
 onMounted(() => {
   if (innerRef.value) {
     resizeObserver = new ResizeObserver(() => {
-      updateHeight();
+      // 只在展开状态下更新高度
+      if (props.modelValue) {
+        updateHeight();
+      }
     });
     resizeObserver.observe(innerRef.value);
   }
   updateHeight();
+});
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
 });
 
 const handleToggle = () => {
@@ -85,10 +140,46 @@ const handleToggle = () => {
 
 <style lang="scss" scoped>
 $magic-gold: #ffd700;
+$magic-purple: #8a2be2;
+$magic-cyan: #00d4ff;
 
 .magic-accordion {
   width: 100%;
+  position: relative;
   transition: all 0.3s ease;
+}
+
+// 魔法光晕背景
+.magic-glow {
+  position: absolute;
+  top: -20vpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 60vpx;
+  background: radial-gradient(ellipse at center, rgba($magic-gold, 0) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+  z-index: 0;
+
+  &.active {
+    opacity: 1;
+    background: radial-gradient(ellipse at center, rgba($magic-gold, 0.2) 0%, transparent 70%);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.1);
+  }
 }
 
 .magic-accordion.is-disabled {
@@ -99,13 +190,14 @@ $magic-gold: #ffd700;
 
 .accordion-header {
   cursor: pointer;
-  padding: 0; // Padding handled by internal elements
+  padding: 0;
   user-select: none;
   position: relative;
-  min-height: 48vpx; // Ensure consistent height
+  min-height: 48vpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 .header-content {
@@ -122,12 +214,30 @@ $magic-gold: #ffd700;
       top: 50%;
       transform: translateY(-50%) rotate(180deg);
       opacity: 0.6;
-      transition: opacity 0.3s;
+      transition: all 0.3s ease;
 
       .arrow-icon {
         color: rgba($magic-gold, 0.8);
+        transition: transform 0.3s ease;
       }
     }
+
+    &:hover .expanded-icon {
+      opacity: 1;
+      .arrow-icon {
+        animation: arrowBounce 0.6s ease infinite;
+      }
+    }
+  }
+}
+
+@keyframes arrowBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3vpx);
   }
 }
 
@@ -138,63 +248,209 @@ $magic-gold: #ffd700;
   gap: 12vpx;
   width: 100%;
   padding: 16vpx 0;
-  background: radial-gradient(circle at center, rgba($magic-gold, 0.15) 0%, transparent 80%);
-  border-top: 1vpx solid rgba($magic-gold, 0.1);
-  border-bottom: 1vpx solid rgba($magic-gold, 0.1);
-  animation: bannerFadeIn 0.5s ease-out;
+  position: relative;
+  background: radial-gradient(circle at center, rgba($magic-gold, 0.12) 0%, transparent 70%);
+  border-top: 1vpx solid rgba($magic-gold, 0.15);
+  border-bottom: 1vpx solid rgba($magic-gold, 0.15);
+
+  // 魔法粒子容器
+  .magic-particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    .particle {
+      position: absolute;
+      width: 4vpx;
+      height: 4vpx;
+      background: $magic-gold;
+      border-radius: 50%;
+      opacity: 0;
+      animation: particleFloat 3s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.5s);
+
+      @for $i from 1 through 6 {
+        &:nth-child(#{$i}) {
+          left: calc(10% + #{$i * 14%});
+          top: 50%;
+        }
+      }
+    }
+  }
 
   .banner-text {
     font-size: 14vpx;
     color: $magic-gold;
     font-weight: bold;
     letter-spacing: 2vpx;
-    text-shadow: 0 0 8vpx rgba($magic-gold, 0.6);
+    position: relative;
+    z-index: 1;
+
+    .text-shimmer {
+      background: linear-gradient(
+        90deg,
+        $magic-gold 0%,
+        #fff8dc 25%,
+        $magic-gold 50%,
+        #fff8dc 75%,
+        $magic-gold 100%
+      );
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s linear infinite;
+      text-shadow: none;
+    }
   }
 
   .banner-ornament {
-    width: 20vpx;
-    height: 1vpx;
+    width: 30vpx;
+    height: 2vpx;
+    position: relative;
     background: linear-gradient(90deg, transparent, $magic-gold, transparent);
 
+    .ornament-glow {
+      position: absolute;
+      inset: -2vpx;
+      background: linear-gradient(90deg, transparent, rgba($magic-gold, 0.6), transparent);
+      filter: blur(3vpx);
+      animation: ornamentPulse 2s ease-in-out infinite;
+    }
+
     &.left {
-      transform: rotate(180deg);
+      background: linear-gradient(90deg, transparent, $magic-gold);
+    }
+
+    &.right {
+      background: linear-gradient(90deg, $magic-gold, transparent);
     }
   }
 }
 
-@keyframes bannerFadeIn {
-  from {
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes particleFloat {
+  0%,
+  100% {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(0) scale(0);
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  10% {
+    opacity: 0.8;
+    transform: translateY(0) scale(1);
+  }
+  90% {
+    opacity: 0.8;
+    transform: translateY(-20vpx) scale(0.5);
   }
 }
 
-// Fade transition logic
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+@keyframes ornamentPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
-.fade-enter-from,
-.fade-leave-to {
+// Header 切换动画 - 使用更精细的控制避免换行
+.header-switch-enter-active,
+.header-switch-leave-active {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  width: 100%;
+  left: 0;
+}
+
+.header-switch-enter-from {
   opacity: 0;
-  transform: translateY(2vpx);
+  transform: translateY(8vpx) scale(0.98);
 }
 
+.header-switch-leave-to {
+  opacity: 0;
+  transform: translateY(-8vpx) scale(0.98);
+}
+
+// 内容区域样式
 .accordion-body {
   overflow: hidden;
-  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: max-height;
+  // 使用更平滑的过渡曲线
+  transition:
+    max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: max-height, opacity;
+  position: relative;
 }
 
 .body-inner {
-  // 确保 padding 不会影响高度计算
-  overflow: hidden;
+  // 关键：使用 box-sizing 确保内容宽度稳定
+  box-sizing: border-box;
+  // 防止动画时内容重排
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+// 边缘光效
+.edge-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2vpx;
+  background: linear-gradient(90deg, transparent, rgba($magic-gold, 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+
+  &.active {
+    opacity: 1;
+    animation: edgeGlowSweep 0.6s ease-out;
+  }
+}
+
+@keyframes edgeGlowSweep {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+// 收起状态的特殊样式
+.magic-accordion.is-collapsed {
+  .accordion-header {
+    &:hover {
+      .magic-success-banner {
+        background: radial-gradient(circle at center, rgba($magic-gold, 0.18) 0%, transparent 70%);
+      }
+    }
+  }
+}
+
+// 动画进行中的样式
+.magic-accordion.is-animating {
+  .body-inner {
+    // 动画期间锁定布局
+    pointer-events: none;
+  }
 }
 </style>
