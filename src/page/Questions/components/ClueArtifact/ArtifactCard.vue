@@ -1,4 +1,5 @@
-<!-- components/ClueArtifact.vue -->
+<!-- components/ClueArtifact/ArtifactCard.vue -->
+<!-- 卡片式展示组件：图标 + 标签 + 两行内容预览 + 箭头 -->
 <template>
   <div
     class="magic-artifact"
@@ -34,8 +35,19 @@
         >
           {{ typeLabel }}
         </div>
-        <!-- 渲染内容：支持 [[文本]] 高亮 -->
-        <div class="artifact-content" v-html="parsedContent"></div>
+        <!-- 渲染内容：支持富文本解析 -->
+        <div class="artifact-content">
+          <template v-for="(segment, index) in previewContent" :key="index">
+            <span v-if="segment.type === 'text'">{{ segment.content }}</span>
+            <span v-else-if="segment.type === 'highlight'" class="magic-highlight">
+              {{ segment.content }}
+            </span>
+            <span v-else-if="segment.type === 'link'" class="magic-link">
+              {{ segment.content }}
+            </span>
+            <br v-else-if="segment.type === 'br'" />
+          </template>
+        </div>
       </div>
 
       <!-- 保留箭头判断逻辑 -->
@@ -60,6 +72,8 @@ import {
   Promotion,
 } from "@element-plus/icons-vue";
 import gsap from "gsap";
+import { parseContent } from "../../composables/useContentParser";
+import { toVpx } from "@/utils/toVpx";
 
 const props = defineProps<{
   type: "url" | "img" | "video" | "text" | "letter" | "topic";
@@ -74,11 +88,13 @@ const emit = defineEmits(["action"]);
 const router = useRouter();
 const route = useRoute();
 
-const parsedContent = computed(() => {
-  if (!props.content) return "";
-  return props.content
-    .replace(/\[\[(.*?)\]\]/g, '<span class="magic-highlight">$1</span>')
-    .replace(/\n/g, "<br>");
+// 预览模式解析：图片显示为占位提示
+const previewContent = computed(() => {
+  if (!props.content) return [];
+  return parseContent(props.content, {
+    imagePlaceholder: true,
+    imagePlaceholderText: "📜 点击查看隐藏图像",
+  });
 });
 
 const isLongContent = computed(() => {
@@ -93,7 +109,7 @@ const typeLabel = computed(() => {
     img: "神谕影像",
     video: "时空回溯",
     text: "古老密卷",
-    letter: "星海情笺", // <-- 这里改成了更温柔的名字
+    letter: "星海情笺",
     topic: "时空跃迁",
   };
   return props.title || map[props.type] || "未知遗物";
@@ -123,8 +139,8 @@ const handleClick = (e: MouseEvent) => {
 
 <style lang="scss" scoped>
 $magic-gold: #ffd700;
-$magic-rose: #ff9a9e; // 更粉嫩的玫瑰色
-$magic-lavender: #fad0c4; // 暖色调搭配
+$magic-rose: #ff9a9e;
+$magic-lavender: #fad0c4;
 $magic-cyan: #00f2ff;
 
 .magic-artifact {
@@ -164,7 +180,6 @@ $magic-cyan: #00f2ff;
       color: #fff;
       border-radius: 50%;
       box-shadow: 0 0 15vpx rgba($magic-rose, 0.5);
-      // 心跳动画
       .heartbeat-icon {
         animation: heartbeat 2s infinite;
       }
@@ -190,6 +205,7 @@ $magic-cyan: #00f2ff;
   .artifact-info {
     flex: 1;
     overflow: hidden;
+
     .letter-label {
       color: #ffb1b1;
       font-weight: bold;
@@ -200,6 +216,12 @@ $magic-cyan: #00f2ff;
       font-weight: bold;
     }
 
+    .artifact-label {
+      font-size: 12vpx;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 4vpx;
+    }
+
     .artifact-content {
       font-size: 15vpx;
       color: #eeeeee;
@@ -208,10 +230,17 @@ $magic-cyan: #00f2ff;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      :deep(.magic-highlight) {
+
+      .magic-highlight {
         color: $magic-gold;
         font-weight: bold;
         text-shadow: 0 0 8vpx rgba(255, 215, 0, 0.8);
+      }
+
+      .magic-link {
+        color: #7dd3fc;
+        text-decoration: underline;
+        text-decoration-style: dashed;
       }
     }
   }

@@ -77,14 +77,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { showImagePreview } from "vant";
+import { ref, onMounted } from "vue";
+import { useContentParser } from "../composables/useContentParser";
 
-const router = useRouter();
 const visible = ref(false);
 const rawText = ref("");
 const title = ref("");
+
+// 使用公共解析 Hook
+const { parsedContent, handleLinkClick: onLinkClick, handleImageClick } = useContentParser(rawText);
+
+// 包装链接点击，跳转后关闭卷轴
+const handleLinkClick = (url: string) => {
+  onLinkClick(url);
+  if (!url.startsWith("http")) {
+    handleClose();
+  }
+};
 
 // 字体是否已加载的标记，避免重复加载
 let fontsLoaded = false;
@@ -145,66 +154,6 @@ onMounted(() => {
   }
 });
 
-// 增加定义内容段落的接口
-interface ContentSegment {
-  type: "text" | "highlight" | "link" | "image" | "br";
-  content?: string;
-  url?: string;
-}
-
-// 核心解析逻辑
-const parsedContent = computed<ContentSegment[]>(() => {
-  if (!rawText.value) return [];
-
-  const segments: ContentSegment[] = [];
-  // 统一处理换行符，便于正则分割
-  const text = rawText.value.replace(/\r\n/g, "\n");
-
-  // 正则说明：
-  // 1. [[...]] 高亮
-  // 2. ((...||...)) 链接/路由 -> group 2 (text), group 3 (url)
-  // 3. {{...}} 图片 -> group 4 (url)
-  // 4. \n 换行 -> group 5
-  // 注意：split 会保留捕获组
-  const regex = /\[\[(.*?)\]\]|\(\((.*?)\|\|(.*?)\)\)|\{\{(.*?)\}\}|(\n)/g;
-
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(text)) !== null) {
-    // 添加匹配前的普通文本
-    if (match.index > lastIndex) {
-      segments.push({
-        type: "text",
-        content: text.slice(lastIndex, match.index),
-      });
-    }
-
-    if (match[1]) {
-      // [[highlight]]
-      segments.push({ type: "highlight", content: match[1] });
-    } else if (match[2] && match[3]) {
-      // ((text||url))
-      segments.push({ type: "link", content: match[2], url: match[3] });
-    } else if (match[4]) {
-      // {{imgUrl}}
-      segments.push({ type: "image", url: match[4] });
-    } else if (match[5]) {
-      // \n
-      segments.push({ type: "br" });
-    }
-
-    lastIndex = regex.lastIndex;
-  }
-
-  // 添加剩余的文本
-  if (lastIndex < text.length) {
-    segments.push({ type: "text", content: text.slice(lastIndex) });
-  }
-
-  return segments;
-});
-
 const show = (data: { title: string; content: string }) => {
   // 展示时才加载字体，不阻塞首屏
   loadFonts();
@@ -215,24 +164,6 @@ const show = (data: { title: string; content: string }) => {
 
 const handleClose = () => {
   visible.value = false;
-};
-
-const handleLinkClick = (url: string) => {
-  if (!url) return;
-  if (url.startsWith("http")) {
-    window.open(url, "_blank");
-  } else {
-    router.push(url);
-    handleClose(); // 跳转后关闭卷轴
-  }
-};
-
-const handleImageClick = (url: string) => {
-  if (!url) return;
-  showImagePreview({
-    images: [url],
-    closeable: true,
-  });
 };
 
 defineExpose({ show });

@@ -38,6 +38,9 @@
         <ClueArtifact
           :type="item.type"
           :content="item.content"
+          :url="item.url"
+          :imgList="item.imgList"
+          :isFullscreen="isFullscreen"
           @action="$emit('action', item)"
           :path="item.path"
           :query="item.query"
@@ -60,7 +63,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import ClueArtifact from "./ClueArtifact.vue";
+import ClueArtifact from "./ClueArtifact/index.vue";
 import { ThreadItemList } from "@/types/qa";
 
 defineProps<{
