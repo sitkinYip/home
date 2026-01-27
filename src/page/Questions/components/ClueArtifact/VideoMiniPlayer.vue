@@ -58,11 +58,14 @@ const props = defineProps<{
   url: string;
 }>();
 
+const emit = defineEmits(["expand", "collapse"]);
+
 const isPlayerActive = ref(false);
 const videoRef = ref<HTMLVideoElement | null>(null);
 
 const togglePlayer = async () => {
   isPlayerActive.value = true;
+  emit("expand");
   await nextTick();
   videoRef.value?.play();
 };
@@ -73,6 +76,7 @@ const closePlayer = () => {
     videoRef.value.currentTime = 0;
   }
   isPlayerActive.value = false;
+  emit("collapse");
 };
 
 const handleEnded = () => {
@@ -188,6 +192,9 @@ const handleEnded = () => {
       linear-gradient(#fff 0 0) padding-box,
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) padding-box,
+      linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }

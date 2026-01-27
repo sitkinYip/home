@@ -73,6 +73,8 @@ const props = defineProps<{
   title?: string;
 }>();
 
+const emit = defineEmits(["expand", "collapse"]);
+
 const isExpanded = ref(false);
 
 const contentRef = computed(() => props.content);
@@ -80,6 +82,7 @@ const { parsedContent, handleLinkClick, handleImageClick } = useContentParser(co
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
+  emit(isExpanded.value ? "expand" : "collapse");
 };
 </script>
 
