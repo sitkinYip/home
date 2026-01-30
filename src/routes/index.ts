@@ -2,7 +2,6 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 
 const Home = () => import("@/page/Home.vue");
 const Letter = () => import("@/page/Letter.vue");
-const Birthday = () => import("@/page/Birthday.vue");
 
 const Questions = () => import("@/page/Questions/index.vue");
 const Bless = () => import("@/page/Bless/index.vue");
@@ -12,7 +11,6 @@ const routes: RouteRecordRaw[] = [
   { path: "/", component: Home },
   { path: "/letter", component: Letter, meta: { title: "星海情笺" } },
   { path: "/questions", component: Questions, meta: { title: "寻宝游戏" } },
-  { path: "/birthday", component: Birthday },
   { path: "/bless", component: Bless, meta: { title: "专属星空" } },
   { path: "/jsonGenerator", component: JsonGenerator, meta: { title: "JSON生成器" } },
   {

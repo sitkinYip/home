@@ -4,6 +4,7 @@ import { useQuestionsStore } from "@/store/questions";
 import { checkAnswer } from "@/utils/qa/questions";
 import { showNotify } from "vant";
 import confetti from "canvas-confetti";
+import { useFeedback } from "./useFeedback";
 
 /**
  * 答案校验 Hook
@@ -19,6 +20,9 @@ export function useAnswerCheck(
   const userInput = ref("");
   const isBinGo = ref(false);
   const isQuestionExpanded = ref(true);
+
+  // 反馈效果
+  const { triggerSuccessFeedback } = useFeedback();
 
   // 缓存 key
   const cacheKey = computed(() => questionsStore.getCacheKey(currentStep, userId));
@@ -72,13 +76,14 @@ export function useAnswerCheck(
   ) => {
     if (!questionsStore.qaInfo) return;
 
-    // 1. 撒花特效
+    // 1. 撒花特效 + 成功音效
     confetti({
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
       colors: ["#ffd700", "#ffffff", "#8a2be2"],
     });
+    triggerSuccessFeedback();
 
     // 2. 保存通关记录
     localStorage.setItem(

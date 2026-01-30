@@ -1,6 +1,7 @@
 import { ref, computed } from "vue";
 import { showNotify, showToast } from "vant";
 import { useQuestionsStore } from "@/store/questions";
+import { useFeedback } from "./useFeedback";
 
 // 定义惩罚配置类型
 type PenaltyConfig = number[];
@@ -22,6 +23,9 @@ export function usePenalty(
   const penaltyEndTime = ref(0);
   // 错误视觉状态（用于控制震动/发光）
   const isError = ref(false);
+
+  // 反馈效果
+  const { triggerErrorFeedback, triggerFreezeFeedback } = useFeedback();
 
   // 默认惩罚配置: [第一次错误等待时间(ms), 第二次错误等待时间(ms), ...]
   // -1 代表永久锁定
@@ -85,6 +89,8 @@ export function usePenalty(
    */
   const triggerErrorEffect = () => {
     isError.value = false; // 先重置，确保能重复触发动画
+    // 触发振动反馈
+    triggerErrorFeedback();
     setTimeout(() => {
       isError.value = true;
       setTimeout(() => {
@@ -187,6 +193,8 @@ export function usePenalty(
    */
   const checkPenaltyTime = (): boolean => {
     if (isPenalized()) {
+      // 触发冻结振动反馈
+      triggerFreezeFeedback();
       const msg =
         penaltyEndTime.value === -1 ? "灵魂已被永久封印，无法施法..." : "灵魂虚弱，暂时无法施法...";
       showNotify({
