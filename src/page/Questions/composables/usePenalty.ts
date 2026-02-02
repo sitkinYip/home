@@ -78,6 +78,8 @@ export function usePenalty(
    * 清除惩罚（后门/彩蛋用）
    */
   const clearPenalty = () => {
+    const data = localStorage.getItem(penaltyKey.value);
+    if (!data && wrongCount.value < 1 && penaltyEndTime.value < 1) return;
     localStorage.removeItem(penaltyKey.value);
     wrongCount.value = 0;
     penaltyEndTime.value = 0;
