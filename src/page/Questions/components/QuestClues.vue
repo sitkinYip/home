@@ -1,5 +1,5 @@
 <template>
-  <div class="magic-panel clue-card" :class="{ 'fullscreen-mode': isFullscreen }">
+  <div ref="clueCardRef" class="magic-panel clue-card" :class="{ 'fullscreen-mode': isFullscreen }">
     <!-- 全屏遮罩层（仅在全屏时渲染） -->
     <transition name="fullscreen-backdrop">
       <div v-if="isFullscreen" class="fullscreen-backdrop" @click="exitFullscreen"></div>
@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import ClueArtifact from "./ClueArtifact/index.vue";
 import { ThreadItemList } from "@/types/qa";
 
@@ -74,8 +74,58 @@ defineProps<{
 defineEmits(["action", "preview"]);
 
 const isFullscreen = ref(false);
+const clueCardRef = ref<HTMLElement | null>(null);
+let visibilityObserver: IntersectionObserver | null = null;
+let visibilityDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-// 控制滚动条显示
+/**
+ * 全局注册表：跟踪所有处于全屏模式的 QuestClues 实例的可视状态
+ * key = 组件实例 uid，value = 当前是否可见
+ * 多个 slide 各自有独立的 QuestClues 实例，需要全局协调徽章显隐
+ */
+const FULLSCREEN_VISIBLE_REGISTRY: Map<number, boolean> =
+  (window as any).__clueFullscreenRegistry ||
+  ((window as any).__clueFullscreenRegistry = new Map<number, boolean>());
+
+const instanceId = Math.random();
+
+/**
+ * 设置所有关卡序号徽章的显示/隐藏
+ */
+const setSlideBadgeVisibility = (hidden: boolean) => {
+  document.querySelectorAll<HTMLElement>(".slide-badge").forEach((badge) => {
+    badge.style.display = hidden ? "none" : "";
+  });
+};
+
+/**
+ * 根据全局注册表判断是否需要隐藏徽章：
+ * 只要有任意一个全屏实例当前可见，就隐藏徽章
+ */
+const syncBadgeVisibility = () => {
+  let shouldHide = false;
+  for (const visible of FULLSCREEN_VISIBLE_REGISTRY.values()) {
+    if (visible) {
+      shouldHide = true;
+      break;
+    }
+  }
+  setSlideBadgeVisibility(shouldHide);
+};
+
+/**
+ * 更新当前实例在全局注册表中的状态，并同步徽章显隐
+ */
+const updateRegistryAndSync = (isVisible: boolean) => {
+  if (isFullscreen.value) {
+    FULLSCREEN_VISIBLE_REGISTRY.set(instanceId, isVisible);
+  } else {
+    FULLSCREEN_VISIBLE_REGISTRY.delete(instanceId);
+  }
+  syncBadgeVisibility();
+};
+
+// 控制滚动条显示 & 隐藏可能遮挡全屏关闭按钮的外部元素
 const setScrollLock = (lock: boolean) => {
   document.body.style.overflow = lock ? "hidden" : "";
   // 同时处理 .adventure-container 滚动容器
@@ -83,6 +133,8 @@ const setScrollLock = (lock: boolean) => {
   if (container) {
     container.style.overflow = lock ? "hidden" : "";
   }
+  // 通过全局注册表同步徽章显隐
+  updateRegistryAndSync(lock);
 };
 
 const toggleFullscreen = () => {
@@ -94,6 +146,60 @@ const exitFullscreen = () => {
   isFullscreen.value = false;
   setScrollLock(false);
 };
+
+/**
+ * 处理组件可视状态变化（Swiper 滑动导致的显隐）
+ * 带防抖，避免频繁触发
+ */
+const handleVisibilityChange = (isVisible: boolean) => {
+  if (visibilityDebounceTimer) {
+    clearTimeout(visibilityDebounceTimer);
+  }
+  visibilityDebounceTimer = setTimeout(() => {
+    if (!isFullscreen.value) return;
+    updateRegistryAndSync(isVisible);
+  }, 100);
+};
+
+/**
+ * 初始化 IntersectionObserver 监听组件自身可视状态
+ */
+const initVisibilityObserver = () => {
+  if (!clueCardRef.value) return;
+
+  visibilityObserver = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (entry) {
+        handleVisibilityChange(entry.isIntersecting);
+      }
+    },
+    { threshold: 0.1 },
+  );
+  visibilityObserver.observe(clueCardRef.value);
+};
+
+const cleanupVisibilityObserver = () => {
+  if (visibilityDebounceTimer) {
+    clearTimeout(visibilityDebounceTimer);
+    visibilityDebounceTimer = null;
+  }
+  if (visibilityObserver) {
+    visibilityObserver.disconnect();
+    visibilityObserver = null;
+  }
+  // 组件卸载时从注册表移除并同步
+  FULLSCREEN_VISIBLE_REGISTRY.delete(instanceId);
+  syncBadgeVisibility();
+};
+
+onMounted(() => {
+  initVisibilityObserver();
+});
+
+onBeforeUnmount(() => {
+  cleanupVisibilityObserver();
+});
 
 /**
  * 生成粒子随机样式

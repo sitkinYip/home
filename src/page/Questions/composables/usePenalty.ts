@@ -1,22 +1,24 @@
-import { ref, computed } from "vue";
+import { ref, computed, Ref } from "vue";
 import { showNotify, showToast } from "vant";
 import { useQuestionsStore } from "@/store/questions";
 import { useFeedback } from "./useFeedback";
-
-// 定义惩罚配置类型
-type PenaltyConfig = number[];
+import type { LevelRecord } from "@/types/qa";
 
 /**
  * 惩罚机制 Hook
  * @param currentStep 当前关卡步骤
  * @param userId 用户ID
  * @param questionsStore store实例
+ * @param qaInfoOverride 可选，覆盖 store 中的 qaInfo（用于 compact/多题模式）
  */
 export function usePenalty(
   currentStep: number,
   userId: string,
   questionsStore: ReturnType<typeof useQuestionsStore>,
+  qaInfoOverride?: Ref<LevelRecord | null>,
 ) {
+  /** 获取当前生效的关卡数据 */
+  const resolvedQaInfo = computed(() => qaInfoOverride?.value ?? questionsStore.qaInfo);
   // 错误次数
   const wrongCount = ref(0);
   // 惩罚结束时间戳
@@ -33,12 +35,12 @@ export function usePenalty(
 
   // 计算当前生效的惩罚配置
   const currentPenaltyConfig = computed(() => {
-    return questionsStore.qaInfo?.penaltyConfig || defaultPenaltyConfig;
+    return resolvedQaInfo.value?.penaltyConfig || defaultPenaltyConfig;
   });
 
   // 惩罚状态存储的Key
   const penaltyKey = computed(
-    () => `qa_penalty_${currentStep}_${userId}_${questionsStore.qaInfo?.updated || ""}`,
+    () => `qa_penalty_${currentStep}_${userId}_${resolvedQaInfo.value?.updated || ""}`,
   );
 
   /**

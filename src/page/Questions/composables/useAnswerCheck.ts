@@ -1,5 +1,5 @@
-import { ref, computed } from "vue";
-import { ThreadItem } from "@/types/qa";
+import { ref, computed, Ref } from "vue";
+import { LevelRecord, ThreadItem } from "@/types/qa";
 import { useQuestionsStore } from "@/store/questions";
 import { checkAnswer } from "@/utils/qa/questions";
 import { showNotify } from "vant";
@@ -11,12 +11,16 @@ import { useFeedback } from "./useFeedback";
  * @param currentStep 当前关卡步骤
  * @param userId 用户ID
  * @param questionsStore store实例
+ * @param qaInfoOverride 可选，覆盖 store 中的 qaInfo（用于 compact/多题模式）
  */
 export function useAnswerCheck(
   currentStep: number,
   userId: string,
   questionsStore: ReturnType<typeof useQuestionsStore>,
+  qaInfoOverride?: Ref<LevelRecord | null>,
 ) {
+  /** 获取当前生效的关卡数据 */
+  const resolvedQaInfo = computed(() => qaInfoOverride?.value ?? questionsStore.qaInfo);
   const userInput = ref("");
   const isBinGo = ref(false);
   const isQuestionExpanded = ref(true);
@@ -24,14 +28,18 @@ export function useAnswerCheck(
   // 反馈效果
   const { triggerSuccessFeedback } = useFeedback();
 
-  // 缓存 key
-  const cacheKey = computed(() => questionsStore.getCacheKey(currentStep, userId));
+  // 缓存 key：使用 resolvedQaInfo 的 updated 字段，避免多题模式下共享 store 导致 key 错误
+  const cacheKey = computed(() => {
+    const updated = resolvedQaInfo.value?.updated || "";
+    return `qaIndex${currentStep}${userId}${updated}`;
+  });
 
   /**
    * 检查本地是否已有通关记录
    */
   const checkPersistentProgress = () => {
-    const preData = questionsStore.getCachedProgress(currentStep, userId);
+    const key = cacheKey.value;
+    const preData = JSON.parse(localStorage.getItem(key) || "{}");
     if (preData?.type === "bingo") {
       isBinGo.value = true;
       userInput.value = preData.input || "";
@@ -45,9 +53,9 @@ export function useAnswerCheck(
    * @returns 是否正确
    */
   const verifyAnswer = (ans: string): boolean => {
-    if (!questionsStore.qaInfo) return false;
+    if (!resolvedQaInfo.value) return false;
 
-    const { answer, answerList } = questionsStore.qaInfo;
+    const { answer, answerList } = resolvedQaInfo.value;
 
     // 1. 检查主答案
     let isCorrect = ans === answer || checkAnswer(ans, answer);
@@ -74,7 +82,7 @@ export function useAnswerCheck(
     openVideo: (url: string) => void,
     videoPlayerRef: any,
   ) => {
-    if (!questionsStore.qaInfo) return;
+    if (!resolvedQaInfo.value) return;
 
     // 1. 撒花特效 + 成功音效
     confetti({
@@ -99,7 +107,7 @@ export function useAnswerCheck(
     isBinGo.value = true;
 
     // 4. 自动播放视频（如果有配置）
-    const autoPlayVideo = questionsStore.qaInfo.thread.find(
+    const autoPlayVideo = resolvedQaInfo.value.thread.find(
       (t: ThreadItem) => t.type === "video" && t.state === "ckickplay",
     );
     if (autoPlayVideo && videoPlayerRef.value) {
@@ -110,7 +118,7 @@ export function useAnswerCheck(
     reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
 
     // 6. 喊话与特效
-    if (questionsStore.qaInfo?.isFinalLevel) {
+    if (resolvedQaInfo.value.isFinalLevel) {
       await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
       isQuestionExpanded.value = false; // 成功后折叠
       victoryAuraRef.value?.startEffect(); // 启动终极特效

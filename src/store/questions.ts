@@ -8,6 +8,8 @@ interface QuestionsState {
   userName: string;
   isLost: boolean;
   hasFirstStep: boolean;
+  /** 多题模式下按 step 索引的关卡数据 */
+  multiLevels: LevelRecord[];
 }
 
 export const useQuestionsStore = defineStore("questions", {
@@ -17,6 +19,7 @@ export const useQuestionsStore = defineStore("questions", {
     userName: "旅行者",
     isLost: false,
     hasFirstStep: false,
+    multiLevels: [],
   }),
   getters: {
     currentUserDisplay: (state) => state.userName,
@@ -75,6 +78,38 @@ export const useQuestionsStore = defineStore("questions", {
     getCachedProgress(currentStep: number, userId: string) {
       const key = this.getCacheKey(currentStep, userId);
       return JSON.parse(localStorage.getItem(key) || "{}");
+    },
+
+    /**
+     * 多题模式初始化：加载所有关卡数据并筛选出指定 steps 的关卡
+     * @param steps 需要展示的关卡步骤数组，如 [1, 2, 3, 4]
+     */
+    async initMultiData(steps: number[]) {
+      try {
+        const levels = await fetchLevels();
+        this.allLevels = levels;
+        this.hasFirstStep = levels.some((l) => l.step === 1);
+
+        // 按 steps 顺序筛选关卡
+        const matched: LevelRecord[] = [];
+        for (const step of steps) {
+          const level = levels.find((l) => l.step === step);
+          if (level) {
+            matched.push(level);
+          }
+        }
+
+        this.multiLevels = matched;
+
+        if (matched.length === 0) {
+          this.isLost = true;
+        } else {
+          this.isLost = false;
+        }
+      } catch (error) {
+        this.isLost = true;
+        console.error("多题模式召唤咒语失败", error);
+      }
     },
   },
 });

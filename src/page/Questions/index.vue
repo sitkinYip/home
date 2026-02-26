@@ -1,75 +1,65 @@
 <template>
-  <div id="Questions">
-    <div class="adventure-container" v-if="questionsStore.qaInfo">
+  <!-- 多题模式 -->
+  <div id="Questions" v-if="isMultiMode">
+    <!-- 数据加载完成且有关卡数据 -->
+    <div v-if="multiLevels.length > 0" class="adventure-container multi-quest-container">
       <!-- 动态背景层 -->
       <div class="magic-bg" :style="mainBgImgStyle"></div>
       <div class="overlay"></div>
 
-      <VideoPlayer ref="videoPlayerRef" />
+      <div class="quest-swiper-wrapper">
+        <!-- 进度指示器 -->
+        <div class="quest-progress-bar">
+          <div class="progress-track">
+            <div
+              class="progress-fill"
+              :style="{ width: `${(completedCount / multiLevels.length) * 100}%` }"
+            ></div>
+          </div>
+          <span class="progress-label">{{ completedCount }} / {{ multiLevels.length }}</span>
+        </div>
 
-      <div class="quest-wrapper">
-        <!-- 英雄状态栏 -->
-        <QuestHeader
-          :qa-info="questionsStore.qaInfo"
-          :current-user-display="questionsStore.currentUserDisplay"
-          :current-step="questionsStore.currentStep"
-          :is-error="isError"
-          :is-bin-go="isBinGo"
-          @avatar-click="handleAvatarClick"
-          @header-click="handleHeaderClick"
-        />
-
-        <!-- 魔法交互面板 -->
-        <main
-          class="magic-panel quest-card"
-          :class="{ 'shake-animation': isError }"
-          ref="questCard"
+        <Swiper
+          ref="swiperRef"
+          :slides-per-view="swiperSlidesPerView"
+          :centered-slides="true"
+          :space-between="swiperSpaceBetween"
+          :grab-cursor="true"
+          :allow-touch-move="true"
+          :allow-slide-next="canSlideNext"
+          @swiper="onSwiperInit"
+          @slide-change="onSlideChange"
+          class="quest-swiper"
         >
-          <MagicAccordion v-model="isQuestionExpanded" :disabled="!isBinGo">
-            <template #header>
-              <div class="q_title_row">
-                <span class="ornament"></span>
-                <span class="title_text">{{ questionsStore.qaInfo?.title || "当前谜题" }}</span>
-                <span class="ornament"></span>
+          <SwiperSlide v-for="(level, index) in multiLevels" :key="level.step" class="quest-slide">
+            <div
+              class="quest-slide-inner"
+              :class="{
+                'is-active': activeSlideIndex === index,
+                'is-completed': completedSteps.has(level.step),
+              }"
+            >
+              <!-- 关卡序号徽章 -->
+              <div class="slide-badge">
+                <span class="badge-step">{{ index + 1 }}</span>
+                <el-icon v-if="completedSteps.has(level.step)" class="badge-check">
+                  <Select />
+                </el-icon>
               </div>
-            </template>
 
-            <!-- 问题内容 -->
-            <QuestContent :list="questionsStore.qaInfo.question" @play-video="openVideo" />
+              <QuestPage
+                :compact="true"
+                :level-data="level"
+                :prop-step="level.step"
+                :prop-user-id="userId"
+                @bin-go="handleBinGo"
+              />
+            </div>
+          </SwiperSlide>
+        </Swiper>
 
-            <!-- 答题输入区 -->
-            <QuestInputRegion
-              :qa-info="questionsStore.qaInfo"
-              v-model="userInput"
-              :is-bin-go="isBinGo"
-              :is-error="isError"
-              :penalty-end-time="penaltyEndTime"
-              :wrong-count="wrongCount"
-              @submit="onConfirmAnswer"
-              @play-video="openVideo"
-            />
-          </MagicAccordion>
-        </main>
-
-        <MagicScroll ref="magicScrollRef" />
-
-        <!-- 线索展示（答对后呈现） -->
-        <transition name="scroll-reveal">
-          <QuestClues
-            v-if="isBinGo"
-            :thread="questionsStore.qaInfo.thread"
-            :title="questionsStore.qaInfo.answerTitle"
-            @action="handleArtifactAction"
-            @preview="previewImage"
-          />
-        </transition>
-
-        <AdventurePortal
-          v-show="!isDebug"
-          :start-time="questionsStore.qaInfo.startTime"
-          :end-time="questionsStore.qaInfo.endTime"
-        />
-        <VictoryAura ref="victoryAuraRef" @close="handleVictoryClose" />
+        <!-- 答对后滑动提示 -->
+        <SwipeHint :show="showSwipeHint" @dismiss="showSwipeHint = false" />
       </div>
 
       <!-- 背景音乐授权提示 -->
@@ -86,223 +76,395 @@
         @toggle="bgm.toggle"
       />
     </div>
-    <!-- 迷失状态展示 -->
+
+    <!-- 迷失状态（关卡找不到或接口失败） -->
     <AdventureLost
       v-else-if="questionsStore.isLost"
       :has-first-step="questionsStore.hasFirstStep"
     />
+
+    <!-- 加载中 -->
     <div v-else class="loading-screen">
       <div class="loader-spell"></div>
       <p>正在吟唱召唤咒语...</p>
     </div>
   </div>
+
+  <!-- 单题模式：直接渲染 QuestPage，保持原有行为 -->
+  <QuestPage v-else />
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, nextTick } from "vue";
-import gsap from "gsap";
-import { useRouter } from "vue-router";
-import { useQuestionsStore } from "@/store/questions";
-import { useBgm } from "./composables/useBgm";
-
-import {
-  getQueryParam,
-  isTimeReached,
-  filterSpecialChars,
-  HeaderClickCounter,
-  clickCounter,
-} from "@/utils/qa/questions";
-
-// Components
-import VideoPlayer from "@/components/VideoPlayer.vue";
-import VictoryAura from "./components/VictoryAura.vue";
-import AdventurePortal from "./components/AdventurePortal.vue";
-import MagicScroll from "./components/MagicScroll.vue";
-import QuestContent from "./components/QuestContent.vue";
-import AdventureLost from "./components/AdventureLost.vue";
-import MagicAccordion from "./components/MagicAccordion.vue";
-
-// New Components
-import QuestHeader from "./components/QuestHeader.vue";
-import QuestInputRegion from "./components/QuestInputRegion.vue";
-import BgmAuthHint from "./components/BgmAuthHint.vue";
-import BgmFloatButton from "./components/BgmFloatButton.vue";
-import QuestClues from "./components/QuestClues.vue";
-
-// Composables
-import { usePenalty } from "./composables/usePenalty";
-import { useAnswerCheck } from "./composables/useAnswerCheck";
-import { useArtifacts } from "./composables/useArtifacts";
+import { ref, computed, onMounted, nextTick } from "vue";
+import { Swiper, SwiperSlide } from "swiper/vue";
+import type { Swiper as SwiperType } from "swiper";
+import "swiper/css";
+import { Select } from "@element-plus/icons-vue";
 import { showNotify } from "vant";
 
+import { useQuestionsStore } from "@/store/questions";
+import { getQueryParam } from "@/utils/qa/questions";
+import { useBgm } from "./composables/useBgm";
+import type { ThreadItem } from "@/types/qa";
+
+import QuestPage from "./QuestPage.vue";
+import AdventureLost from "./components/AdventureLost.vue";
+import BgmAuthHint from "./components/BgmAuthHint.vue";
+import BgmFloatButton from "./components/BgmFloatButton.vue";
+import SwipeHint from "./components/SwipeHint.vue";
+
 const questionsStore = useQuestionsStore();
-const router = useRouter();
-const isDebug = getQueryParam("debug")?.[0] === "1";
 
-// Refs
-const magicScrollRef = ref<any>(null);
-const victoryAuraRef = ref<any>(null);
-const videoPlayerRef = ref<any>(null);
-
-// Route / Query Params
-const qaIndexStr = getQueryParam("qa")?.[0] || "1";
-const currentStep = parseInt(qaIndexStr);
+// 解析 query 参数：qas 优先于 qa
+const qasParam = getQueryParam("qas")?.[0] || "";
 const userId = getQueryParam("user")?.[0] || "";
 
-// Composables Init
-const {
-  wrongCount,
-  penaltyEndTime,
-  isError,
-  loadPenaltyState,
-  clearPenalty,
-  handleWrongHelper,
-  handleWrongWithoutPenalty,
-  checkPenaltyTime,
-} = usePenalty(currentStep, userId, questionsStore);
+// 判断是否为多题模式
+const multiSteps = qasParam
+  ? qasParam
+      .split(",")
+      .map((s) => parseInt(s.trim()))
+      .filter((n) => !isNaN(n))
+  : [];
+const isMultiMode = multiSteps.length > 1;
 
-const {
-  userInput,
-  isBinGo,
-  isQuestionExpanded,
-  cacheKey,
-  checkPersistentProgress,
-  verifyAnswer,
-  handleSuccess: execSuccess,
-} = useAnswerCheck(currentStep, userId, questionsStore);
+// 多题模式数据
+const multiLevels = computed(() => questionsStore.multiLevels);
+const completedSteps = ref<Set<number>>(new Set());
+const activeSlideIndex = ref(0);
 
-const { openVideo, openPage, previewImage, handleArtifactAction } = useArtifacts(
-  videoPlayerRef,
-  magicScrollRef,
-);
+// Swiper 实例
+let swiperInstance: SwiperType | null = null;
 
-// 背景音乐 Composable
-const bgm = useBgm();
+// Swiper 配置
+const swiperSlidesPerView = 1;
+const swiperSpaceBetween = 0;
 
-// 背景图样式计算
+// 完成计数
+const completedCount = computed(() => completedSteps.value.size);
+
+// 滑动提示状态
+const showSwipeHint = ref(false);
+
+// 背景图样式（多题模式下使用第一个关卡的背景图）
 const mainBgImgStyle = computed(() => {
-  const bgImg = questionsStore.qaInfo?.mainBgImg;
+  const firstLevel = multiLevels.value[0];
+  const bgImg = firstLevel?.mainBgImg;
   if (bgImg) {
-    return {
-      backgroundImage: `url(${bgImg})`,
-    };
+    return { backgroundImage: `url(${bgImg})` };
   }
   return {};
 });
 
-// Helper Functions
-const talk = (msg: string, dur: number = 0): Promise<void> => {
-  return new Promise((resolve) => {
-    showNotify({
-      type: "success",
-      message: msg,
-      duration: dur,
-    });
-    setTimeout(resolve, dur + 200);
+// 背景音乐
+const bgm = useBgm();
+
+/**
+ * 响应式计算：当前题目是否允许向后滑动
+ * 通过 computed 驱动模板上的 :allow-slide-next 绑定，确保初始渲染即生效
+ */
+const canSlideNext = computed(() => {
+  const index = activeSlideIndex.value;
+  const currentLevel = multiLevels.value[index];
+  return currentLevel ? completedSteps.value.has(currentLevel.step) : false;
+});
+
+/**
+ * 命令式更新 Swiper 实例的 allowSlideNext（用于实例已存在时的即时同步）
+ */
+const updateSlidePermission = () => {
+  if (!swiperInstance) return;
+  swiperInstance.allowSlideNext = canSlideNext.value;
+};
+
+/**
+ * Swiper 初始化回调
+ */
+const onSwiperInit = (swiper: SwiperType) => {
+  swiperInstance = swiper;
+  updateSlidePermission();
+};
+
+/**
+ * Slide 切换回调
+ */
+const onSlideChange = (swiper: SwiperType) => {
+  activeSlideIndex.value = swiper.activeIndex;
+  // 用户已主动滑动，关闭提示
+  showSwipeHint.value = false;
+  // 切换后重新检查当前题目是否允许继续向后滑动
+  updateSlidePermission();
+};
+
+/**
+ * 处理单题答对事件
+ * @param step 答对的关卡步骤
+ * @param thread 该关卡的线索列表
+ */
+const handleBinGo = (step: number, thread: ThreadItem[]) => {
+  completedSteps.value.add(step);
+
+  // 答对后解锁当前题目的向后滑动限制
+  updateSlidePermission();
+
+  // 检查是否有 NextQuestion 指令
+  const hasNextQuestion = thread.some((item) => item.state === "NextQuestion");
+
+  if (hasNextQuestion && swiperInstance) {
+    const currentIndex = swiperInstance.activeIndex;
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < multiLevels.value.length) {
+      // 延迟跳转，让用户看到答对效果
+      setTimeout(() => {
+        swiperInstance?.slideTo(nextIndex, 600);
+      }, 1500);
+    }
+  }
+
+  // 非全部完成且当前不是最后一题时，显示滑动提示
+  const isLastSlide = swiperInstance && swiperInstance.activeIndex >= multiLevels.value.length - 1;
+
+  nextTick(() => {
+    if (completedSteps.value.size === multiLevels.value.length) {
+      handleAllComplete();
+    } else if (!hasNextQuestion && !isLastSlide) {
+      // 没有自动跳转指令时，延迟显示滑动提示
+      setTimeout(() => {
+        showSwipeHint.value = true;
+      }, 1200);
+    }
   });
 };
 
-const reportAction = (content: string, title: string) => {
-  const nickName = questionsStore.qaInfo?.userName || "旅行者";
-  if (isDebug) return console.log(`报告：${title} -- 来自sitkin.top/${nickName}${content}`);
-  fetch(
-    `https://api.chuckfang.com/4acc3779/${title} -- 来自sitkin.top/${nickName}${content}`,
-  ).catch((e) => console.error("Report failed", e));
-};
-
-const handleAvatarClick = clickCounter(clearPenalty, 10);
-
-const handleHeaderClick = () => {
-  HeaderClickCounter(cacheKey.value);
-};
-
-const handleVictoryClose = () => {
-  console.log("英雄回到了主世界");
-  const { path, query = {}, link } = questionsStore.qaInfo?.FinalLevelConfig || {};
-  if (path) {
-    return router.replace({ path, query });
-  }
-  if (link) {
-    return openPage(link);
-  }
-};
-
-// Main Logic
-const onConfirmAnswer = async () => {
-  if (isBinGo.value || !questionsStore.qaInfo) return;
-  if (isError.value) return;
-  const isMultipleChoice = questionsStore.qaInfo?.type === "MultipleChoice";
-
-  // 检查是否处于惩罚期
-  if (checkPenaltyTime() && isMultipleChoice) return;
-
-  if (!isDebug) {
-    const { startTime, endTime } = questionsStore.qaInfo || {};
-    if (startTime && !isTimeReached(startTime)) {
-      showNotify({
-        type: "danger",
-        position: "bottom",
-        message: "冒险还未开始 请耐心等待~",
-        duration: 2000,
-      });
-      return;
-    }
-    if (endTime && isTimeReached(endTime)) {
-      showNotify({
-        type: "danger",
-        position: "bottom",
-        message: "冒险已结束 请留意下一次探险公告~",
-        duration: 2000,
-      });
-      return;
-    }
-  }
-
-  const ans = userInput.value.trim();
-  if (!ans) {
-    showNotify({ type: "warning", position: "bottom", message: "请输入咒语" });
-    return;
-  }
-
-  const isCorrect = verifyAnswer(ans);
-
-  if (isCorrect) {
-    await execSuccess(talk, victoryAuraRef, reportAction, openVideo, videoPlayerRef);
-  } else {
-    // 选择题使用惩罚机制，填空题不使用惩罚机制
-    console.log("isMultipleChoice", isMultipleChoice);
-    if (isMultipleChoice) {
-      handleWrongHelper(ans, reportAction, filterSpecialChars);
-    } else {
-      handleWrongWithoutPenalty(ans, reportAction, filterSpecialChars);
-    }
-  }
-};
-
-const initData = async () => {
-  await questionsStore.initData(currentStep, userId);
-
-  if (questionsStore.qaInfo) {
-    checkPersistentProgress();
-    loadPenaltyState();
-
-    // 初始化背景音乐
-    if (questionsStore.qaInfo.mainAudio) {
-      bgm.initBgm(questionsStore.qaInfo.mainAudio);
-    }
-
-    nextTick(() => {
-      // 动画入场
-      gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
-      gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
-      gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
+/**
+ * 所有题目完成的回调钩子
+ */
+const handleAllComplete = () => {
+  setTimeout(() => {
+    showNotify({
+      type: "success",
+      message: "🎉 此关卡所有谜题已破解！伟大的冒险者！",
+      duration: 3000,
     });
+  }, 2000);
+};
+
+/**
+ * 从 localStorage 恢复各题的完成状态
+ * cacheKey 格式与 useAnswerCheck 保持一致：`qaIndex${step}${userId}${updated}`
+ */
+const restoreCompletedSteps = () => {
+  for (const level of multiLevels.value) {
+    const key = `qaIndex${level.step}${userId}${level.updated || ""}`;
+    try {
+      const cached = JSON.parse(localStorage.getItem(key) || "{}");
+      if (cached?.type === "bingo") {
+        completedSteps.value.add(level.step);
+      }
+    } catch {
+      // 解析失败忽略
+    }
   }
 };
 
-onMounted(initData);
+/**
+ * 初始化多题数据
+ */
+const initMultiMode = async () => {
+  if (!isMultiMode) return;
+
+  await questionsStore.initMultiData(multiSteps);
+
+  // 恢复已完成的题目状态
+  restoreCompletedSteps();
+
+  // 根据恢复的完成状态更新滑动权限
+  nextTick(() => updateSlidePermission());
+
+  // 初始化背景音乐（使用第一个关卡的音乐）
+  const firstLevel = multiLevels.value[0];
+  if (firstLevel?.mainAudio) {
+    bgm.initBgm(firstLevel.mainAudio);
+  }
+};
+
+onMounted(() => {
+  if (isMultiMode) {
+    initMultiMode();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
+@use "./_variables.scss" as *;
 @use "./style.scss";
+
+.multi-quest-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background: #0a0e14;
+
+  &::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(
+        circle at 20% 30%,
+        rgba(255, 215, 0, 0.15) 0%,
+        transparent 15%
+      ),
+      radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.15) 0%, transparent 20%),
+      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 25%);
+    pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: screen;
+    -webkit-mix-blend-mode: screen;
+    animation: ambient-float 15s ease-in-out infinite;
+    filter: blur(2vpx);
+  }
+}
+
+.quest-swiper-wrapper {
+  position: relative;
+  z-index: 4;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 16vpx;
+  box-sizing: border-box;
+}
+
+// 进度指示器
+.quest-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 12vpx;
+  padding: 0 30vpx;
+  margin-bottom: 12vpx;
+  z-index: 5;
+
+  .progress-track {
+    flex: 1;
+    height: 4vpx;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2vpx;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $magic-gold, $magic-purple);
+    border-radius: 2vpx;
+    transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .progress-label {
+    font-size: 12vpx;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}
+
+// Swiper 容器
+.quest-swiper {
+  flex: 1;
+  width: 100%;
+  height: 0; // flex 子项需要明确高度以配合内部滚动
+}
+
+// 单个 Slide：占满 Swiper 高度
+.quest-slide {
+  height: auto;
+  align-self: stretch;
+}
+
+// Slide 内容容器
+.quest-slide-inner {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  // 隐藏滚动条
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE/Edge
+  &::-webkit-scrollbar {
+    display: none; // Chrome/Safari
+  }
+
+  &.is-completed {
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-top: 2vpx solid rgba($magic-green, 0.4);
+      pointer-events: none;
+      z-index: 10;
+    }
+  }
+
+  // compact 模式下 QuestPage 内部样式覆盖
+  :deep(#Questions) {
+    min-height: auto;
+
+    .adventure-container {
+      height: auto;
+      min-height: 100%;
+      overflow-y: visible;
+    }
+
+    .quest-wrapper {
+      padding: 24vpx 24vpx 12vpx;
+    }
+  }
+}
+
+// 关卡序号徽章
+.slide-badge {
+  position: absolute;
+  top: 12vpx;
+  right: 12vpx;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4vpx;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10vpx);
+  -webkit-backdrop-filter: blur(10vpx);
+  border: 1vpx solid rgba(255, 255, 255, 0.15);
+  border-radius: 12vpx;
+  padding: 4vpx 10vpx;
+
+  .badge-step {
+    font-size: 11vpx;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .badge-check {
+    font-size: 12vpx;
+    color: $magic-green;
+  }
+}
+
+// 环境光浮动动画（复用 style.scss 中的定义）
+@keyframes ambient-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-7.69231vw) scale(1.1);
+    opacity: 1;
+  }
+}
 </style>
