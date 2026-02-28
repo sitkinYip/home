@@ -65,6 +65,19 @@
                   />
                 </div>
 
+                <!-- 视频 -->
+                <div
+                  v-else-if="segment.type === 'video'"
+                  class="scroll-video-wrap"
+                  :style="segment.poster ? { backgroundImage: `url(${segment.poster})` } : {}"
+                  :class="{ 'has-poster': segment.poster }"
+                  @click="openVideoPlayer(segment.url!)"
+                >
+                  <div class="video-play-btn">
+                    <el-icon :size="toVpx(28)"><VideoPlay /></el-icon>
+                  </div>
+                </div>
+
                 <!-- 换行 -->
                 <br v-else-if="segment.type === 'br'" />
               </template>
@@ -74,11 +87,15 @@
       </div>
     </div>
   </transition>
+  <VideoPlayer ref="videoPlayerRef" />
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
+import { VideoPlay } from "@element-plus/icons-vue";
 import { useContentParser } from "../composables/useContentParser";
+import { toVpx } from "@/utils/toVpx";
+import VideoPlayer from "@/components/VideoPlayer.vue";
 
 const visible = ref(false);
 const rawText = ref("");
@@ -93,6 +110,11 @@ const handleLinkClick = (url: string) => {
   if (!url.startsWith("http")) {
     handleClose();
   }
+};
+
+const videoPlayerRef = ref<any>(null);
+const openVideoPlayer = (url: string) => {
+  videoPlayerRef.value?.open(url);
 };
 
 // 字体是否已加载的标记，避免重复加载
@@ -615,6 +637,62 @@ defineExpose({ show });
         &:active {
           transform: scale(1.02) rotate(0deg);
         }
+      }
+    }
+
+    :deep(.scroll-video-wrap) {
+      margin: 16vpx 0;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 4vpx;
+      border: 4vpx solid #fff;
+      box-shadow: 2vpx 2vpx 5vpx rgba(0, 0, 0, 0.3);
+      background: #2a1a0a;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+
+      &.has-poster {
+        background-color: #000;
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        transition: background 0.3s ease;
+      }
+
+      &:active {
+        transform: scale(0.98);
+
+        &::before {
+          background: rgba(0, 0, 0, 0.4);
+        }
+      }
+
+      .video-play-btn {
+        position: relative;
+        z-index: 1;
+        width: 52vpx;
+        height: 52vpx;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #3e2723;
+        box-shadow:
+          0 2vpx 8vpx rgba(0, 0, 0, 0.3),
+          0 0 20vpx rgba(218, 165, 32, 0.2);
+        transition: transform 0.3s ease;
       }
     }
   }

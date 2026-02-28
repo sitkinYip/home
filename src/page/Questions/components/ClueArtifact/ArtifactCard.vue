@@ -88,12 +88,13 @@ const emit = defineEmits(["action"]);
 const router = useRouter();
 const route = useRoute();
 
-// 预览模式解析：图片显示为占位提示
+// 预览模式解析：图片/视频显示为占位提示
 const previewContent = computed(() => {
   if (!props.content) return [];
   return parseContent(props.content, {
     imagePlaceholder: true,
     imagePlaceholderText: "📜 点击查看隐藏图像",
+    videoPlaceholderText: "🎬 点击查看隐藏视频",
   });
 });
 

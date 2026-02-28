@@ -6,9 +6,11 @@ import { showImagePreview } from "vant";
  * 内容段落类型定义
  */
 export interface ContentSegment {
-  type: "text" | "highlight" | "link" | "image" | "br";
+  type: "text" | "highlight" | "link" | "image" | "video" | "br";
   content?: string;
   url?: string;
+  /** 视频封面图（仅 video 类型） */
+  poster?: string;
 }
 
 /**
@@ -19,9 +21,12 @@ export interface ParseOptions {
   imagePlaceholder?: boolean;
   /** 图片占位提示文案 */
   imagePlaceholderText?: string;
+  /** 视频占位提示文案 */
+  videoPlaceholderText?: string;
 }
 
 const DEFAULT_IMAGE_PLACEHOLDER = "📜 点击查看隐藏图像";
+const DEFAULT_VIDEO_PLACEHOLDER = "🎬 点击查看隐藏视频";
 
 /**
  * 解析内容文本为段落数组
@@ -34,7 +39,11 @@ const DEFAULT_IMAGE_PLACEHOLDER = "📜 点击查看隐藏图像";
 export function parseContent(text: string, options: ParseOptions = {}): ContentSegment[] {
   if (!text) return [];
 
-  const { imagePlaceholder = false, imagePlaceholderText = DEFAULT_IMAGE_PLACEHOLDER } = options;
+  const {
+    imagePlaceholder = false,
+    imagePlaceholderText = DEFAULT_IMAGE_PLACEHOLDER,
+    videoPlaceholderText = DEFAULT_VIDEO_PLACEHOLDER,
+  } = options;
 
   const segments: ContentSegment[] = [];
   // 统一处理换行符
@@ -44,13 +53,16 @@ export function parseContent(text: string, options: ParseOptions = {}): ContentS
   // 1. [[...]] 高亮 -> group 1
   // 2. ((...||...)) 链接/路由 -> group 2 (text), group 3 (url)
   // 3. {{...}} 图片 -> group 4 (url)
-  // 4. \n 换行 -> group 5
-  const regex = /\[\[(.*?)\]\]|\(\((.*?)\|\|(.*?)\)\)|\{\{(.*?)\}\}|(\n)/g;
+  // 4. <<...>> 或 <<...||...>> 视频 -> group 5 (url), group 6 (poster, 可选)
+  // 5. \n 换行 -> group 7
+  const regex = /\[\[(.*?)\]\]|\(\((.*?)\|\|(.*?)\)\)|\{\{(.*?)\}\}|<<(.*?)(?:\|\|(.*?))?>>/g;
+  // 合并主正则和换行匹配
+  const combinedRegex = new RegExp(`${regex.source}|(\\n)`, "g");
 
   let lastIndex = 0;
   let match;
 
-  while ((match = regex.exec(normalizedText)) !== null) {
+  while ((match = combinedRegex.exec(normalizedText)) !== null) {
     // 添加匹配前的普通文本
     if (match.index > lastIndex) {
       segments.push({
@@ -79,11 +91,28 @@ export function parseContent(text: string, options: ParseOptions = {}): ContentS
         segments.push({ type: "image", url: match[4] });
       }
     } else if (match[5]) {
+      // <<videoUrl>> 或 <<videoUrl||posterUrl>>
+      if (imagePlaceholder) {
+        // 预览模式：显示占位提示
+        segments.push({
+          type: "link",
+          content: videoPlaceholderText,
+          url: match[5],
+        });
+      } else {
+        // 完整模式：显示视频
+        segments.push({
+          type: "video",
+          url: match[5],
+          poster: match[6] || undefined,
+        });
+      }
+    } else if (match[7]) {
       // \n
       segments.push({ type: "br" });
     }
 
-    lastIndex = regex.lastIndex;
+    lastIndex = combinedRegex.lastIndex;
   }
 
   // 添加剩余的文本
@@ -134,9 +163,18 @@ export function useContentParser(content: Ref<string> | string, options: ParseOp
     });
   };
 
+  /**
+   * 处理视频点击（新窗口打开视频链接）
+   */
+  const handleVideoClick = (url: string) => {
+    if (!url) return;
+    window.open(url, "_blank");
+  };
+
   return {
     parsedContent,
     handleLinkClick,
     handleImageClick,
+    handleVideoClick,
   };
 }

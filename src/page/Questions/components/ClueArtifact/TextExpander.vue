@@ -52,6 +52,19 @@
                 />
               </div>
 
+              <!-- 视频 -->
+              <div
+                v-else-if="segment.type === 'video'"
+                class="scroll-video-wrap"
+                :style="segment.poster ? { backgroundImage: `url(${segment.poster})` } : {}"
+                :class="{ 'has-poster': segment.poster }"
+                @click="openVideoPlayer(segment.url!)"
+              >
+                <div class="video-play-btn">
+                  <el-icon :size="toVpx(28)"><VideoPlay /></el-icon>
+                </div>
+              </div>
+
               <!-- 换行 -->
               <br v-else-if="segment.type === 'br'" />
             </template>
@@ -59,14 +72,16 @@
         </div>
       </div>
     </transition>
+    <VideoPlayer ref="videoPlayerRef" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from "vue";
-import { ArrowDown } from "@element-plus/icons-vue";
+import { ArrowDown, VideoPlay } from "@element-plus/icons-vue";
 import { useContentParser } from "../../composables/useContentParser";
 import { toVpx } from "@/utils/toVpx";
+import VideoPlayer from "@/components/VideoPlayer.vue";
 
 const props = defineProps<{
   content: string;
@@ -79,6 +94,11 @@ const isExpanded = ref(false);
 
 const contentRef = computed(() => props.content);
 const { parsedContent, handleLinkClick, handleImageClick } = useContentParser(contentRef);
+
+const videoPlayerRef = ref<any>(null);
+const openVideoPlayer = (url: string) => {
+  videoPlayerRef.value?.open(url);
+};
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
@@ -283,6 +303,60 @@ const toggleExpand = () => {
       &:active {
         transform: scale(1.02);
       }
+    }
+  }
+
+  .scroll-video-wrap {
+    margin: 12vpx 0;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 4vpx;
+    border: 3vpx solid #fff;
+    box-shadow: 2vpx 2vpx 5vpx rgba(0, 0, 0, 0.3);
+    background: #1a1a2e;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+
+    &.has-poster {
+      background-color: #000;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.25);
+      transition: background 0.3s ease;
+    }
+
+    &:active {
+      transform: scale(0.98);
+
+      &::before {
+        background: rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    .video-play-btn {
+      position: relative;
+      z-index: 1;
+      width: 48vpx;
+      height: 48vpx;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3e2723;
+      box-shadow: 0 2vpx 8vpx rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
     }
   }
 }

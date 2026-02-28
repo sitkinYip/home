@@ -73,7 +73,7 @@ defineExpose({ open });
 .magic-video-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10001; // 高于 AdventurePortal 和 VictoryAura
+  z-index: 10010; // 高于 MagicScroll(10005)，确保视频播放器在弹窗之上
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(15vpx);
   display: flex;
