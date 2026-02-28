@@ -62,6 +62,15 @@
         <SwipeHint :show="showSwipeHint" @dismiss="showSwipeHint = false" />
       </div>
 
+      <!-- 多题通关特效 -->
+      <MultiQuestAura ref="multiAuraRef" @close="handleAuraClose" />
+
+      <!-- 多题线索弹窗 -->
+      <MultiQuestClueModal ref="multiClueModalRef" @closed="handleClueModalClosed" />
+
+      <!-- 多题线索复用悬浮按钮 -->
+      <MultiQuestClueFloat :visible="showMultiClueFloat" @open="openClueModal" />
+
       <!-- 背景音乐授权提示 -->
       <BgmAuthHint
         :visible="bgm.showAuthHint.value"
@@ -112,8 +121,15 @@ import AdventureLost from "./components/AdventureLost.vue";
 import BgmAuthHint from "./components/BgmAuthHint.vue";
 import BgmFloatButton from "./components/BgmFloatButton.vue";
 import SwipeHint from "./components/SwipeHint.vue";
+import MultiQuestAura from "./components/MultiQuestAura.vue";
+import MultiQuestClueModal from "./components/MultiQuestClueModal.vue";
+import MultiQuestClueFloat from "./components/MultiQuestClueFloat.vue";
 
 const questionsStore = useQuestionsStore();
+
+const multiAuraRef = ref<InstanceType<typeof MultiQuestAura> | null>(null);
+const multiClueModalRef = ref<InstanceType<typeof MultiQuestClueModal> | null>(null);
+const showMultiClueFloat = ref(false);
 
 // 解析 query 参数：qas 优先于 qa
 const qasParam = getQueryParam("qas")?.[0] || "";
@@ -242,12 +258,45 @@ const handleBinGo = (step: number, thread: ThreadItem[]) => {
  */
 const handleAllComplete = () => {
   setTimeout(() => {
-    showNotify({
-      type: "success",
-      message: "🎉 此关卡所有谜题已破解！伟大的冒险者！",
-      duration: 3000,
-    });
-  }, 2000);
+    if (multiAuraRef.value) {
+      multiAuraRef.value.startEffect();
+    } else {
+      // 备用通知
+      showNotify({
+        type: "success",
+        message: "🎉 此关卡所有谜题已破解！伟大的冒险者！",
+        duration: 3000,
+      });
+      checkMultiClue();
+    }
+  }, 1000);
+};
+
+const handleAuraClose = () => {
+  checkMultiClue();
+};
+
+const checkMultiClue = () => {
+  if (questionsStore.multiQuestClue && questionsStore.multiQuestClue.content) {
+    if (multiClueModalRef.value) {
+      multiClueModalRef.value.show();
+    }
+  }
+};
+
+const handleClueModalClosed = () => {
+  // 弹窗关闭后，如果确实存在线索，则把悬浮球放出来
+  if (questionsStore.multiQuestClue && questionsStore.multiQuestClue.content) {
+    showMultiClueFloat.value = true;
+  }
+};
+
+const openClueModal = () => {
+  // 通过悬浮球重新打开弹窗
+  if (multiClueModalRef.value) {
+    multiClueModalRef.value.show();
+    showMultiClueFloat.value = false; // 打开弹窗时可选将悬浮球隐藏
+  }
 };
 
 /**
@@ -279,8 +328,39 @@ const initMultiMode = async () => {
   // 恢复已完成的题目状态
   restoreCompletedSteps();
 
-  // 根据恢复的完成状态更新滑动权限
-  nextTick(() => updateSlidePermission());
+  // 等待 Vue 将 DOM 和 Swiper 渲染完成
+  await nextTick();
+
+  // 根据恢复的完成状态，找到第一个未完成的题目
+  let targetIndex = multiLevels.value.findIndex((level) => !completedSteps.value.has(level.step));
+  // 如果全部完成了，停留在最后一题
+  if (targetIndex === -1 && multiLevels.value.length > 0) {
+    targetIndex = multiLevels.value.length - 1;
+  }
+
+  activeSlideIndex.value = Math.max(0, targetIndex);
+
+  if (swiperInstance) {
+    // 瞬间移动到目标题面
+    swiperInstance.slideTo(activeSlideIndex.value, 0);
+    // 更新滑动权限
+    updateSlidePermission();
+  } else {
+    // 作为后备，如果不凑巧 swiperInstance 慢了点
+    setTimeout(() => {
+      if (swiperInstance) {
+        swiperInstance.slideTo(activeSlideIndex.value, 0);
+        updateSlidePermission();
+      }
+    }, 100);
+  }
+
+  // 如果通过缓存恢复时已经全部答完，并且存在多题线索，则直接把线索悬浮球唤起
+  if (completedSteps.value.size === multiLevels.value.length && multiLevels.value.length > 0) {
+    if (questionsStore.multiQuestClue && questionsStore.multiQuestClue.content) {
+      showMultiClueFloat.value = true;
+    }
+  }
 
   // 初始化背景音乐（使用第一个关卡的音乐）
   const firstLevel = multiLevels.value[0];

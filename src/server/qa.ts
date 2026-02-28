@@ -1,4 +1,10 @@
-import { LevelRecord, ApiResponse, TLetterecord, PhraseListRecord } from "@/types/qa";
+import {
+  LevelRecord,
+  ApiResponse,
+  TLetterecord,
+  PhraseListRecord,
+  MultiQuestClueRecord,
+} from "@/types/qa";
 import { request } from "@/fetch";
 // const API_BASE = "https://api.sitkin.top/api/collections/levels/records";
 
@@ -45,5 +51,22 @@ export const fetchPhrase = async (): Promise<PhraseListRecord[]> => {
   } catch {
     // 错误已经由 request 统一处理了 (ElMessage)，这里只需要返回空数组保证前端不崩
     return [];
+  }
+};
+
+/**
+ * 根据 qas 参数获取多题目线索
+ * @param qas 例如 "1,2,3"
+ */
+export const fetchMultiQuestClue = async (qas: string): Promise<MultiQuestClueRecord | null> => {
+  const path = `/multi_quest_clues/records?filter=(qas='${qas}')`;
+  try {
+    const data = await request<ApiResponse<MultiQuestClueRecord>>(path, {
+      retries: 3,
+      timeout: 10000,
+    });
+    return data.items.length > 0 ? data.items[0] : null;
+  } catch {
+    return null;
   }
 };

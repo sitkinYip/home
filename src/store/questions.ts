@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import { fetchLevels } from "@/server/qa";
-import { LevelRecord } from "@/types/qa";
+import { fetchLevels, fetchMultiQuestClue } from "@/server/qa";
+import { LevelRecord, MultiQuestClueRecord } from "@/types/qa";
 
 interface QuestionsState {
   allLevels: LevelRecord[];
@@ -10,6 +10,8 @@ interface QuestionsState {
   hasFirstStep: boolean;
   /** 多题模式下按 step 索引的关卡数据 */
   multiLevels: LevelRecord[];
+  /** 多题模式专属线索 */
+  multiQuestClue: MultiQuestClueRecord | null;
 }
 
 export const useQuestionsStore = defineStore("questions", {
@@ -20,6 +22,7 @@ export const useQuestionsStore = defineStore("questions", {
     isLost: false,
     hasFirstStep: false,
     multiLevels: [],
+    multiQuestClue: null,
   }),
   getters: {
     currentUserDisplay: (state) => state.userName,
@@ -105,6 +108,14 @@ export const useQuestionsStore = defineStore("questions", {
           this.isLost = true;
         } else {
           this.isLost = false;
+        }
+
+        // 尝试获取多题线索
+        const qasStr = steps.join(",");
+        try {
+          this.multiQuestClue = await fetchMultiQuestClue(qasStr);
+        } catch (clueErr) {
+          console.error("获取多题线索失败", clueErr);
         }
       } catch (error) {
         this.isLost = true;
