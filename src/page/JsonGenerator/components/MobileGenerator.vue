@@ -119,7 +119,7 @@
               />
             </div>
 
-            <van-field v-model="item.state" label="State" placeholder="例如: ckickplay" />
+            <van-field v-model="item.state" label="State" placeholder="例如: AutoPlay" />
             <van-field
               v-model="item.nextIndex"
               label="NextIndex"

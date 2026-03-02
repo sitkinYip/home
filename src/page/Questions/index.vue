@@ -62,6 +62,13 @@
         <SwipeHint :show="showSwipeHint" @dismiss="showSwipeHint = false" />
       </div>
 
+      <!-- 等级升级动画 -->
+      <RankUpAura
+        ref="rankUpAuraRef"
+        :rank-info="rankUp.currentRankInfo.value"
+        @close="rankUp.dismissRankUp"
+      />
+
       <!-- 多题通关特效 -->
       <MultiQuestAura ref="multiAuraRef" @close="handleAuraClose" />
 
@@ -114,6 +121,7 @@ import { showNotify } from "vant";
 import { useQuestionsStore } from "@/store/questions";
 import { getQueryParam } from "@/utils/qa/questions";
 import { useBgm } from "./composables/useBgm";
+import { useRankUp } from "./composables/useRankUp";
 import type { ThreadItem } from "@/types/qa";
 
 import QuestPage from "./QuestPage.vue";
@@ -124,11 +132,13 @@ import SwipeHint from "./components/SwipeHint.vue";
 import MultiQuestAura from "./components/MultiQuestAura.vue";
 import MultiQuestClueModal from "./components/MultiQuestClueModal.vue";
 import MultiQuestClueFloat from "./components/MultiQuestClueFloat.vue";
+import RankUpAura from "./components/RankUpAura.vue";
 
 const questionsStore = useQuestionsStore();
 
 const multiAuraRef = ref<InstanceType<typeof MultiQuestAura> | null>(null);
 const multiClueModalRef = ref<InstanceType<typeof MultiQuestClueModal> | null>(null);
+const rankUpAuraRef = ref<InstanceType<typeof RankUpAura> | null>(null);
 const showMultiClueFloat = ref(false);
 
 // 解析 query 参数：qas 优先于 qa
@@ -174,6 +184,9 @@ const mainBgImgStyle = computed(() => {
 
 // 背景音乐
 const bgm = useBgm();
+
+// 等级升级动画
+const rankUp = useRankUp(userId);
 
 /**
  * 响应式计算：当前题目是否允许向后滑动
@@ -366,6 +379,15 @@ const initMultiMode = async () => {
   const firstLevel = multiLevels.value[0];
   if (firstLevel?.mainAudio) {
     bgm.initBgm(firstLevel.mainAudio);
+  }
+
+  // 检查是否需要展示等级升级动画（多题模式取最高等级）
+  const shouldShowRankUp = rankUp.checkMultiLevels(multiLevels.value);
+  if (shouldShowRankUp) {
+    setTimeout(() => {
+      rankUp.showRankUp();
+      rankUpAuraRef.value?.startEffect();
+    }, 1500);
   }
 };
 

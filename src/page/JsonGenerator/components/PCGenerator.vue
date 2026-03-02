@@ -124,7 +124,7 @@
                 </el-form-item>
 
                 <el-form-item label="State">
-                  <el-input v-model="item.state" placeholder="例如: ckickplay" />
+                  <el-input v-model="item.state" placeholder="例如: AutoPlay" />
                 </el-form-item>
                 <el-form-item label="NextIndex">
                   <el-input

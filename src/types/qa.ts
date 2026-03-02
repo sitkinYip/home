@@ -26,7 +26,7 @@ export interface ThreadItem {
   content: string;
   url?: string;
   imgList?: string[];
-  state?: "ckickplay" | string; // 比如 'ckickplay' 表示点击播放
+  state?: "AutoPlay" | string; // 比如 'AutoPlay' 表示点击播放
   path?: string;
   query?: Record<string, string>;
   nextIndex?: number;
@@ -83,6 +83,7 @@ export interface LevelRecord {
   startTime?: string;
   endTime?: string;
   avatar?: string;
+  rank?: string; // 等级
   rankName?: string;
   isFinalLevel?: boolean;
   FinalLevelConfig?: {

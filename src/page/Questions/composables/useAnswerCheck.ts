@@ -108,7 +108,7 @@ export function useAnswerCheck(
 
     // 4. 自动播放视频（如果有配置）
     const autoPlayVideo = resolvedQaInfo.value.thread.find(
-      (t: ThreadItem) => t.type === "video" && t.state === "ckickplay",
+      (t: ThreadItem) => t.type === "video" && t.state === "AutoPlay",
     );
     if (autoPlayVideo && videoPlayerRef.value) {
       openVideo(autoPlayVideo.url!);

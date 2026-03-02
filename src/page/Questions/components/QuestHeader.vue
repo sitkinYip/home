@@ -17,7 +17,7 @@
       <div class="hero-info">
         <h2 class="hero-name">{{ currentUserDisplay }}</h2>
         <div class="level-badge">
-          RANK: {{ currentStep }} ·
+          RANK: {{ qaInfo?.rank ?? "未知" }} ·
           {{ qaInfo?.rankName || "探索者" }}
         </div>
       </div>

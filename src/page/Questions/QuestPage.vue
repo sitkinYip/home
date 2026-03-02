@@ -72,6 +72,14 @@
           :end-time="activeQaInfo.endTime"
         />
         <VictoryAura ref="victoryAuraRef" @close="handleVictoryClose" />
+
+        <!-- 等级升级动画（compact 模式下不渲染，由外层统一管理） -->
+        <RankUpAura
+          v-if="!compact"
+          ref="rankUpAuraRef"
+          :rank-info="rankUp.currentRankInfo.value"
+          @close="rankUp.dismissRankUp"
+        />
       </div>
 
       <!-- 背景音乐（compact 模式下不渲染，由外层统一管理） -->
@@ -106,6 +114,7 @@ import gsap from "gsap";
 import { useRouter } from "vue-router";
 import { useQuestionsStore } from "@/store/questions";
 import { useBgm } from "./composables/useBgm";
+import { useRankUp } from "./composables/useRankUp";
 import type { LevelRecord, ThreadItem } from "@/types/qa";
 
 import {
@@ -131,6 +140,7 @@ import QuestInputRegion from "./components/QuestInputRegion.vue";
 import BgmAuthHint from "./components/BgmAuthHint.vue";
 import BgmFloatButton from "./components/BgmFloatButton.vue";
 import QuestClues from "./components/QuestClues.vue";
+import RankUpAura from "./components/RankUpAura.vue";
 
 // Composables
 import { usePenalty } from "./composables/usePenalty";
@@ -170,6 +180,7 @@ const isDebug = getQueryParam("debug")?.[0] === "1";
 const magicScrollRef = ref<any>(null);
 const victoryAuraRef = ref<any>(null);
 const videoPlayerRef = ref<any>(null);
+const rankUpAuraRef = ref<InstanceType<typeof RankUpAura> | null>(null);
 
 // 解析当前关卡步骤和用户 ID：props 优先，fallback 到 query 参数
 const currentStep = props.propStep || parseInt(getQueryParam("qa")?.[0] || "1");
@@ -219,6 +230,9 @@ const { openVideo, openPage, previewImage, handleArtifactAction } = useArtifacts
 
 // 背景音乐 Composable（compact 模式下不使用）
 const bgm = useBgm();
+
+// 等级升级动画 Composable（compact 模式下不使用，由外层统一管理）
+const rankUp = useRankUp(userId);
 
 // 背景图样式计算
 const mainBgImgStyle = computed(() => {
@@ -348,6 +362,17 @@ const initData = async () => {
       gsap.from(".quest-card", { duration: 1, y: "50px", opacity: 0, ease: "power4.out" });
       gsap.from(".header-left", { duration: 0.8, x: "-30px", opacity: 0, delay: 0.2 });
       gsap.from(".header-right", { duration: 0.8, x: "30px", opacity: 0, delay: 0.3 });
+
+      // 检查是否需要展示等级升级动画（非 compact 模式）
+      if (!props.compact && questionsStore.qaInfo) {
+        const shouldShow = rankUp.checkSingleLevel(questionsStore.qaInfo);
+        if (shouldShow) {
+          setTimeout(() => {
+            rankUp.showRankUp();
+            rankUpAuraRef.value?.startEffect();
+          }, 1500);
+        }
+      }
     });
   }
 };
