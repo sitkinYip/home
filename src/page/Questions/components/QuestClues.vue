@@ -18,7 +18,7 @@
       <span class="header-ornament"></span>
 
       <!-- 全屏切换按钮 -->
-      <div class="fullscreen-toggle" @click="toggleFullscreen">
+      <div v-if="isLongThread" class="fullscreen-toggle" @click="toggleFullscreen">
         <div class="toggle-crystal">
           <div class="crystal-inner">
             <span class="toggle-rune">{{ isFullscreen ? "✕" : "⛶" }}</span>
@@ -66,7 +66,7 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import ClueArtifact from "./ClueArtifact/index.vue";
 import { ThreadItemList } from "@/types/qa";
 
-defineProps<{
+const props = defineProps<{
   thread: ThreadItemList;
   title?: string;
 }>();
@@ -75,6 +75,7 @@ defineEmits(["action", "preview"]);
 
 const isFullscreen = ref(false);
 const clueCardRef = ref<HTMLElement | null>(null);
+const isLongThread = computed(() => props.thread?.length > 2);
 let visibilityObserver: IntersectionObserver | null = null;
 let visibilityDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
