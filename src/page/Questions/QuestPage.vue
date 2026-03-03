@@ -10,8 +10,9 @@
       <VideoPlayer ref="videoPlayerRef" />
 
       <div class="quest-wrapper">
-        <!-- 英雄状态栏 -->
+        <!-- 英雄状态栏（多题模式下由外层统一渲染，此处隐藏） -->
         <QuestHeader
+          v-if="!hideHeader"
           :qa-info="activeQaInfo"
           :current-user-display="activeUserDisplay"
           :current-step="activeQaInfo.step"
@@ -156,12 +157,14 @@ import { showNotify } from "vant";
 const props = withDefaults(
   defineProps<{
     compact?: boolean;
+    hideHeader?: boolean;
     levelData?: LevelRecord | null;
     propStep?: number;
     propUserId?: string;
   }>(),
   {
     compact: false,
+    hideHeader: false,
     levelData: null,
     propStep: 0,
     propUserId: "",
@@ -378,6 +381,11 @@ const initData = async () => {
 };
 
 onMounted(initData);
+
+defineExpose({
+  isBinGo,
+  isError,
+});
 </script>
 
 <style lang="scss" scoped>

@@ -8,6 +8,14 @@
       <div class="overlay"></div>
 
       <div class="quest-swiper-wrapper">
+        <!-- 多题模式统一头部（Swiper 外，最顶部） -->
+        <MultiQuestHeader
+          :active-level="activeLevel"
+          :rank-info="multiRankInfo"
+          :is-bin-go="activeSlideIsBinGo"
+          :is-error="activeSlideIsError"
+        />
+
         <!-- 进度指示器 -->
         <div class="quest-progress-bar">
           <div class="progress-track">
@@ -48,7 +56,9 @@
               </div>
 
               <QuestPage
+                :ref="(el: any) => setQuestPageRef(el, index)"
                 :compact="true"
+                :hide-header="true"
                 :level-data="level"
                 :prop-step="level.step"
                 :prop-user-id="userId"
@@ -121,8 +131,9 @@ import { showNotify } from "vant";
 import { useQuestionsStore } from "@/store/questions";
 import { getQueryParam } from "@/utils/qa/questions";
 import { useBgm } from "./composables/useBgm";
-import { useRankUp } from "./composables/useRankUp";
+import { useRankUp, extractHighestRank } from "./composables/useRankUp";
 import type { ThreadItem } from "@/types/qa";
+import type { RankInfo } from "./composables/useRankUp";
 
 import QuestPage from "./QuestPage.vue";
 import AdventureLost from "./components/AdventureLost.vue";
@@ -133,6 +144,7 @@ import MultiQuestAura from "./components/MultiQuestAura.vue";
 import MultiQuestClueModal from "./components/MultiQuestClueModal.vue";
 import MultiQuestClueFloat from "./components/MultiQuestClueFloat.vue";
 import RankUpAura from "./components/RankUpAura.vue";
+import MultiQuestHeader from "./components/MultiQuestHeader.vue";
 
 const questionsStore = useQuestionsStore();
 
@@ -140,6 +152,14 @@ const multiAuraRef = ref<InstanceType<typeof MultiQuestAura> | null>(null);
 const multiClueModalRef = ref<InstanceType<typeof MultiQuestClueModal> | null>(null);
 const rankUpAuraRef = ref<InstanceType<typeof RankUpAura> | null>(null);
 const showMultiClueFloat = ref(false);
+
+// QuestPage 实例 ref 数组（用于获取各 slide 的 isBinGo/isError 状态）
+const questPageRefs = ref<InstanceType<typeof QuestPage>[]>([]);
+const setQuestPageRef = (el: any, index: number) => {
+  if (el) {
+    questPageRefs.value[index] = el;
+  }
+};
 
 // 解析 query 参数：qas 优先于 qa
 const qasParam = getQueryParam("qas")?.[0] || "";
@@ -171,6 +191,26 @@ const completedCount = computed(() => completedSteps.value.size);
 
 // 滑动提示状态
 const showSwipeHint = ref(false);
+
+// 多题模式统一头部：最高等级信息
+const multiRankInfo = computed<RankInfo | null>(() => {
+  if (multiLevels.value.length === 0) return null;
+  return extractHighestRank(multiLevels.value);
+});
+
+// 当前活跃 slide 对应的关卡数据
+const activeLevel = computed(() => multiLevels.value[activeSlideIndex.value] || null);
+
+// 当前活跃 slide 的答题状态（从 QuestPage 实例获取）
+const activeSlideIsBinGo = computed(() => {
+  const questPage = questPageRefs.value[activeSlideIndex.value];
+  return questPage?.isBinGo ?? false;
+});
+
+const activeSlideIsError = computed(() => {
+  const questPage = questPageRefs.value[activeSlideIndex.value];
+  return questPage?.isError ?? false;
+});
 
 // 背景图样式（多题模式下使用第一个关卡的背景图）
 const mainBgImgStyle = computed(() => {
@@ -436,7 +476,7 @@ onMounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: 16vpx;
+  padding-top: 24vpx;
   box-sizing: border-box;
 }
 
@@ -445,8 +485,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12vpx;
-  padding: 0 30vpx;
-  margin-bottom: 12vpx;
+  padding: 0 24vpx;
+  margin-bottom: 8vpx;
   z-index: 5;
 
   .progress-track {

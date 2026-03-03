@@ -50,7 +50,7 @@ const extractRankFromLevel = (level: LevelRecord): RankInfo | null => {
  * - 多个非数字字符串取最后一个
  * - 多个数字字符串取最大值
  */
-const extractHighestRank = (levels: LevelRecord[]): RankInfo | null => {
+export const extractHighestRank = (levels: LevelRecord[]): RankInfo | null => {
   const validRanks: RankInfo[] = [];
 
   for (const level of levels) {
