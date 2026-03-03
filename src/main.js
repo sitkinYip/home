@@ -17,6 +17,22 @@ import "swiper/css";
 
 import { toVpx } from "@/utils/toVpx";
 
+// 按需加载 vConsole：仅在 URL 带 debug=1 且为移动端时异步加载
+function shouldEnableVConsole() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isDebug = urlParams.get("debug") === "1";
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  );
+  return isDebug && isMobile;
+}
+
+if (shouldEnableVConsole()) {
+  import("vconsole").then(({ default: VConsole }) => {
+    new VConsole();
+  });
+}
+
 const app = createApp(App);
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
