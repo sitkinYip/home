@@ -556,11 +556,13 @@ onMounted(() => {
   // compact 模式下 QuestPage 内部样式覆盖
   :deep(#Questions) {
     min-height: auto;
+    background: transparent;
 
     .adventure-container {
       height: auto;
       min-height: 100%;
       overflow-y: visible;
+      background: transparent;
     }
 
     .quest-wrapper {
