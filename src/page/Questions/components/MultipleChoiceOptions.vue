@@ -94,6 +94,8 @@ const emit = defineEmits(["update:modelValue", "change", "play-video"]);
 
 const now = ref(Date.now());
 let timer: any = null;
+// 标记 penaltyEndTime 是否已经从 localStorage 恢复完成（首次收到有效值）
+let penaltyInitialized = false;
 
 const isPenalized = computed(() => {
   if (props.penaltyEndTime === -1) return true;
@@ -117,6 +119,12 @@ const formattedTime = computed(() => {
 watch(
   () => props.penaltyEndTime,
   (val) => {
+    // 当 penaltyEndTime 首次从 0 变为有效值时（即从 localStorage 恢复完成），
+    // 立即同步 now 为当前时间，避免 timer 提前运行导致的时间差"跳变"
+    if ((val > 0 || val === -1) && !penaltyInitialized) {
+      penaltyInitialized = true;
+      now.value = Date.now();
+    }
     if (val > 0 && !timer) {
       startTimer();
     }
@@ -136,7 +144,11 @@ function startTimer() {
 }
 
 onMounted(() => {
-  startTimer();
+  // 仅在已有有效惩罚时间时才立即启动 timer，
+  // 否则等待 watch 在 penaltyEndTime 变化时启动
+  if (props.penaltyEndTime > 0 || props.penaltyEndTime === -1) {
+    startTimer();
+  }
 });
 
 onUnmounted(() => {
