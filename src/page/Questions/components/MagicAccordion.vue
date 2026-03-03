@@ -88,8 +88,11 @@ const bodyStyle = computed(() => {
 
 const updateHeight = () => {
   if (innerRef.value) {
-    // 添加一些余量避免边界情况
-    scrollHeight.value = innerRef.value.scrollHeight + 10;
+    const newHeight = innerRef.value.scrollHeight + 10;
+    // 仅当高度变化超过阈值时才更新，避免 ResizeObserver 与 transition 动画循环触发
+    if (Math.abs(newHeight - scrollHeight.value) > 5) {
+      scrollHeight.value = newHeight;
+    }
   }
 };
 

@@ -34,23 +34,27 @@
     </div>
 
     <!-- 按钮：选择题需选中后才显示，填空题始终显示 -->
-    <button
-      v-if="shouldShowButton"
-      @click="$emit('submit')"
-      class="magic-btn"
-      :class="btnClass"
-      :disabled="isPenalized"
-    >
-      <span class="btn-content">
-        {{ btnText }}
-      </span>
-      <div class="btn-flare" v-if="!isPenalized"></div>
-    </button>
+    <transition name="btn-reveal">
+      <button
+        v-if="shouldShowButton"
+        ref="confirmBtnRef"
+        @click="$emit('submit')"
+        class="magic-btn"
+        :class="btnClass"
+        :disabled="isPenalized"
+      >
+        <span class="btn-content">
+          {{ btnText }}
+        </span>
+        <div class="btn-flare" v-if="!isPenalized"></div>
+      </button>
+    </transition>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
+import gsap from "gsap";
 import MultipleChoiceOptions from "./MultipleChoiceOptions.vue";
 
 const props = defineProps<{
@@ -65,6 +69,7 @@ const props = defineProps<{
 const emit = defineEmits(["update:modelValue", "submit", "playVideo", "focusChange"]);
 
 const isInputFocus = ref(false);
+const confirmBtnRef = ref<HTMLButtonElement | null>(null);
 const now = ref(Date.now());
 let timer: any = null;
 
@@ -114,6 +119,73 @@ const btnText = computed(() => {
   if (props.isError) return "咒语错误";
   return "确认答案";
 });
+
+/**
+ * 从元素向上查找最近的可滚动祖先容器
+ * 多题模式下滚动容器是 .quest-slide-inner，单题模式下是 .adventure-container
+ */
+const findScrollableAncestor = (element: HTMLElement): HTMLElement | null => {
+  let current = element.parentElement;
+  while (current) {
+    const overflowY = getComputedStyle(current).overflowY;
+    if (
+      (overflowY === "auto" || overflowY === "scroll") &&
+      current.scrollHeight > current.clientHeight
+    ) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
+};
+
+/**
+ * 将确认按钮滚动到最近的可滚动祖先容器的可视区域内
+ */
+const scrollBtnIntoView = () => {
+  const buttonEl = confirmBtnRef.value;
+  if (!buttonEl) return;
+
+  const scrollContainer = findScrollableAncestor(buttonEl);
+  if (!scrollContainer) return;
+
+  const btnRect = buttonEl.getBoundingClientRect();
+  const containerRect = scrollContainer.getBoundingClientRect();
+
+  const isBtnVisible = btnRect.top >= containerRect.top && btnRect.bottom <= containerRect.bottom;
+
+  if (isBtnVisible) return;
+
+  const scrollOffset = btnRect.bottom - containerRect.bottom + scrollContainer.scrollTop + 24;
+  gsap.to(scrollContainer, {
+    scrollTop: scrollOffset,
+    duration: 0.6,
+    ease: "power2.out",
+  });
+};
+
+/**
+ * 选择题选中选项后，自动滚动确认按钮到可视区域
+ * 首次选中时按钮从 v-if 出现，需等待 transition 动画结束后再检测
+ */
+watch(
+  () => props.modelValue,
+  (newVal, oldVal) => {
+    if (!isMultipleChoice.value || !newVal || props.isBinGo) return;
+
+    const isFirstAppear = !oldVal && !!newVal;
+
+    if (isFirstAppear) {
+      // 按钮首次出现：等待 btn-reveal 入场动画完成（400ms）后再滚动
+      setTimeout(() => {
+        scrollBtnIntoView();
+      }, 450);
+    } else {
+      // 切换选项：按钮已存在，nextTick 即可
+      nextTick(scrollBtnIntoView);
+    }
+  },
+);
 
 const inputMagicPower = computed(() => {
   const length = props.modelValue?.length || 0;
@@ -184,7 +256,9 @@ const handleFocus = (val: boolean) => {
     font-size: 18vpx;
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition:
+      background 0.4s ease,
+      box-shadow 0.4s ease;
 
     &:active {
       transform: scale(0.96);
@@ -224,6 +298,29 @@ const handleFocus = (val: boolean) => {
       animation: flare 4s infinite;
     }
   }
+}
+
+// 确认按钮入场动画：从下方滑入 + 缩放 + 透明度
+.btn-reveal-enter-active {
+  transition:
+    opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-reveal-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.btn-reveal-enter-from {
+  opacity: 0;
+  transform: translateY(16vpx) scale(0.95);
+}
+
+.btn-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(8vpx) scale(0.98);
 }
 
 @keyframes flare {
