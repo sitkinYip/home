@@ -68,7 +68,7 @@
         </transition>
 
         <AdventurePortal
-          v-show="!isDebug"
+          v-if="!isDebug"
           :start-time="activeQaInfo.startTime"
           :end-time="activeQaInfo.endTime"
         />
