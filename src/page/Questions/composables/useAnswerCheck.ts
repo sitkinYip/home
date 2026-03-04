@@ -2,7 +2,7 @@ import { ref, computed, Ref } from "vue";
 import { LevelRecord, ThreadItem } from "@/types/qa";
 import { useQuestionsStore } from "@/store/questions";
 import { checkAnswer } from "@/utils/qa/questions";
-import { showNotify, showImagePreview } from "vant";
+import { showImagePreview } from "vant";
 import confetti from "canvas-confetti";
 import { useFeedback } from "./useFeedback";
 
@@ -123,35 +123,55 @@ export function useAnswerCheck(
     reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
 
     // 6. 喊话与特效（等待过渡动画完成：按钮变绿、面板收起等）
-    if (resolvedQaInfo.value.isFinalLevel) {
+    const isFinal = resolvedQaInfo.value.isFinalLevel;
+
+    if (isFinal) {
       await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
       isQuestionExpanded.value = false; // 成功后折叠
+      // isFinalLevel 时：先确定 autoPlayType，但不执行 AutoPlay
+      // AutoPlay 将在 VictoryAura 关闭后由 QuestPage 执行
+      if (autoPlayItem) {
+        if (autoPlayItem.type === "video" && autoPlayItem.url && videoPlayerRef.value) {
+          autoPlayType = "video";
+        } else if (autoPlayItem.type === "img") {
+          const images = autoPlayItem.imgList?.length
+            ? autoPlayItem.imgList
+            : autoPlayItem.url
+              ? [autoPlayItem.url]
+              : autoPlayItem.content
+                ? [autoPlayItem.content]
+                : [];
+          if (images.length > 0) autoPlayType = "image";
+        } else if (autoPlayItem.type === "text" && magicScrollRef?.value) {
+          autoPlayType = "text";
+        }
+      }
       victoryAuraRef.value?.startEffect(); // 启动终极特效
     } else {
       await talk("契约达成！真理已现。", 1000);
       isQuestionExpanded.value = false; // 成功后折叠
-    }
 
-    // 7. 过渡动画完成后，执行自动播放媒体
-    if (autoPlayItem) {
-      if (autoPlayItem.type === "video" && autoPlayItem.url && videoPlayerRef.value) {
-        openVideo(autoPlayItem.url);
-        autoPlayType = "video";
-      } else if (autoPlayItem.type === "img") {
-        const images = autoPlayItem.imgList?.length
-          ? autoPlayItem.imgList
-          : autoPlayItem.url
-            ? [autoPlayItem.url]
-            : autoPlayItem.content
-              ? [autoPlayItem.content]
-              : [];
-        if (images.length > 0) {
-          showImagePreview({ images, closeable: true });
-          autoPlayType = "image";
+      // 7. 非最终关：过渡动画完成后，立即执行自动播放媒体
+      if (autoPlayItem) {
+        if (autoPlayItem.type === "video" && autoPlayItem.url && videoPlayerRef.value) {
+          openVideo(autoPlayItem.url);
+          autoPlayType = "video";
+        } else if (autoPlayItem.type === "img") {
+          const images = autoPlayItem.imgList?.length
+            ? autoPlayItem.imgList
+            : autoPlayItem.url
+              ? [autoPlayItem.url]
+              : autoPlayItem.content
+                ? [autoPlayItem.content]
+                : [];
+          if (images.length > 0) {
+            showImagePreview({ images, closeable: true });
+            autoPlayType = "image";
+          }
+        } else if (autoPlayItem.type === "text" && magicScrollRef?.value) {
+          magicScrollRef.value.show(autoPlayItem);
+          autoPlayType = "text";
         }
-      } else if (autoPlayItem.type === "text" && magicScrollRef?.value) {
-        magicScrollRef.value.show(autoPlayItem);
-        autoPlayType = "text";
       }
     }
 

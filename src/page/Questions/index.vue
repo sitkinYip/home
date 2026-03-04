@@ -321,13 +321,39 @@ const slideToNext = () => {
 };
 
 /**
+ * 记录是否有 isFinalLevel 的题目已完成（用于 handleAllComplete 判断是否跳过 MultiQuestAura）
+ */
+let hasFinalLevelCompleted = false;
+
+/**
+ * 记录最后一个完成题目的 autoPlayType 和 step（用于 handleAllComplete 判断是否需要等视频结束）
+ */
+let lastCompletedAutoPlayType: AutoPlayResult = null;
+let lastCompletedStep: number = 0;
+
+/**
  * 处理单题答对事件
  * @param step 答对的关卡步骤
  * @param _thread 该关卡的线索列表
- * @param autoPlayType 自动播放的媒体类型（视频/图片/无）
+ * @param autoPlayType 自动播放的媒体类型（视频/图片/文本/无）
+ * @param isFinalLevel 当前题目是否为最终关（isFinalLevel 时 VictoryAura 已在 QuestPage 内部触发）
  */
-const handleBinGo = (step: number, _thread: ThreadItem[], autoPlayType: AutoPlayResult) => {
+const handleBinGo = (
+  step: number,
+  _thread: ThreadItem[],
+  autoPlayType: AutoPlayResult,
+  isFinalLevel: boolean,
+) => {
   completedSteps.value.add(step);
+
+  // 记录最终关完成状态
+  if (isFinalLevel) {
+    hasFinalLevelCompleted = true;
+  }
+
+  // 记录最后完成题目的 autoPlay 信息（用于 handleAllComplete 判断是否等视频结束）
+  lastCompletedAutoPlayType = autoPlayType;
+  lastCompletedStep = step;
 
   // 答对后解锁当前题目的向后滑动限制
   updateSlidePermission();
@@ -335,73 +361,114 @@ const handleBinGo = (step: number, _thread: ThreadItem[], autoPlayType: AutoPlay
   // 先取消之前可能残留的待执行跳转
   cancelPendingAutoNext();
 
-  // 通过 step 找到当前关卡，判断是否需要自动跳转下一题
-  const currentLevel = multiLevels.value.find((level) => level.step === step);
-  const shouldAutoNext = currentLevel?.autoNext === true;
+  // isFinalLevel 时：VictoryAura 正在展示中，不执行 autoNext 跳转逻辑
+  // AutoPlay 也由 QuestPage 在 VictoryAura 关闭后自行处理
+  if (!isFinalLevel) {
+    // 通过 step 找到当前关卡，判断是否需要自动跳转下一题
+    const currentLevel = multiLevels.value.find((level) => level.step === step);
+    const shouldAutoNext = currentLevel?.autoNext === true;
 
-  if (shouldAutoNext && swiperInstance) {
-    const hasNextSlide = swiperInstance.activeIndex + 1 < multiLevels.value.length;
+    if (shouldAutoNext && swiperInstance) {
+      const hasNextSlide = swiperInstance.activeIndex + 1 < multiLevels.value.length;
 
-    if (hasNextSlide) {
-      if (autoPlayType === "video") {
-        // 视频自动播放：等视频播放结束后再跳转
-        const slideIndex = multiLevels.value.findIndex((l) => l.step === step);
-        const questPage = questPageRefs.value[slideIndex];
-        if (questPage?.videoPlayerRef) {
-          pendingVideoQuestPage = questPage;
-          questPage.videoPlayerRef.onEnded(() => {
-            slideToNext();
-          });
-          // 用户手动关闭视频时，取消跳转并显示滑动提示
-          questPage.videoPlayerRef.onClosed(() => {
-            cancelPendingAutoNext(true);
-          });
+      if (hasNextSlide) {
+        if (autoPlayType === "video") {
+          // 视频自动播放：等视频播放结束后再跳转
+          const slideIndex = multiLevels.value.findIndex((l) => l.step === step);
+          const questPage = questPageRefs.value[slideIndex];
+          if (questPage?.videoPlayerRef) {
+            pendingVideoQuestPage = questPage;
+            questPage.videoPlayerRef.onEnded(() => {
+              slideToNext();
+            });
+            // 用户手动关闭视频时，取消跳转并显示滑动提示
+            questPage.videoPlayerRef.onClosed(() => {
+              cancelPendingAutoNext(true);
+            });
+          } else {
+            // 兜底：如果拿不到 videoPlayerRef，延迟跳转
+            pendingAutoNextTimer = setTimeout(slideToNext, 3000);
+          }
+        } else if (autoPlayType === "image" || autoPlayType === "text") {
+          // 图片或文本弹窗自动播放：等 5 秒后跳转
+          pendingAutoNextTimer = setTimeout(slideToNext, 5000);
         } else {
-          // 兜底：如果拿不到 videoPlayerRef，延迟跳转
-          pendingAutoNextTimer = setTimeout(slideToNext, 3000);
+          // 无自动播放媒体：延迟 1.5 秒让用户看到答对效果后跳转
+          pendingAutoNextTimer = setTimeout(slideToNext, 1500);
         }
-      } else if (autoPlayType === "image" || autoPlayType === "text") {
-        // 图片或文本弹窗自动播放：等 5 秒后跳转
-        pendingAutoNextTimer = setTimeout(slideToNext, 5000);
-      } else {
-        // 无自动播放媒体：延迟 1.5 秒让用户看到答对效果后跳转
-        pendingAutoNextTimer = setTimeout(slideToNext, 1500);
       }
     }
+
+    // 非全部完成且当前不是最后一题时，显示滑动提示
+    const isLastSlide =
+      swiperInstance && swiperInstance.activeIndex >= multiLevels.value.length - 1;
+
+    nextTick(() => {
+      if (completedSteps.value.size === multiLevels.value.length) {
+        handleAllComplete();
+      } else if (!shouldAutoNext && !isLastSlide) {
+        // 没有自动跳转时，延迟显示滑动提示
+        setTimeout(() => {
+          showSwipeHint.value = true;
+        }, 1200);
+      }
+    });
+  } else {
+    // isFinalLevel：仅检查是否全部完成（跳过 autoNext 和滑动提示）
+    nextTick(() => {
+      if (completedSteps.value.size === multiLevels.value.length) {
+        handleAllComplete();
+      }
+    });
   }
+};
 
-  // 非全部完成且当前不是最后一题时，显示滑动提示
-  const isLastSlide = swiperInstance && swiperInstance.activeIndex >= multiLevels.value.length - 1;
-
-  nextTick(() => {
-    if (completedSteps.value.size === multiLevels.value.length) {
-      handleAllComplete();
-    } else if (!shouldAutoNext && !isLastSlide) {
-      // 没有自动跳转时，延迟显示滑动提示
-      setTimeout(() => {
-        showSwipeHint.value = true;
-      }, 1200);
-    }
-  });
+/**
+ * 触发 MultiQuestAura 特效（抽取为独立方法，供延迟调用）
+ */
+const triggerMultiAura = () => {
+  if (multiAuraRef.value) {
+    multiAuraRef.value.startEffect();
+  } else {
+    showNotify({
+      type: "success",
+      message: "🎉 此关卡所有谜题已破解！伟大的冒险者！",
+      duration: 3000,
+    });
+    checkMultiClue();
+  }
 };
 
 /**
  * 所有题目完成的回调钩子
+ * - isFinalLevel 已完成 → VictoryAura 优先级更高，跳过 MultiQuestAura
+ * - 最后完成的题目有视频 AutoPlay → 等视频播完/关闭后再触发 MultiQuestAura
+ * - 图片/文本 AutoPlay → 直接触发 MultiQuestAura（层级更高会覆盖，关闭后仍可查看）
  */
 const handleAllComplete = () => {
-  setTimeout(() => {
-    if (multiAuraRef.value) {
-      multiAuraRef.value.startEffect();
-    } else {
-      // 备用通知
-      showNotify({
-        type: "success",
-        message: "🎉 此关卡所有谜题已破解！伟大的冒险者！",
-        duration: 3000,
+  if (hasFinalLevelCompleted) {
+    // VictoryAura 已在 QuestPage 内部触发，跳过 MultiQuestAura，直接检查多题线索
+    checkMultiClue();
+    return;
+  }
+
+  // 最后完成的题目有视频 AutoPlay：等视频播完或关闭后再触发 MultiQuestAura
+  if (lastCompletedAutoPlayType === "video") {
+    const slideIndex = multiLevels.value.findIndex((l) => l.step === lastCompletedStep);
+    const questPage = questPageRefs.value[slideIndex];
+    if (questPage?.videoPlayerRef) {
+      questPage.videoPlayerRef.onEnded(() => {
+        triggerMultiAura();
       });
-      checkMultiClue();
+      questPage.videoPlayerRef.onClosed(() => {
+        triggerMultiAura();
+      });
+      return;
     }
-  }, 1000);
+  }
+
+  // 无视频 AutoPlay 或图片/文本：延迟 1 秒后直接触发
+  setTimeout(triggerMultiAura, 1000);
 };
 
 const handleAuraClose = () => {

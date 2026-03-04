@@ -148,7 +148,7 @@ import RankUpAura from "./components/RankUpAura.vue";
 import { usePenalty } from "./composables/usePenalty";
 import { useAnswerCheck } from "./composables/useAnswerCheck";
 import { useArtifacts } from "./composables/useArtifacts";
-import { showNotify } from "vant";
+import { showNotify, showImagePreview } from "vant";
 
 /**
  * Props 定义：
@@ -173,7 +173,13 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (event: "binGo", step: number, thread: ThreadItem[], autoPlayType: AutoPlayResult): void;
+  (
+    event: "binGo",
+    step: number,
+    thread: ThreadItem[],
+    autoPlayType: AutoPlayResult,
+    isFinalLevel: boolean,
+  ): void;
 }>();
 
 const questionsStore = useQuestionsStore();
@@ -275,8 +281,66 @@ const handleHeaderClick = () => {
   HeaderClickCounter(cacheKey.value);
 };
 
+/**
+ * isFinalLevel 时暂存的 AutoPlay 信息，等 VictoryAura 关闭后再执行
+ */
+let pendingFinalAutoPlay: { autoPlayType: AutoPlayResult; qaInfo: LevelRecord } | null = null;
+
+/**
+ * 执行延迟的 AutoPlay（VictoryAura 关闭后调用）
+ * binGo 已在 onConfirmAnswer 中 emit 过，此处仅执行媒体展示
+ */
+const executePendingAutoPlay = () => {
+  const pending = pendingFinalAutoPlay;
+  pendingFinalAutoPlay = null;
+
+  if (!pending) return;
+
+  const { autoPlayType, qaInfo } = pending;
+
+  if (autoPlayType === "video") {
+    const autoPlayItem = qaInfo.thread.find(
+      (t: ThreadItem) => t.state === "AutoPlay" && t.type === "video",
+    );
+    if (autoPlayItem?.url && videoPlayerRef.value) {
+      openVideo(autoPlayItem.url);
+    }
+  } else if (autoPlayType === "image") {
+    const autoPlayItem = qaInfo.thread.find(
+      (t: ThreadItem) => t.state === "AutoPlay" && t.type === "img",
+    );
+    if (autoPlayItem) {
+      const images = autoPlayItem.imgList?.length
+        ? autoPlayItem.imgList
+        : autoPlayItem.url
+          ? [autoPlayItem.url]
+          : autoPlayItem.content
+            ? [autoPlayItem.content]
+            : [];
+      if (images.length > 0) {
+        showImagePreview({ images, closeable: true });
+      }
+    }
+  } else if (autoPlayType === "text") {
+    const autoPlayItem = qaInfo.thread.find(
+      (t: ThreadItem) => t.state === "AutoPlay" && t.type === "text",
+    );
+    if (autoPlayItem && magicScrollRef.value) {
+      magicScrollRef.value.show(autoPlayItem);
+    }
+  }
+};
+
 const handleVictoryClose = () => {
   console.log("英雄回到了主世界");
+
+  // 如果有待执行的 AutoPlay（isFinalLevel 场景），先执行 AutoPlay
+  if (pendingFinalAutoPlay) {
+    executePendingAutoPlay();
+    return;
+  }
+
+  // 无 AutoPlay 时走原有逻辑
   const { path, query = {}, link } = activeQaInfo.value?.FinalLevelConfig || {};
   if (path) {
     return router.replace({ path, query });
@@ -335,8 +399,16 @@ const onConfirmAnswer = async () => {
       videoPlayerRef,
       magicScrollRef,
     );
-    // 答对后通知外层（用于多题模式的自动跳转和完成检测）
-    emit("binGo", currentStep, qaInfo.thread, autoPlayType);
+
+    if (qaInfo.isFinalLevel) {
+      // isFinalLevel：暂存 AutoPlay 信息，等 VictoryAura 关闭后再执行 AutoPlay 和 emit binGo
+      pendingFinalAutoPlay = { autoPlayType, qaInfo };
+      // 同时立即通知外层完成状态（但标记为 isFinalLevel，外层不触发 MultiQuestAura）
+      emit("binGo", currentStep, qaInfo.thread, null, true);
+    } else {
+      // 非最终关：正常 emit binGo
+      emit("binGo", currentStep, qaInfo.thread, autoPlayType, false);
+    }
   } else {
     // 选择题使用惩罚机制，填空题不使用惩罚机制
     console.log("isMultipleChoice", isMultipleChoice);

@@ -1,34 +1,36 @@
 <template>
-  <transition name="fade">
-    <div
-      v-if="visible"
-      class="multi-aura-overlay"
-      @click="handleClose"
-      :class="{ 'can-close': isInteractive }"
-    >
-      <!-- 背景光幕 -->
-      <div class="divine-light"></div>
+  <Teleport to="body">
+    <transition name="fade">
+      <div
+        v-if="visible"
+        class="multi-aura-overlay"
+        @click="handleClose"
+        :class="{ 'can-close': isInteractive }"
+      >
+        <!-- 背景光幕 -->
+        <div class="divine-light"></div>
 
-      <!-- 核心几何体 -->
-      <div class="geom-container">
-        <!-- 外层菱形框 -->
-        <div class="geom-layer outer-diamond"></div>
-        <!-- 中层六芒星 -->
-        <div class="geom-layer middle-star"></div>
-        <!-- 核心光球 -->
-        <div class="core-glow"></div>
+        <!-- 核心几何体 -->
+        <div class="geom-container">
+          <!-- 外层菱形框 -->
+          <div class="geom-layer outer-diamond"></div>
+          <!-- 中层六芒星 -->
+          <div class="geom-layer middle-star"></div>
+          <!-- 核心光球 -->
+          <div class="core-glow"></div>
+        </div>
+
+        <div class="victory-text-wrap">
+          <h1 class="victory-title" data-text="MASTER OF MYSTERIES">MASTER OF MYSTERIES</h1>
+          <p class="victory-subtitle">恭喜！解开了本场冒险的所有谜题</p>
+
+          <transition name="hint-fade">
+            <div v-if="isInteractive" class="action-hint">点击任意处继续</div>
+          </transition>
+        </div>
       </div>
-
-      <div class="victory-text-wrap">
-        <h1 class="victory-title" data-text="MASTER OF MYSTERIES">MASTER OF MYSTERIES</h1>
-        <p class="victory-subtitle">恭喜！解开了本场冒险的所有谜题</p>
-
-        <transition name="hint-fade">
-          <div v-if="isInteractive" class="action-hint">点击任意处继续</div>
-        </transition>
-      </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
@@ -118,7 +120,7 @@ defineExpose({ startEffect });
 .multi-aura-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 10020; // 高于 VideoPlayer(10010) 和 Vant ImagePreview，确保全屏特效不被媒体层遮挡
   background: radial-gradient(circle at center, rgba(15, 20, 35, 0.95) 0%, rgba(0, 0, 0, 1) 100%);
   display: flex;
   flex-direction: column;
