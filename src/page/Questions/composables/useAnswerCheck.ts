@@ -110,13 +110,27 @@ export function useAnswerCheck(
     // 3. 更新状态
     isBinGo.value = true;
 
-    // 4. 自动播放媒体（视频或图片）
+    // 4. 检测是否有需要自动播放的媒体（延迟到过渡动画完成后执行）
     let autoPlayType: AutoPlayResult = null;
 
     const autoPlayItem = resolvedQaInfo.value.thread.find(
       (t: ThreadItem) => t.state === "AutoPlay" && (t.type === "video" || t.type === "img"),
     );
 
+    // 5. 上报
+    reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
+
+    // 6. 喊话与特效（等待过渡动画完成：按钮变绿、面板收起等）
+    if (resolvedQaInfo.value.isFinalLevel) {
+      await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
+      isQuestionExpanded.value = false; // 成功后折叠
+      victoryAuraRef.value?.startEffect(); // 启动终极特效
+    } else {
+      await talk("契约达成！真理已现。", 1000);
+      isQuestionExpanded.value = false; // 成功后折叠
+    }
+
+    // 7. 过渡动画完成后，执行自动播放媒体
     if (autoPlayItem) {
       if (autoPlayItem.type === "video" && autoPlayItem.url && videoPlayerRef.value) {
         openVideo(autoPlayItem.url);
@@ -134,19 +148,6 @@ export function useAnswerCheck(
           autoPlayType = "image";
         }
       }
-    }
-
-    // 5. 上报
-    reportAction(`答对了第${currentStep}题，答案是${userInput.value}`, "成功通知");
-
-    // 6. 喊话与特效
-    if (resolvedQaInfo.value.isFinalLevel) {
-      await talk(`伟大的英雄，你已破除所有迷雾！`, 1000);
-      isQuestionExpanded.value = false; // 成功后折叠
-      victoryAuraRef.value?.startEffect(); // 启动终极特效
-    } else {
-      await talk("契约达成！真理已现。", 1000);
-      isQuestionExpanded.value = false; // 成功后折叠
     }
 
     return autoPlayType;
