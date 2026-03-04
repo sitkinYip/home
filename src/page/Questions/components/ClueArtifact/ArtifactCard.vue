@@ -17,7 +17,7 @@
         <!-- 装饰背景：星海情笺拥有的温暖光晕 -->
         <div v-if="type === 'letter'" class="sacred-halo"></div>
 
-        <el-icon :size="toVpx(24)">
+        <el-icon :size="toVpx(20)">
           <Position v-if="type === 'url'" />
           <Picture v-else-if="type === 'img'" />
           <VideoPlay v-else-if="type === 'video'" />
@@ -147,7 +147,7 @@ $magic-cyan: #00f2ff;
 .magic-artifact {
   position: relative;
   width: 100%;
-  margin-bottom: 14vpx;
+  margin-bottom: 10vpx;
   background: rgba(255, 255, 255, 0.05);
   border: 1vpx solid rgba(255, 255, 255, 0.1);
   border-radius: 12vpx;
@@ -158,18 +158,18 @@ $magic-cyan: #00f2ff;
   .artifact-inner {
     display: flex;
     align-items: center;
-    padding: 16vpx;
-    gap: 16vpx;
+    padding: 12vpx;
+    gap: 10vpx;
     position: relative;
     z-index: 2;
   }
 
   .artifact-icon-wrap {
     position: relative;
-    width: 44vpx;
-    height: 44vpx;
+    width: 36vpx;
+    height: 36vpx;
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 10vpx;
+    border-radius: 8vpx;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -218,17 +218,18 @@ $magic-cyan: #00f2ff;
     }
 
     .artifact-label {
-      font-size: 12vpx;
+      font-size: 11vpx;
       color: rgba(255, 255, 255, 0.6);
-      margin-bottom: 4vpx;
+      margin-bottom: 2vpx;
     }
 
     .artifact-content {
-      font-size: 15vpx;
+      font-size: 13vpx;
       color: #eeeeee;
-      line-height: 1.5;
+      line-height: 1.6;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
 
