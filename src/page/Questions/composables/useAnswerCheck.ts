@@ -7,7 +7,7 @@ import confetti from "canvas-confetti";
 import { useFeedback } from "./useFeedback";
 
 /** 自动播放结果类型，用于通知外层（多题模式）决定跳转延迟策略 */
-export type AutoPlayResult = "video" | "image" | null;
+export type AutoPlayResult = "video" | "image" | "text" | null;
 
 /**
  * 答案校验 Hook
@@ -85,6 +85,7 @@ export function useAnswerCheck(
     reportAction: (content: string, title: string) => void,
     openVideo: (url: string) => void,
     videoPlayerRef: any,
+    magicScrollRef?: any,
   ): Promise<AutoPlayResult> => {
     if (!resolvedQaInfo.value) return null;
 
@@ -114,7 +115,8 @@ export function useAnswerCheck(
     let autoPlayType: AutoPlayResult = null;
 
     const autoPlayItem = resolvedQaInfo.value.thread.find(
-      (t: ThreadItem) => t.state === "AutoPlay" && (t.type === "video" || t.type === "img"),
+      (t: ThreadItem) =>
+        t.state === "AutoPlay" && (t.type === "video" || t.type === "img" || t.type === "text"),
     );
 
     // 5. 上报
@@ -147,6 +149,9 @@ export function useAnswerCheck(
           showImagePreview({ images, closeable: true });
           autoPlayType = "image";
         }
+      } else if (autoPlayItem.type === "text" && magicScrollRef?.value) {
+        magicScrollRef.value.show(autoPlayItem);
+        autoPlayType = "text";
       }
     }
 

@@ -333,6 +333,7 @@ const onConfirmAnswer = async () => {
       reportAction,
       openVideo,
       videoPlayerRef,
+      magicScrollRef,
     );
     // 答对后通知外层（用于多题模式的自动跳转和完成检测）
     emit("binGo", currentStep, qaInfo.thread, autoPlayType);

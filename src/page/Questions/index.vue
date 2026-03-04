@@ -360,8 +360,8 @@ const handleBinGo = (step: number, _thread: ThreadItem[], autoPlayType: AutoPlay
           // 兜底：如果拿不到 videoPlayerRef，延迟跳转
           pendingAutoNextTimer = setTimeout(slideToNext, 3000);
         }
-      } else if (autoPlayType === "image") {
-        // 图片自动播放：等 5 秒后跳转
+      } else if (autoPlayType === "image" || autoPlayType === "text") {
+        // 图片或文本弹窗自动播放：等 5 秒后跳转
         pendingAutoNextTimer = setTimeout(slideToNext, 5000);
       } else {
         // 无自动播放媒体：延迟 1.5 秒让用户看到答对效果后跳转
