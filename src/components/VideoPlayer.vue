@@ -1,29 +1,31 @@
 <template>
-  <transition name="video-fade">
-    <div v-if="dialogVisible" class="magic-video-overlay" @click.self="dialogVisible = false">
-      <div class="video-portal">
-        <!-- 魔法边框装饰 -->
-        <div class="video-frame-border"></div>
+  <Teleport to="body">
+    <transition name="video-fade">
+      <div v-if="dialogVisible" class="magic-video-overlay" @click.self="dialogVisible = false">
+        <div class="video-portal">
+          <!-- 魔法边框装饰 -->
+          <div class="video-frame-border"></div>
 
-        <div class="video-wrapper">
-          <video
-            ref="videoPlayer"
-            :src="videoUrl"
-            controls
-            class="video-element"
-            playsinline
-            webkit-playsinline
-            autoplay
-          ></video>
+          <div class="video-wrapper">
+            <video
+              ref="videoPlayer"
+              :src="videoUrl"
+              controls
+              class="video-element"
+              playsinline
+              webkit-playsinline
+              autoplay
+            ></video>
 
-          <!-- 魔法关闭按钮 -->
-          <div class="magic-close-btn" @click="dialogVisible = false">
-            <el-icon><Close /></el-icon>
+            <!-- 魔法关闭按钮 -->
+            <div class="magic-close-btn" @click="dialogVisible = false">
+              <el-icon><Close /></el-icon>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -34,8 +36,20 @@ const dialogVisible = ref(false);
 const videoUrl = ref("");
 const videoPlayer = ref<HTMLVideoElement | null>(null);
 
+/** 外部注册的视频播放结束回调（一次性，触发后自动清除） */
+let externalEndedCallback: (() => void) | null = null;
+
+/** 外部注册的视频关闭回调（一次性，用户手动关闭视频时触发） */
+let externalClosedCallback: (() => void) | null = null;
+
 const handleVideoEnded = () => {
   dialogVisible.value = false;
+  if (externalEndedCallback) {
+    externalEndedCallback();
+    externalEndedCallback = null;
+  }
+  // 正常播放结束，清除关闭回调（不需要再触发）
+  externalClosedCallback = null;
 };
 
 const open = (url: string) => {
@@ -43,10 +57,41 @@ const open = (url: string) => {
   dialogVisible.value = true;
 };
 
+/**
+ * 注册一次性的视频播放结束回调
+ * 回调在视频播放结束后触发一次并自动清除
+ */
+const onEnded = (callback: () => void) => {
+  externalEndedCallback = callback;
+};
+
+/**
+ * 注册一次性的视频被手动关闭回调
+ * 仅在用户主动关闭视频（非自然播放结束）时触发
+ */
+const onClosed = (callback: () => void) => {
+  externalClosedCallback = callback;
+};
+
+/**
+ * 清除外部注册的 onEnded 回调（用于外层主动取消等待场景）
+ */
+const clearOnEnded = () => {
+  externalEndedCallback = null;
+  externalClosedCallback = null;
+};
+
 const handleClose = () => {
   if (videoPlayer.value) {
     videoPlayer.value.pause();
     videoPlayer.value.currentTime = 0;
+  }
+  // 用户手动关闭视频时，清除 onEnded 回调，避免误触发跳转
+  externalEndedCallback = null;
+  // 触发关闭回调，通知外层视频被手动关闭
+  if (externalClosedCallback) {
+    externalClosedCallback();
+    externalClosedCallback = null;
   }
 };
 
@@ -65,8 +110,8 @@ watch(dialogVisible, async (val) => {
   }
 });
 
-// 关键：暴露 open 方法给父组件，保持原有逻辑不坏
-defineExpose({ open });
+// 暴露 open、onEnded、onClosed、clearOnEnded 方法给父组件
+defineExpose({ open, onEnded, onClosed, clearOnEnded });
 </script>
 
 <style lang="scss" scoped>

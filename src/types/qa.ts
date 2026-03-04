@@ -96,6 +96,8 @@ export interface LevelRecord {
   mainAudio?: string;
   /* 背景图片 */
   mainBgImg?: string;
+  /* 是否自动跳转到下一题(多题目模式下) */
+  autoNext?: boolean;
 }
 
 export interface IphraseItem {

@@ -134,6 +134,7 @@ import { useBgm } from "./composables/useBgm";
 import { useRankUp, extractHighestRank } from "./composables/useRankUp";
 import type { ThreadItem } from "@/types/qa";
 import type { RankInfo } from "./composables/useRankUp";
+import type { AutoPlayResult } from "./composables/useAnswerCheck";
 
 import QuestPage from "./QuestPage.vue";
 import AdventureLost from "./components/AdventureLost.vue";
@@ -261,33 +262,111 @@ const onSlideChange = (swiper: SwiperType) => {
   activeSlideIndex.value = swiper.activeIndex;
   // 用户已主动滑动，关闭提示
   showSwipeHint.value = false;
+  // 用户手动滑动时，取消所有待执行的自动跳转
+  cancelPendingAutoNext();
   // 切换后重新检查当前题目是否允许继续向后滑动
   updateSlidePermission();
 };
 
 /**
+ * 待执行的自动跳转定时器 ID，用于在用户手动滑动时取消
+ */
+let pendingAutoNextTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * 当前等待视频结束的 QuestPage 引用（用于取消 onEnded 回调）
+ */
+let pendingVideoQuestPage: InstanceType<typeof QuestPage> | null = null;
+
+/**
+ * 取消所有待执行的自动跳转（定时器 + 视频结束回调）
+ * @param showHint 取消后是否显示滑动提示（用户手动关闭视频时为 true，手动滑动时为 false）
+ */
+const cancelPendingAutoNext = (showHint = false) => {
+  let hadPending = false;
+
+  if (pendingAutoNextTimer !== null) {
+    clearTimeout(pendingAutoNextTimer);
+    pendingAutoNextTimer = null;
+    hadPending = true;
+  }
+  if (pendingVideoQuestPage?.videoPlayerRef) {
+    pendingVideoQuestPage.videoPlayerRef.clearOnEnded();
+    pendingVideoQuestPage = null;
+    hadPending = true;
+  }
+
+  // 确实取消了待执行跳转，且不是最后一题时，显示滑动提示
+  if (showHint && hadPending) {
+    const isLastSlide =
+      swiperInstance && swiperInstance.activeIndex >= multiLevels.value.length - 1;
+    if (!isLastSlide) {
+      showSwipeHint.value = true;
+    }
+  }
+};
+
+/**
+ * 执行自动跳转到下一题（跳转前清理待执行状态）
+ */
+const slideToNext = () => {
+  pendingAutoNextTimer = null;
+  pendingVideoQuestPage = null;
+  if (!swiperInstance) return;
+  const currentIndex = swiperInstance.activeIndex;
+  const nextIndex = currentIndex + 1;
+  if (nextIndex < multiLevels.value.length) {
+    swiperInstance.slideTo(nextIndex, 600);
+  }
+};
+
+/**
  * 处理单题答对事件
  * @param step 答对的关卡步骤
- * @param thread 该关卡的线索列表
+ * @param _thread 该关卡的线索列表
+ * @param autoPlayType 自动播放的媒体类型（视频/图片/无）
  */
-const handleBinGo = (step: number, thread: ThreadItem[]) => {
+const handleBinGo = (step: number, _thread: ThreadItem[], autoPlayType: AutoPlayResult) => {
   completedSteps.value.add(step);
 
   // 答对后解锁当前题目的向后滑动限制
   updateSlidePermission();
 
-  // 检查是否有 NextQuestion 指令
-  const hasNextQuestion = thread.some((item) => item.state === "NextQuestion");
+  // 先取消之前可能残留的待执行跳转
+  cancelPendingAutoNext();
 
-  if (hasNextQuestion && swiperInstance) {
-    const currentIndex = swiperInstance.activeIndex;
-    const nextIndex = currentIndex + 1;
+  // 通过 step 找到当前关卡，判断是否需要自动跳转下一题
+  const currentLevel = multiLevels.value.find((level) => level.step === step);
+  const shouldAutoNext = currentLevel?.autoNext === true;
 
-    if (nextIndex < multiLevels.value.length) {
-      // 延迟跳转，让用户看到答对效果
-      setTimeout(() => {
-        swiperInstance?.slideTo(nextIndex, 600);
-      }, 1500);
+  if (shouldAutoNext && swiperInstance) {
+    const hasNextSlide = swiperInstance.activeIndex + 1 < multiLevels.value.length;
+
+    if (hasNextSlide) {
+      if (autoPlayType === "video") {
+        // 视频自动播放：等视频播放结束后再跳转
+        const slideIndex = multiLevels.value.findIndex((l) => l.step === step);
+        const questPage = questPageRefs.value[slideIndex];
+        if (questPage?.videoPlayerRef) {
+          pendingVideoQuestPage = questPage;
+          questPage.videoPlayerRef.onEnded(() => {
+            slideToNext();
+          });
+          // 用户手动关闭视频时，取消跳转并显示滑动提示
+          questPage.videoPlayerRef.onClosed(() => {
+            cancelPendingAutoNext(true);
+          });
+        } else {
+          // 兜底：如果拿不到 videoPlayerRef，延迟跳转
+          pendingAutoNextTimer = setTimeout(slideToNext, 3000);
+        }
+      } else if (autoPlayType === "image") {
+        // 图片自动播放：等 5 秒后跳转
+        pendingAutoNextTimer = setTimeout(slideToNext, 5000);
+      } else {
+        // 无自动播放媒体：延迟 1.5 秒让用户看到答对效果后跳转
+        pendingAutoNextTimer = setTimeout(slideToNext, 1500);
+      }
     }
   }
 
@@ -297,8 +376,8 @@ const handleBinGo = (step: number, thread: ThreadItem[]) => {
   nextTick(() => {
     if (completedSteps.value.size === multiLevels.value.length) {
       handleAllComplete();
-    } else if (!hasNextQuestion && !isLastSlide) {
-      // 没有自动跳转指令时，延迟显示滑动提示
+    } else if (!shouldAutoNext && !isLastSlide) {
+      // 没有自动跳转时，延迟显示滑动提示
       setTimeout(() => {
         showSwipeHint.value = true;
       }, 1200);

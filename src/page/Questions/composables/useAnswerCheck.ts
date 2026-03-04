@@ -2,9 +2,12 @@ import { ref, computed, Ref } from "vue";
 import { LevelRecord, ThreadItem } from "@/types/qa";
 import { useQuestionsStore } from "@/store/questions";
 import { checkAnswer } from "@/utils/qa/questions";
-import { showNotify } from "vant";
+import { showNotify, showImagePreview } from "vant";
 import confetti from "canvas-confetti";
 import { useFeedback } from "./useFeedback";
+
+/** 自动播放结果类型，用于通知外层（多题模式）决定跳转延迟策略 */
+export type AutoPlayResult = "video" | "image" | null;
 
 /**
  * 答案校验 Hook
@@ -74,6 +77,7 @@ export function useAnswerCheck(
    * @param reportAction 上报回调
    * @param openVideo 播放视频回调
    * @param videoPlayerRef 视频组件引用
+   * @returns 自动播放的媒体类型（"video" | "image" | null），供多题模式决定跳转延迟
    */
   const handleSuccess = async (
     talk: (msg: string, dur?: number) => Promise<void>,
@@ -81,8 +85,8 @@ export function useAnswerCheck(
     reportAction: (content: string, title: string) => void,
     openVideo: (url: string) => void,
     videoPlayerRef: any,
-  ) => {
-    if (!resolvedQaInfo.value) return;
+  ): Promise<AutoPlayResult> => {
+    if (!resolvedQaInfo.value) return null;
 
     // 1. 撒花特效 + 成功音效
     confetti({
@@ -106,12 +110,30 @@ export function useAnswerCheck(
     // 3. 更新状态
     isBinGo.value = true;
 
-    // 4. 自动播放视频（如果有配置）
-    const autoPlayVideo = resolvedQaInfo.value.thread.find(
-      (t: ThreadItem) => t.type === "video" && t.state === "AutoPlay",
+    // 4. 自动播放媒体（视频或图片）
+    let autoPlayType: AutoPlayResult = null;
+
+    const autoPlayItem = resolvedQaInfo.value.thread.find(
+      (t: ThreadItem) => t.state === "AutoPlay" && (t.type === "video" || t.type === "img"),
     );
-    if (autoPlayVideo && videoPlayerRef.value) {
-      openVideo(autoPlayVideo.url!);
+
+    if (autoPlayItem) {
+      if (autoPlayItem.type === "video" && autoPlayItem.url && videoPlayerRef.value) {
+        openVideo(autoPlayItem.url);
+        autoPlayType = "video";
+      } else if (autoPlayItem.type === "img") {
+        const images = autoPlayItem.imgList?.length
+          ? autoPlayItem.imgList
+          : autoPlayItem.url
+            ? [autoPlayItem.url]
+            : autoPlayItem.content
+              ? [autoPlayItem.content]
+              : [];
+        if (images.length > 0) {
+          showImagePreview({ images, closeable: true });
+          autoPlayType = "image";
+        }
+      }
     }
 
     // 5. 上报
@@ -126,6 +148,8 @@ export function useAnswerCheck(
       await talk("契约达成！真理已现。", 1000);
       isQuestionExpanded.value = false; // 成功后折叠
     }
+
+    return autoPlayType;
   };
 
   return {

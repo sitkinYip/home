@@ -1,38 +1,40 @@
 <template>
-  <transition name="fade">
-    <!-- 增加点击事件 -->
-    <div
-      v-if="visible"
-      class="victory-aura-overlay"
-      @click="handleClose"
-      :class="{ 'can-close': isInteractive }"
-    >
-      <!-- 极光背景 -->
-      <div class="divine-light"></div>
+  <Teleport to="body">
+    <transition name="fade">
+      <!-- 增加点击事件 -->
+      <div
+        v-if="visible"
+        class="victory-aura-overlay"
+        @click="handleClose"
+        :class="{ 'can-close': isInteractive }"
+      >
+        <!-- 极光背景 -->
+        <div class="divine-light"></div>
 
-      <!-- 复合魔法阵 -->
-      <div class="magic-circle-container">
-        <!-- 外环：符文环 -->
-        <div class="circle-layer outer"></div>
-        <!-- 中环：星象环 -->
-        <div class="circle-layer middle"></div>
-        <!-- 内环：核心几何 -->
-        <div class="circle-layer inner"></div>
-        <!-- 核心光流 -->
-        <div class="hero-glow"></div>
+        <!-- 复合魔法阵 -->
+        <div class="magic-circle-container">
+          <!-- 外环：符文环 -->
+          <div class="circle-layer outer"></div>
+          <!-- 中环：星象环 -->
+          <div class="circle-layer middle"></div>
+          <!-- 内环：核心几何 -->
+          <div class="circle-layer inner"></div>
+          <!-- 核心光流 -->
+          <div class="hero-glow"></div>
+        </div>
+
+        <div class="victory-text-wrap">
+          <h1 class="victory-title" data-text="MISSION COMPLETE">MISSION COMPLETE</h1>
+          <p class="victory-subtitle">英雄归来 · 揭开了最后的真相</p>
+
+          <!-- 仅在可交互时显示的提示 -->
+          <transition name="hint-fade">
+            <div v-if="isInteractive" class="action-hint">点击任意处返回冒险</div>
+          </transition>
+        </div>
       </div>
-
-      <div class="victory-text-wrap">
-        <h1 class="victory-title" data-text="MISSION COMPLETE">MISSION COMPLETE</h1>
-        <p class="victory-subtitle">英雄归来 · 揭开了最后的真相</p>
-
-        <!-- 仅在可交互时显示的提示 -->
-        <transition name="hint-fade">
-          <div v-if="isInteractive" class="action-hint">点击任意处返回冒险</div>
-        </transition>
-      </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>

@@ -1,40 +1,46 @@
 <template>
-  <transition name="portal-fade">
-    <!-- 仅在非活跃状态显示 -->
-    <div v-if="portalState !== 'ACTIVE'" class="portal-overlay" :class="portalState.toLowerCase()">
-      <div class="portal-content">
-        <!-- 核心魔法阵：根据状态改变颜色 -->
-        <div class="magic-gate">
-          <div class="gate-layer outer"></div>
-          <div class="gate-layer middle"></div>
-          <div class="gate-layer inner"></div>
+  <Teleport to="body">
+    <transition name="portal-fade">
+      <!-- 仅在非活跃状态显示 -->
+      <div
+        v-if="portalState !== 'ACTIVE'"
+        class="portal-overlay"
+        :class="portalState.toLowerCase()"
+      >
+        <div class="portal-content">
+          <!-- 核心魔法阵：根据状态改变颜色 -->
+          <div class="magic-gate">
+            <div class="gate-layer outer"></div>
+            <div class="gate-layer middle"></div>
+            <div class="gate-layer inner"></div>
 
-          <!-- 中心图标 -->
-          <div class="gate-center">
-            <el-icon :size="toVpx(60)">
-              <Lock v-if="portalState === 'PRE_START'" />
-              <CircleClose v-else />
-            </el-icon>
+            <!-- 中心图标 -->
+            <div class="gate-center">
+              <el-icon :size="toVpx(60)">
+                <Lock v-if="portalState === 'PRE_START'" />
+                <CircleClose v-else />
+              </el-icon>
+            </div>
+          </div>
+
+          <!-- 状态文本区 -->
+          <div class="status-info">
+            <h1 class="status-title">{{ statusTitle }}</h1>
+            <p class="status-desc">{{ statusDesc }}</p>
+
+            <!-- 倒计时展示（仅在未开始时） -->
+            <div v-if="portalState === 'PRE_START' && countdownText" class="countdown-box">
+              <span class="label">封印解除倒计时</span>
+              <span class="time">{{ countdownText }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- 状态文本区 -->
-        <div class="status-info">
-          <h1 class="status-title">{{ statusTitle }}</h1>
-          <p class="status-desc">{{ statusDesc }}</p>
-
-          <!-- 倒计时展示（仅在未开始时） -->
-          <div v-if="portalState === 'PRE_START' && countdownText" class="countdown-box">
-            <span class="label">封印解除倒计时</span>
-            <span class="time">{{ countdownText }}</span>
-          </div>
-        </div>
+        <!-- 底部背景装饰 -->
+        <div class="bg-decoration"></div>
       </div>
-
-      <!-- 底部背景装饰 -->
-      <div class="bg-decoration"></div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>

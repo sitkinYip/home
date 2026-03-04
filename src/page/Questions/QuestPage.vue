@@ -117,6 +117,7 @@ import { useQuestionsStore } from "@/store/questions";
 import { useBgm } from "./composables/useBgm";
 import { useRankUp } from "./composables/useRankUp";
 import type { LevelRecord, ThreadItem } from "@/types/qa";
+import type { AutoPlayResult } from "./composables/useAnswerCheck";
 
 import {
   getQueryParam,
@@ -172,7 +173,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (event: "binGo", step: number, thread: ThreadItem[]): void;
+  (event: "binGo", step: number, thread: ThreadItem[], autoPlayType: AutoPlayResult): void;
 }>();
 
 const questionsStore = useQuestionsStore();
@@ -326,9 +327,15 @@ const onConfirmAnswer = async () => {
   const isCorrect = verifyAnswer(ans);
 
   if (isCorrect) {
-    await execSuccess(talk, victoryAuraRef, reportAction, openVideo, videoPlayerRef);
+    const autoPlayType = await execSuccess(
+      talk,
+      victoryAuraRef,
+      reportAction,
+      openVideo,
+      videoPlayerRef,
+    );
     // 答对后通知外层（用于多题模式的自动跳转和完成检测）
-    emit("binGo", currentStep, qaInfo.thread);
+    emit("binGo", currentStep, qaInfo.thread, autoPlayType);
   } else {
     // 选择题使用惩罚机制，填空题不使用惩罚机制
     console.log("isMultipleChoice", isMultipleChoice);
@@ -385,6 +392,7 @@ onMounted(initData);
 defineExpose({
   isBinGo,
   isError,
+  videoPlayerRef,
 });
 </script>
 
