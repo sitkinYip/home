@@ -221,11 +221,11 @@ defineExpose({ open, onEnded, onClosed, clearOnEnded });
     right: 0;
     padding: 12vpx 20vpx;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent);
-    color: $magic-gold;
+    color: #ffd700; // 金色
     font-size: 14vpx;
     font-weight: 500;
     text-align: center;
-    text-shadow: 0 2vpx 4vpx rgba(0, 0, 0, 0.8), 0 0 8vpx rgba($magic-gold, 0.4);
+    text-shadow: 0 2vpx 4vpx rgba(0, 0, 0, 0.8), 0 0 8vpx rgba(255, 215, 0, 0.4);
     z-index: 11;
     pointer-events: none; // 不干扰视频操作
     letter-spacing: 1vpx;
