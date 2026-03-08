@@ -8,9 +8,10 @@ export function useArtifacts(videoPlayerRef: Ref<any>, magicScrollRef: Ref<any>)
   /**
    * 打开视频播放器
    * @param url 视频地址
+   * @param tips 提示文字（可选）
    */
-  const openVideo = (url: string) => {
-    videoPlayerRef.value?.open(url);
+  const openVideo = (url: string, tips?: string) => {
+    videoPlayerRef.value?.open(url, tips);
   };
 
   /**
@@ -50,7 +51,7 @@ export function useArtifacts(videoPlayerRef: Ref<any>, magicScrollRef: Ref<any>)
         });
         break;
       case "video":
-        openVideo(item.url!);
+        openVideo(item.url!, item.tips);
         break;
       case "text":
         // 触发羊皮纸弹窗

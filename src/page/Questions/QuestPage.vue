@@ -287,6 +287,14 @@ const handleHeaderClick = () => {
 let pendingFinalAutoPlay: { autoPlayType: AutoPlayResult; qaInfo: LevelRecord } | null = null;
 
 /**
+ * 提取视频线索中的 tips 文字
+ */
+const extractVideoTips = (thread: ThreadItemList): string | undefined => {
+  const videoItem = thread.find((t: ThreadItem) => t.type === "video" && t.tips);
+  return videoItem?.tips;
+};
+
+/**
  * 执行延迟的 AutoPlay（VictoryAura 关闭后调用）
  * binGo 已在 onConfirmAnswer 中 emit 过，此处仅执行媒体展示
  */
@@ -303,7 +311,9 @@ const executePendingAutoPlay = () => {
       (t: ThreadItem) => t.state === "AutoPlay" && t.type === "video",
     );
     if (autoPlayItem?.url && videoPlayerRef.value) {
-      openVideo(autoPlayItem.url);
+      // 提取并传递 tips 文字
+      const tips = autoPlayItem.tips;
+      openVideo(autoPlayItem.url, tips);
     }
   } else if (autoPlayType === "image") {
     const autoPlayItem = qaInfo.thread.find(

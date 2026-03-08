@@ -7,6 +7,13 @@
           <div class="video-frame-border"></div>
 
           <div class="video-wrapper">
+            <!-- 视频提示文字（配置时显示） -->
+            <transition name="tip-slide-down">
+              <div v-if="dialogVisible && tipsText" class="video-tips-text">
+                {{ tipsText }}
+              </div>
+            </transition>
+
             <video
               ref="videoPlayer"
               :src="videoUrl"
@@ -29,14 +36,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
+import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { Close } from "@element-plus/icons-vue";
 
 const dialogVisible = ref(false);
 const videoUrl = ref("");
 const videoPlayer = ref<HTMLVideoElement | null>(null);
+const tipsText = ref("");
+const tipsDuration = ref(0);
 
-/** 外部注册的视频播放结束回调（一次性，触发后自动清除） */
+let tipsTimer: ReturnType<typeof setTimeout> | null = null;
+
+const clearTipsTimer = () => {
+  if (tipsTimer) {
+    clearTimeout(tipsTimer);
+    tipsTimer = null;
+  }
+};
+
+const startTipsTimer = () => {
+  clearTipsTimer();
+  if (tipsDuration.value > 0 && tipsText.value) {
+    tipsTimer = setTimeout(() => {
+      tipsText.value = "";
+    }, tipsDuration.value);
+  }
+};
 let externalEndedCallback: (() => void) | null = null;
 
 /** 外部注册的视频关闭回调（一次性，用户手动关闭视频时触发） */
@@ -52,9 +77,26 @@ const handleVideoEnded = () => {
   externalClosedCallback = null;
 };
 
-const open = (url: string) => {
+/**
+ * 打开视频播放器，可选配置提示文字
+ * @param url 视频 URL
+ * @param tips 提示文字（可选），会根据长度自动计算显示时长（1 字/秒）
+ */
+const open = (url: string, tips?: string) => {
   videoUrl.value = url;
+  tipsText.value = tips || "";
+  // 根据文字长度计算显示时长（1 字 1 秒，最少 3 秒，最多 10 秒）
+  if (tips) {
+    const charCount = tips.replace(/\s/g, "").length; // 去除空白字符后统计
+    tipsDuration.value = Math.min(Math.max(charCount * 1000, 3000), 10000);
+  } else {
+    tipsDuration.value = 0;
+  }
   dialogVisible.value = true;
+  // 视频打开后启动提示计时器
+  nextTick(() => {
+    startTipsTimer();
+  });
 };
 
 /**
@@ -93,6 +135,8 @@ const handleClose = () => {
     externalClosedCallback();
     externalClosedCallback = null;
   }
+  // 清除提示计时器
+  clearTipsTimer();
 };
 
 watch(dialogVisible, async (val) => {
@@ -108,6 +152,11 @@ watch(dialogVisible, async (val) => {
   } else {
     handleClose();
   }
+});
+
+// 组件卸载时清理计时器
+onUnmounted(() => {
+  clearTipsTimer();
 });
 
 // 暴露 open、onEnded、onClosed、clearOnEnded 方法给父组件
@@ -163,6 +212,27 @@ defineExpose({ open, onEnded, onClosed, clearOnEnded });
       border-radius: 0;
     }
   }
+
+  // 视频提示文字样式
+  .video-tips-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12vpx 20vpx;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent);
+    color: $magic-gold;
+    font-size: 14vpx;
+    font-weight: 500;
+    text-align: center;
+    text-shadow: 0 2vpx 4vpx rgba(0, 0, 0, 0.8), 0 0 8vpx rgba($magic-gold, 0.4);
+    z-index: 11;
+    pointer-events: none; // 不干扰视频操作
+    letter-spacing: 1vpx;
+    backdrop-filter: blur(4vpx);
+    white-space: pre-wrap; // 支持换行
+    line-height: 1.6;
+  }
 }
 
 .magic-close-btn {
@@ -201,5 +271,22 @@ defineExpose({ open, onEnded, onClosed, clearOnEnded });
 .video-fade-leave-to {
   opacity: 0;
   filter: blur(20vpx);
+}
+
+// 提示文字下滑入场动画
+.tip-slide-down-enter-active {
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tip-slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-20vpx);
+}
+
+// 提示文字淡出动画
+tip-hide {
+  transition: all 0.8s ease;
+  opacity: 0;
+  filter: blur(8vpx);
+  transform: translateY(-10vpx);
 }
 </style>
