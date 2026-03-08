@@ -120,6 +120,7 @@ export interface MultiQuestClueRecord {
   id: string;
   qas: string;
   content: string;
+  title?: string;
   collectionId: string;
   collectionName: string;
   created: string;

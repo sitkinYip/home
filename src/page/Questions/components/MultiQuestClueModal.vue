@@ -6,7 +6,7 @@
         <div class="modal-header">
           <div class="modal-title">
             <el-icon class="title-icon"><Opportunity /></el-icon>
-            <span class="title-text">隐藏的线索</span>
+            <span class="title-text">{{ store.multiQuestClue?.title || '隐藏的线索' }}</span>
           </div>
           <div class="close-btn" @click="handleClose">
             <el-icon><Close /></el-icon>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="modal-footer">
-          <div class="hint-text">线索已被收录在界面的右下角浮标中</div>
+          <div class="hint-text">这个窗口已被收录在界面的右下角浮标中</div>
           <button class="confirm-btn" @click="handleClose">我知道了</button>
         </div>
       </div>
