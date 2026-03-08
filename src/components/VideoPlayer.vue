@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { Close } from "@element-plus/icons-vue";
+import { videoEventBus } from "@/utils/videoEventBus";
 
 const dialogVisible = ref(false);
 const videoUrl = ref("");
@@ -75,6 +76,8 @@ const handleVideoEnded = () => {
   }
   // 正常播放结束，清除关闭回调（不需要再触发）
   externalClosedCallback = null;
+  // 通知 BGM 恢复播放
+  videoEventBus.emit('video-ended');
 };
 
 /**
@@ -137,6 +140,8 @@ const handleClose = () => {
   }
   // 清除提示计时器
   clearTipsTimer();
+  // 用户手动关闭视频，通知 BGM 恢复播放
+  videoEventBus.emit('video-ended');
 };
 
 watch(dialogVisible, async (val) => {
@@ -148,6 +153,8 @@ watch(dialogVisible, async (val) => {
       videoPlayer.value.play().catch(() => {
         console.log("Autoplay blocked, waiting for user interaction");
       });
+      // 视频开始播放时，通知 BGM 暂停
+      videoEventBus.emit('video-started');
     }
   } else {
     handleClose();

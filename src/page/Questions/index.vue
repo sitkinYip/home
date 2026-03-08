@@ -121,7 +121,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
@@ -130,6 +130,7 @@ import { showNotify } from "vant";
 
 import { useQuestionsStore } from "@/store/questions";
 import { getQueryParam } from "@/utils/qa/questions";
+import { videoEventBus } from "@/utils/videoEventBus";
 import { useBgm } from "./composables/useBgm";
 import { useRankUp, extractHighestRank } from "./composables/useRankUp";
 import type { ThreadItem } from "@/types/qa";
@@ -225,6 +226,32 @@ const mainBgImgStyle = computed(() => {
 
 // 背景音乐
 const bgm = useBgm();
+
+// 监听视频播放事件，控制 BGM 暂停/继续（多题模式）
+const handleVideoStarted = () => {
+  if (bgm.isPlaying.value) {
+    bgm.pause();
+  }
+};
+
+const handleVideoEnded = () => {
+  if (bgm.hasBgm.value && !bgm.isPlaying.value) {
+    bgm.play();
+  }
+};
+
+onMounted(() => {
+  // 视频开始播放时暂停 BGM
+  videoEventBus.on('video-started', handleVideoStarted);
+  
+  // 视频播放结束时恢复 BGM
+  videoEventBus.on('video-ended', handleVideoEnded);
+});
+
+onUnmounted(() => {
+  videoEventBus.off('video-started', handleVideoStarted);
+  videoEventBus.off('video-ended', handleVideoEnded);
+});
 
 // 等级升级动画
 const rankUp = useRankUp(userId);
