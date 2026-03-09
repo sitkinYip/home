@@ -3,7 +3,7 @@
     <transition name="swipe-hint">
       <div v-if="visible" class="swipe-hint" @click="handleClick">
         <div class="swipe-hint-inner">
-          <span class="hint-text">左滑查看下一题</span>
+          <span class="hint-text">{{ hintText }}</span>
           <div class="hint-arrows">
             <span
               class="arrow-icon"
@@ -34,6 +34,7 @@ const emit = defineEmits<{
 }>();
 
 const visible = ref(false);
+const hintText = ref("左滑查看下一题");
 let dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
 const clearTimer = () => {
@@ -58,6 +59,10 @@ watch(
   (shouldShow) => {
     clearTimer();
     if (shouldShow) {
+      // 检查是否有弹窗正在展示
+      const isMagicScrollShow = document.documentElement.hasAttribute("data-magicscrollshow");
+      hintText.value = isMagicScrollShow ? "关闭弹窗后 左滑查看下一题" : "左滑查看下一题";
+
       visible.value = true;
       // 4 秒后自动消失
       dismissTimer = setTimeout(dismiss, 4000);

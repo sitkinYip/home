@@ -95,7 +95,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { VideoPlay } from "@element-plus/icons-vue";
 import { useContentParser } from "../composables/useContentParser";
 import { toVpx } from "@/utils/toVpx";
@@ -191,6 +191,19 @@ const show = (data: { title: string; content: string }) => {
 const handleClose = () => {
   visible.value = false;
 };
+
+// 监听可见性，同步全局标记
+watch(visible, (val) => {
+  if (val) {
+    document.documentElement.setAttribute("data-magicscrollshow", "true");
+  } else {
+    document.documentElement.removeAttribute("data-magicscrollshow");
+  }
+});
+
+onBeforeUnmount(() => {
+  document.documentElement.removeAttribute("data-magicscrollshow");
+});
 
 defineExpose({ show });
 </script>
