@@ -32,7 +32,7 @@ defineEmits<{
   top: 12vpx;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 9999;
 
   // 毛玻璃容器
   padding: 12vpx 24vpx;
