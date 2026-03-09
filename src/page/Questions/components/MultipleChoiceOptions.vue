@@ -185,11 +185,11 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
 .multiple-choice-options {
   display: flex;
   flex-direction: column;
-  gap: 12vpx; // 14 -> 12
+  gap: 8vpx; // 10 -> 8
   width: 100%;
-  margin-top: 20vpx;
+  margin-top: 12vpx; // 16 -> 12
   // 增加底部间距
-  margin-bottom: 24vpx;
+  margin-bottom: 16vpx; // 20 -> 16
   position: relative; // 为 overlay 定位
 }
 
@@ -197,8 +197,8 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   position: relative;
   display: flex;
   align-items: center;
-  padding: 15vpx; // 16 -> 15
-  border-radius: 12vpx;
+  padding: 8vpx 12vpx; // 12 -> 8px vertical
+  border-radius: 8vpx; // 10 -> 8
   background: $option-bg;
   border: 1vpx solid rgba($magic-gold, 0.3);
   cursor: pointer;
@@ -262,13 +262,13 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   display: flex;
   align-items: center;
   width: 100%;
-  gap: 14vpx; // 保持 14 或者 12
+  gap: 8vpx; // 10 -> 8
 }
 
 .option-key {
   position: relative;
-  width: 34vpx; // 38 -> 34
-  height: 34vpx; // 38 -> 34
+  width: 24vpx; // 28 -> 24
+  height: 24vpx; // 28 -> 24
   display: flex;
   align-items: center;
   justify-content: center;
@@ -278,7 +278,7 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   flex-shrink: 0;
 
   .key-char {
-    font-size: 16vpx; // 18 -> 16
+    font-size: 13vpx; // 14 -> 13
     color: $magic-gold;
     transition: all 0.3s ease;
     font-family: "Cinzel", serif;
@@ -286,7 +286,7 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
 }
 
 .option-text {
-  font-size: 16vpx; // 17 -> 16 to fit more text
+  font-size: 12vpx; // 15 -> 14
   color: #fff;
   font-weight: 500;
   line-height: 1.5; // Improve readability for multi-line
@@ -298,8 +298,8 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
 
 .option-media-wrap {
   position: relative;
-  width: 64vpx; // 70 -> 64
-  height: 48vpx; // 52 -> 48
+  width: 56vpx; // 60 -> 56
+  height: 42vpx; // 45 -> 42
   border-radius: 8vpx;
   overflow: hidden;
   border: 1vpx solid rgba(255, 255, 255, 0.2);
@@ -327,7 +327,7 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
     justify-content: center;
 
     .play-icon {
-      font-size: 18vpx; // 20 -> 18
+      font-size: 16vpx; // 18 -> 16
       color: #fff;
       filter: drop-shadow(0 0 4vpx rgba(0, 0, 0, 0.8));
     }
@@ -339,8 +339,8 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   right: 12vpx;
   top: 50%;
   transform: translateY(-50%);
-  width: 16vpx; // 18 -> 16
-  height: 16vpx; // 18 -> 16
+  width: 14vpx; // 16 -> 14
+  height: 14vpx; // 16 -> 14
 
   .magic-circle {
     width: 100%;
