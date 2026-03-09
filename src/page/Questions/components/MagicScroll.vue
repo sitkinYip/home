@@ -570,11 +570,11 @@ defineExpose({ show });
 
   .scroll-title {
     font-family: "Cinzel", "Georgia", serif;
-    font-size: 22vpx;
+    font-size: 14vpx;
     color: #4e342e;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 32vpx;
+    margin-bottom: 20vpx;
     letter-spacing: 2vpx;
     text-shadow: 0 1vpx 2vpx rgba(255, 255, 255, 0.5);
 
