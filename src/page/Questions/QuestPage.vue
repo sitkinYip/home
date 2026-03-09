@@ -150,6 +150,7 @@ import { useAnswerCheck } from "./composables/useAnswerCheck";
 import { useArtifacts } from "./composables/useArtifacts";
 import { videoEventBus } from "@/utils/videoEventBus";
 import { showNotify, showImagePreview } from "vant";
+import { tracker } from "@/utils/eventTracker";
 
 /**
  * Props 定义：
@@ -186,6 +187,9 @@ const emit = defineEmits<{
 const questionsStore = useQuestionsStore();
 const router = useRouter();
 const isDebug = getQueryParam("debug")?.[0] === "1";
+
+// 初始化事件追踪器
+const userName = computed(() => activeQaInfo.value?.userName || "旅行者");
 
 // Refs
 const magicScrollRef = ref<any>(null);
@@ -258,16 +262,16 @@ const handleVideoEnded = () => {
 if (!props.compact) {
   onMounted(() => {
     // 视频开始播放时暂停 BGM
-    videoEventBus.on('video-started', handleVideoStarted);
-    
+    videoEventBus.on("video-started", handleVideoStarted);
+
     // 视频播放结束时恢复 BGM
-    videoEventBus.on('video-ended', handleVideoEnded);
+    videoEventBus.on("video-ended", handleVideoEnded);
   });
-  
+
   // 组件卸载时取消订阅
   onUnmounted(() => {
-    videoEventBus.off('video-started', handleVideoStarted);
-    videoEventBus.off('video-ended', handleVideoEnded);
+    videoEventBus.off("video-started", handleVideoStarted);
+    videoEventBus.off("video-ended", handleVideoEnded);
   });
 }
 
@@ -297,12 +301,12 @@ const talk = (msg: string, dur: number = 0): Promise<void> => {
   });
 };
 
+/**
+ * 上报事件（保留向后兼容，内部使用新的 tracker）
+ * @deprecated 请使用 tracker.track() 或具体的快捷方法
+ */
 const reportAction = (content: string, title: string) => {
-  const nickName = activeQaInfo.value?.userName || "旅行者";
-  if (isDebug) return console.log(`报告：${title} -- 来自sitkin.top/${nickName}${content}`);
-  fetch(
-    `https://api.chuckfang.com/4acc3779/${title} -- 来自sitkin.top/${nickName}${content}`,
-  ).catch((e) => console.error("Report failed", e));
+  tracker.trackCustomAction(title, content, undefined, userName.value);
 };
 
 const handleAvatarClick = clickCounter(clearPenalty, 10);
@@ -375,9 +379,13 @@ const handleVictoryClose = () => {
   // 无 AutoPlay 时走原有逻辑
   const { path, query = {}, link } = activeQaInfo.value?.FinalLevelConfig || {};
   if (path) {
+    // 上报路由跳转事件
+    tracker.trackRouteNavigate(path, query, "QuestPage", userName.value);
     return router.replace({ path, query });
   }
   if (link) {
+    // 上报外部链接跳转事件
+    tracker.trackLinkClick(link, "最终关卡通关跳转", userName.value);
     return openPage(link);
   }
 };
@@ -457,6 +465,8 @@ const initData = async () => {
   if (props.compact && props.levelData) {
     checkPersistentProgress();
     loadPenaltyState();
+    // 注意：compact 模式（多题模式）下不上报单题访问，避免重复上报
+    // 多题模式的访问已在 index.vue 中统一上报
     return;
   }
 
@@ -466,6 +476,14 @@ const initData = async () => {
   if (questionsStore.qaInfo) {
     checkPersistentProgress();
     loadPenaltyState();
+
+    // 上报题目访问
+    tracker.trackQuestionVisit(
+      currentStep,
+      questionsStore.qaInfo.title || "未知题目",
+      false,
+      userName.value,
+    );
 
     // 初始化背景音乐
     if (questionsStore.qaInfo.mainAudio) {

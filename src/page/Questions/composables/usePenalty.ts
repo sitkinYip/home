@@ -2,6 +2,7 @@ import { ref, computed, Ref } from "vue";
 import { showNotify, showToast } from "vant";
 import { useQuestionsStore } from "@/store/questions";
 import { useFeedback } from "./useFeedback";
+import { tracker } from "@/utils/eventTracker";
 import type { LevelRecord } from "@/types/qa";
 
 /**
@@ -116,6 +117,9 @@ export function usePenalty(
   ) => {
     triggerErrorEffect();
 
+    // 上报答题错误事件
+    tracker.trackAnswerSubmit(currentStep, ans, false, userId || "旅行者");
+
     const filteredInput = filterSpecialChars(ans);
     if (ans) {
       reportAction(`答错了第${currentStep}题，回答的是${filteredInput}`, "错误通知");
@@ -141,11 +145,14 @@ export function usePenalty(
   ) => {
     triggerErrorEffect();
 
+    // 上报答题错误事件
+    tracker.trackAnswerSubmit(currentStep, ans, false, userId || "旅行者");
+
     // 增加错误次数
     wrongCount.value++;
 
     // 计算惩罚时间
-    // count从1开始，config索引从0开始，所以索引是 count - 1
+    // count 从 1 开始，config 索引从 0 开始，所以索引是 count - 1
     const configIndex = Math.min(wrongCount.value - 1, currentPenaltyConfig.value.length - 1);
     const duration = currentPenaltyConfig.value[configIndex];
 

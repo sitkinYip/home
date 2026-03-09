@@ -6,7 +6,7 @@
         <div class="modal-header">
           <div class="modal-title">
             <el-icon class="title-icon"><Opportunity /></el-icon>
-            <span class="title-text">{{ store.multiQuestClue?.title || '隐藏的线索' }}</span>
+            <span class="title-text">{{ store.multiQuestClue?.title || "隐藏的线索" }}</span>
           </div>
           <div class="close-btn" @click="handleClose">
             <el-icon><Close /></el-icon>
@@ -61,6 +61,7 @@ import { ref, computed } from "vue";
 import { Opportunity, Close, VideoPlay } from "@element-plus/icons-vue";
 import { useQuestionsStore } from "@/store/questions";
 import { useContentParser } from "../composables/useContentParser";
+import { tracker } from "@/utils/eventTracker";
 
 const store = useQuestionsStore();
 
@@ -69,6 +70,7 @@ const visible = ref(false);
 const emit = defineEmits(["closed"]);
 
 const clueData = computed(() => store.multiQuestClue?.content || "");
+const clueTitle = computed(() => store.multiQuestClue?.title || "隐藏的线索");
 
 // 利用现有的 composable 解析 content
 const { parsedContent, handleLinkClick, handleImageClick, handleVideoClick } =
@@ -77,6 +79,8 @@ const { parsedContent, handleLinkClick, handleImageClick, handleVideoClick } =
 const show = () => {
   if (clueData.value) {
     visible.value = true;
+    // 上报线索弹窗打开事件
+    tracker.trackClueModalOpen(clueTitle.value, undefined, "旅行者");
   }
 };
 

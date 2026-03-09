@@ -100,6 +100,7 @@ import { VideoPlay } from "@element-plus/icons-vue";
 import { useContentParser } from "../composables/useContentParser";
 import { toVpx } from "@/utils/toVpx";
 import VideoPlayer from "@/components/VideoPlayer.vue";
+import { tracker } from "@/utils/eventTracker";
 
 const visible = ref(false);
 const rawText = ref("");
@@ -186,6 +187,9 @@ const show = (data: { title: string; content: string }) => {
   rawText.value = data.content;
   title.value = data.title;
   visible.value = true;
+
+  // 上报 MagicScroll 打开事件
+  tracker.trackMagicScrollOpen(data.title, data.content, "旅行者");
 };
 
 const handleClose = () => {

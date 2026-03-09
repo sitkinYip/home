@@ -136,6 +136,7 @@ import { useRankUp, extractHighestRank } from "./composables/useRankUp";
 import type { ThreadItem } from "@/types/qa";
 import type { RankInfo } from "./composables/useRankUp";
 import type { AutoPlayResult } from "./composables/useAnswerCheck";
+import { tracker } from "@/utils/eventTracker";
 
 import QuestPage from "./QuestPage.vue";
 import AdventureLost from "./components/AdventureLost.vue";
@@ -175,6 +176,20 @@ const multiSteps = qasParam
       .filter((n) => !isNaN(n))
   : [];
 const isMultiMode = multiSteps.length > 1;
+
+// 页面加载时上报访问事件
+const trackPageVisit = () => {
+  if (isMultiMode) {
+    tracker.trackPageVisit(
+      "多题模式",
+      { steps: multiSteps.join(","), count: multiSteps.length },
+      "旅行者",
+    );
+  } else {
+    const singleStep = getQueryParam("qa")?.[0] || "1";
+    tracker.trackPageVisit("单题模式", { step: singleStep }, "旅行者");
+  }
+};
 
 // 多题模式数据
 const multiLevels = computed(() => questionsStore.multiLevels);
@@ -242,15 +257,15 @@ const handleVideoEnded = () => {
 
 onMounted(() => {
   // 视频开始播放时暂停 BGM
-  videoEventBus.on('video-started', handleVideoStarted);
-  
+  videoEventBus.on("video-started", handleVideoStarted);
+
   // 视频播放结束时恢复 BGM
-  videoEventBus.on('video-ended', handleVideoEnded);
+  videoEventBus.on("video-ended", handleVideoEnded);
 });
 
 onUnmounted(() => {
-  videoEventBus.off('video-started', handleVideoStarted);
-  videoEventBus.off('video-ended', handleVideoEnded);
+  videoEventBus.off("video-started", handleVideoStarted);
+  videoEventBus.off("video-ended", handleVideoEnded);
 });
 
 // 等级升级动画
@@ -605,6 +620,9 @@ const initMultiMode = async () => {
 };
 
 onMounted(() => {
+  // 上报页面访问
+  trackPageVisit();
+
   if (isMultiMode) {
     initMultiMode();
   }

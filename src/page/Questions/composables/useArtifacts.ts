@@ -1,5 +1,6 @@
 import { showImagePreview } from "vant";
 import { Ref } from "vue";
+import { tracker } from "@/utils/eventTracker";
 
 /**
  * 遗物/线索 交互 Hook
@@ -12,6 +13,8 @@ export function useArtifacts(videoPlayerRef: Ref<any>, magicScrollRef: Ref<any>)
    */
   const openVideo = (url: string, tips?: string) => {
     videoPlayerRef.value?.open(url, tips);
+    // 上报视频播放事件
+    tracker.trackMediaPlay("video", url, tips || "视频", "旅行者");
   };
 
   /**
@@ -19,7 +22,11 @@ export function useArtifacts(videoPlayerRef: Ref<any>, magicScrollRef: Ref<any>)
    * @param url 链接地址
    */
   const openPage = (url?: string) => {
-    if (url) window.open(url);
+    if (url) {
+      window.open(url);
+      // 上报页面跳转事件
+      tracker.trackLinkClick(url, undefined, "旅行者");
+    }
   };
 
   /**
@@ -32,6 +39,8 @@ export function useArtifacts(videoPlayerRef: Ref<any>, magicScrollRef: Ref<any>)
       closeable: true,
       teleport: "body",
     });
+    // 上报图片预览事件
+    tracker.trackMediaPlay("image", images[0] || "", `图片预览 (${images.length}张)`, "旅行者");
   };
 
   /**
@@ -49,6 +58,8 @@ export function useArtifacts(videoPlayerRef: Ref<any>, magicScrollRef: Ref<any>)
           images: item.imgList || [item.url!],
           closeable: true,
         });
+        // 上报图片预览事件
+        tracker.trackMediaPlay("image", item.url || "", item.tips || "图片线索", "旅行者");
         break;
       case "video":
         openVideo(item.url!, item.tips);
