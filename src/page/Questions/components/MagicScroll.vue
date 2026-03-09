@@ -4,7 +4,7 @@
     <div v-if="visible" class="scroll-overlay" @click.self="handleClose">
       <!-- 魔法粒子背景 -->
       <div class="magic-particles">
-        <span v-for="n in 20" :key="n" class="particle" :style="getParticleStyle(n)"></span>
+        <span v-for="n in 20" :key="n" class="particle" :style="getParticleStyle()"></span>
       </div>
 
       <!-- 光芒效果 -->
@@ -32,55 +32,57 @@
           <div class="paper-corner paper-corner-bl"></div>
           <div class="paper-corner paper-corner-br"></div>
 
-          <div class="scroll-content-wrap">
-            <div class="scroll-title">{{ title || "神谕密卷" }}</div>
-            <!-- 核心：渲染解析后的富文本 -->
-            <div class="scroll-text">
-              <template v-for="(segment, index) in parsedContent" :key="index">
-                <!-- 普通文本 -->
-                <span v-if="segment.type === 'text'">{{ segment.content }}</span>
+          <div class="scroll-view custom-scrollbar">
+            <div class="scroll-content-wrap">
+              <div class="scroll-title">{{ title || "神谕密卷" }}</div>
+              <!-- 核心：渲染解析后的富文本 -->
+              <div class="scroll-text">
+                <template v-for="(segment, index) in parsedContent" :key="index">
+                  <!-- 普通文本 -->
+                  <span v-if="segment.type === 'text'">{{ segment.content }}</span>
 
-                <!-- 高亮文本 -->
-                <span v-else-if="segment.type === 'highlight'" class="scroll-highlight">
-                  {{ segment.content }}
-                </span>
+                  <!-- 高亮文本 -->
+                  <span v-else-if="segment.type === 'highlight'" class="scroll-highlight">
+                    {{ segment.content }}
+                  </span>
 
-                <!-- 链接/路由 -->
-                <span
-                  v-else-if="segment.type === 'link'"
-                  class="scroll-link"
-                  @click="handleLinkClick(segment.url!)"
-                >
-                  {{ segment.content }}
-                </span>
+                  <!-- 链接/路由 -->
+                  <span
+                    v-else-if="segment.type === 'link'"
+                    class="scroll-link"
+                    @click="handleLinkClick(segment.url!)"
+                  >
+                    {{ segment.content }}
+                  </span>
 
-                <!-- 图片 -->
-                <div v-else-if="segment.type === 'image'" class="scroll-image-wrap">
-                  <van-image
-                    :src="segment.url"
-                    width="100%"
-                    fit="contain"
-                    class="scroll-img"
-                    @click="handleImageClick(segment.url!)"
-                  />
-                </div>
-
-                <!-- 视频 -->
-                <div
-                  v-else-if="segment.type === 'video'"
-                  class="scroll-video-wrap"
-                  :style="segment.poster ? { backgroundImage: `url(${segment.poster})` } : {}"
-                  :class="{ 'has-poster': segment.poster }"
-                  @click="openVideoPlayer(segment.url!)"
-                >
-                  <div class="video-play-btn">
-                    <el-icon :size="toVpx(28)"><VideoPlay /></el-icon>
+                  <!-- 图片 -->
+                  <div v-else-if="segment.type === 'image'" class="scroll-image-wrap">
+                    <van-image
+                      :src="segment.url"
+                      width="100%"
+                      fit="contain"
+                      class="scroll-img"
+                      @click="handleImageClick(segment.url!)"
+                    />
                   </div>
-                </div>
 
-                <!-- 换行 -->
-                <br v-else-if="segment.type === 'br'" />
-              </template>
+                  <!-- 视频 -->
+                  <div
+                    v-else-if="segment.type === 'video'"
+                    class="scroll-video-wrap"
+                    :style="segment.poster ? { backgroundImage: `url(${segment.poster})` } : {}"
+                    :class="{ 'has-poster': segment.poster }"
+                    @click="openVideoPlayer(segment.url!)"
+                  >
+                    <div class="video-play-btn">
+                      <el-icon :size="toVpx(28)"><VideoPlay /></el-icon>
+                    </div>
+                  </div>
+
+                  <!-- 换行 -->
+                  <br v-else-if="segment.type === 'br'" />
+                </template>
+              </div>
             </div>
           </div>
         </div>
@@ -123,7 +125,7 @@ let fontsLoaded = false;
 /**
  * 生成粒子随机样式
  */
-const getParticleStyle = (index: number) => {
+const getParticleStyle = () => {
   const size = 2 + Math.random() * 4;
   const left = Math.random() * 100;
   const delay = Math.random() * 3;
@@ -429,23 +431,38 @@ defineExpose({ show });
     0 1vpx 3vpx rgba(0, 0, 0, 0.2),
     0 0 60vpx rgba(218, 165, 32, 0.15);
 
-  padding: 40vpx 30vpx;
+  padding: 0; // padding 移至内部
   min-height: 400vpx;
   max-height: 70vh;
-  overflow-y: auto;
-
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // 由内部 scroll-view 负责滚动
+  padding-bottom: 12vpx;
+  padding-top: 12vpx;
   border: 1vpx solid rgba(139, 90, 43, 0.2);
   outline: 4vpx double rgba(139, 90, 43, 0.15);
   outline-offset: -12vpx;
 
   z-index: 1;
 
-  &::-webkit-scrollbar {
-    width: 4vpx;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(93, 64, 55, 0.3);
-    border-radius: 2vpx;
+  /* 已改为由 .scroll-view 配合 .custom-scrollbar 控制 */
+
+  // 底部固定装饰线（原 ::before 逻辑移到这里作为固定层）
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 30vpx 24vpx;
+    border: 2vpx solid transparent;
+    border-image: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(139, 69, 19, 0.2) 20%,
+        rgba(139, 69, 19, 0.2) 80%,
+        transparent
+      )
+      1;
+    pointer-events: none;
+    z-index: 2;
   }
 
   // 角落装饰
@@ -531,23 +548,24 @@ defineExpose({ show });
     }
   }
 
+  .scroll-view {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40vpx 30vpx 80vpx; // 底部留出 80px 确保文字不盖到底部条
+    position: relative;
+    z-index: 1;
+
+    &::-webkit-scrollbar {
+      width: 4vpx;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(93, 64, 55, 0.3);
+      border-radius: 2vpx;
+    }
+  }
+
   .scroll-content-wrap {
     position: relative;
-    &::before {
-      content: "";
-      position: absolute;
-      inset: -10vpx -6vpx;
-      border: 2vpx solid transparent;
-      border-image: linear-gradient(
-          to bottom,
-          transparent,
-          rgba(139, 69, 19, 0.2) 20%,
-          rgba(139, 69, 19, 0.2) 80%,
-          transparent
-        )
-        1;
-      pointer-events: none;
-    }
   }
 
   .scroll-title {
@@ -590,11 +608,13 @@ defineExpose({ show });
 
   .scroll-text {
     font-family: "Crimson Text", "Georgia", serif;
-    font-size: 17vpx;
+    font-size: 12vpx;
     line-height: 2;
     color: #3e2723;
     text-align: justify;
     letter-spacing: 0.5vpx;
+    white-space: pre-wrap;
+    word-break: break-all;
 
     :deep(.scroll-highlight) {
       color: #9a0007;
@@ -621,7 +641,6 @@ defineExpose({ show });
     }
 
     :deep(.scroll-image-wrap) {
-      margin: 16vpx 0;
       width: 100%;
       display: flex;
       justify-content: center;

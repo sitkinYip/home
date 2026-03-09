@@ -227,6 +227,7 @@ $magic-cyan: #00f2ff;
       font-size: 13vpx;
       color: #eeeeee;
       line-height: 1.6;
+      white-space: pre-wrap;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       line-clamp: 3;

@@ -264,6 +264,8 @@ const toggleExpand = () => {
   line-height: 1.8;
   color: #3e2723;
   text-align: justify;
+  white-space: pre-wrap;
+  word-break: break-all;
 
   .scroll-highlight {
     color: #9a0007;
@@ -288,7 +290,7 @@ const toggleExpand = () => {
   }
 
   .scroll-image-wrap {
-    margin: 12vpx 0;
+    margin: 0 0;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -307,7 +309,7 @@ const toggleExpand = () => {
   }
 
   .scroll-video-wrap {
-    margin: 12vpx 0;
+    margin: 0 0;
     width: 100%;
     aspect-ratio: 16 / 9;
     border-radius: 4vpx;
