@@ -178,18 +178,29 @@ $magic-gold: #ffd700;
   }
 }
 
+.text-and-tips {
+  width: 100%;
+}
+
 .narrative-text {
+  display: flex;
+  justify-content: center;
+  width: 100%;
   font-size: 17vpx;
   line-height: 1.6;
   color: #fff;
+  /* 确保文字内容块在多行时左对齐 */
+  text-align: left;
+
   &.is-caption {
     font-size: 14vpx;
     color: rgba(255, 255, 255, 0.7);
-    text-align: center;
     font-style: italic;
     padding: 0 10vpx;
     border-left: 2vpx solid $magic-gold;
     margin-top: 12vpx;
+    /* 容器由于是 block+flex 且 width 100%，边框会保持在最左侧 */
+    justify-content: center;
   }
 }
 
