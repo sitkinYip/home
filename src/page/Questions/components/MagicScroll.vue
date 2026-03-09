@@ -214,7 +214,7 @@ defineExpose({ show });
 .scroll-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10005;
+  z-index: 99;
   // 透明背景，带有轻微的魔法紫色调
   background: rgba(20, 15, 35, 0.65);
   backdrop-filter: blur(16vpx) saturate(1.2);
