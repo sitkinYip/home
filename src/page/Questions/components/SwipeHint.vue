@@ -59,9 +59,12 @@ watch(
   (shouldShow) => {
     clearTimer();
     if (shouldShow) {
-      // 检查是否有弹窗正在展示
+      // 检查是否有弹窗正在展示（MagicScroll 或 Vant 看图器等）
       const isMagicScrollShow = document.documentElement.hasAttribute("data-magicscrollshow");
-      hintText.value = isMagicScrollShow ? "关闭弹窗后 左滑查看下一题" : "左滑查看下一题";
+      const isVantImagePreviewOpen = document.body.classList.contains("van-overflow-hidden");
+      const isAnyModalOpen = isMagicScrollShow || isVantImagePreviewOpen;
+      
+      hintText.value = isAnyModalOpen ? "关闭弹窗后 左滑查看下一题" : "左滑查看下一题";
 
       visible.value = true;
       // 4 秒后自动消失
@@ -85,7 +88,7 @@ onBeforeUnmount(() => {
   bottom: 60vpx;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10010;
+  z-index: 10011;
   pointer-events: auto;
   cursor: pointer;
 }
