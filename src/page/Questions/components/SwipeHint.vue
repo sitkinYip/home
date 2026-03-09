@@ -1,17 +1,24 @@
 <template>
-  <transition name="swipe-hint">
-    <div v-if="visible" class="swipe-hint" @click="handleClick">
-      <div class="swipe-hint-inner">
-        <span class="hint-text">左滑查看下一题</span>
-        <div class="hint-arrows">
-          <span class="arrow-icon" v-for="index in 3" :key="index" :style="{ animationDelay: `${(index - 1) * 0.15}s` }">
-            ‹
-          </span>
+  <Teleport to="body">
+    <transition name="swipe-hint">
+      <div v-if="visible" class="swipe-hint" @click="handleClick">
+        <div class="swipe-hint-inner">
+          <span class="hint-text">左滑查看下一题</span>
+          <div class="hint-arrows">
+            <span
+              class="arrow-icon"
+              v-for="index in 3"
+              :key="index"
+              :style="{ animationDelay: `${(index - 1) * 0.15}s` }"
+            >
+              ‹
+            </span>
+          </div>
         </div>
+        <div class="hint-glow"></div>
       </div>
-      <div class="hint-glow"></div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
@@ -73,7 +80,7 @@ onBeforeUnmount(() => {
   bottom: 60vpx;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 15;
+  z-index: 10010;
   pointer-events: auto;
   cursor: pointer;
 }

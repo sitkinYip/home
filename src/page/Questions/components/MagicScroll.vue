@@ -1,95 +1,97 @@
 <!-- components/MagicScroll.vue -->
 <template>
-  <transition name="magic-scroll">
-    <div v-if="visible" class="scroll-overlay" @click.self="handleClose">
-      <!-- 魔法粒子背景 -->
-      <div class="magic-particles">
-        <span v-for="n in 20" :key="n" class="particle" :style="getParticleStyle()"></span>
-      </div>
-
-      <!-- 光芒效果 -->
-      <div class="magic-glow"></div>
-
-      <div class="scroll-body">
-        <!-- 外部关闭按钮 - 魔法水晶风格 -->
-        <div class="magic-close-btn" @click="handleClose">
-          <div class="close-crystal">
-            <div class="crystal-inner">
-              <span class="close-rune">✕</span>
-            </div>
-            <div class="crystal-glow"></div>
-          </div>
-          <div class="close-orbits">
-            <span class="orbit orbit-1"></span>
-            <span class="orbit orbit-2"></span>
-          </div>
+  <Teleport to="body">
+    <transition name="magic-scroll">
+      <div v-if="visible" class="scroll-overlay" @click.self="handleClose">
+        <!-- 魔法粒子背景 -->
+        <div class="magic-particles">
+          <span v-for="n in 20" :key="n" class="particle" :style="getParticleStyle()"></span>
         </div>
 
-        <!-- 信纸主体 -->
-        <div class="scroll-paper">
-          <div class="paper-corner paper-corner-tl"></div>
-          <div class="paper-corner paper-corner-tr"></div>
-          <div class="paper-corner paper-corner-bl"></div>
-          <div class="paper-corner paper-corner-br"></div>
+        <!-- 光芒效果 -->
+        <div class="magic-glow"></div>
 
-          <div class="scroll-view custom-scrollbar">
-            <div class="scroll-content-wrap">
-              <div class="scroll-title">{{ title || "神谕密卷" }}</div>
-              <!-- 核心：渲染解析后的富文本 -->
-              <div class="scroll-text">
-                <template v-for="(segment, index) in parsedContent" :key="index">
-                  <!-- 普通文本 -->
-                  <span v-if="segment.type === 'text'">{{ segment.content }}</span>
+        <div class="scroll-body">
+          <!-- 外部关闭按钮 - 魔法水晶风格 -->
+          <div class="magic-close-btn" @click="handleClose">
+            <div class="close-crystal">
+              <div class="crystal-inner">
+                <span class="close-rune">✕</span>
+              </div>
+              <div class="crystal-glow"></div>
+            </div>
+            <div class="close-orbits">
+              <span class="orbit orbit-1"></span>
+              <span class="orbit orbit-2"></span>
+            </div>
+          </div>
 
-                  <!-- 高亮文本 -->
-                  <span v-else-if="segment.type === 'highlight'" class="scroll-highlight">
-                    {{ segment.content }}
-                  </span>
+          <!-- 信纸主体 -->
+          <div class="scroll-paper">
+            <div class="paper-corner paper-corner-tl"></div>
+            <div class="paper-corner paper-corner-tr"></div>
+            <div class="paper-corner paper-corner-bl"></div>
+            <div class="paper-corner paper-corner-br"></div>
 
-                  <!-- 链接/路由 -->
-                  <span
-                    v-else-if="segment.type === 'link'"
-                    class="scroll-link"
-                    @click="handleLinkClick(segment.url!)"
-                  >
-                    {{ segment.content }}
-                  </span>
+            <div class="scroll-view custom-scrollbar">
+              <div class="scroll-content-wrap">
+                <div class="scroll-title">{{ title || "神谕密卷" }}</div>
+                <!-- 核心：渲染解析后的富文本 -->
+                <div class="scroll-text">
+                  <template v-for="(segment, index) in parsedContent" :key="index">
+                    <!-- 普通文本 -->
+                    <span v-if="segment.type === 'text'">{{ segment.content }}</span>
 
-                  <!-- 图片 -->
-                  <div v-else-if="segment.type === 'image'" class="scroll-image-wrap">
-                    <van-image
-                      :src="segment.url"
-                      width="100%"
-                      fit="contain"
-                      class="scroll-img"
-                      @click="handleImageClick(segment.url!)"
-                    />
-                  </div>
+                    <!-- 高亮文本 -->
+                    <span v-else-if="segment.type === 'highlight'" class="scroll-highlight">
+                      {{ segment.content }}
+                    </span>
 
-                  <!-- 视频 -->
-                  <div
-                    v-else-if="segment.type === 'video'"
-                    class="scroll-video-wrap"
-                    :style="segment.poster ? { backgroundImage: `url(${segment.poster})` } : {}"
-                    :class="{ 'has-poster': segment.poster }"
-                    @click="openVideoPlayer(segment.url!)"
-                  >
-                    <div class="video-play-btn">
-                      <el-icon :size="toVpx(28)"><VideoPlay /></el-icon>
+                    <!-- 链接/路由 -->
+                    <span
+                      v-else-if="segment.type === 'link'"
+                      class="scroll-link"
+                      @click="handleLinkClick(segment.url!)"
+                    >
+                      {{ segment.content }}
+                    </span>
+
+                    <!-- 图片 -->
+                    <div v-else-if="segment.type === 'image'" class="scroll-image-wrap">
+                      <van-image
+                        :src="segment.url"
+                        width="100%"
+                        fit="contain"
+                        class="scroll-img"
+                        @click="handleImageClick(segment.url!)"
+                      />
                     </div>
-                  </div>
 
-                  <!-- 换行 -->
-                  <br v-else-if="segment.type === 'br'" />
-                </template>
+                    <!-- 视频 -->
+                    <div
+                      v-else-if="segment.type === 'video'"
+                      class="scroll-video-wrap"
+                      :style="segment.poster ? { backgroundImage: `url(${segment.poster})` } : {}"
+                      :class="{ 'has-poster': segment.poster }"
+                      @click="openVideoPlayer(segment.url!)"
+                    >
+                      <div class="video-play-btn">
+                        <el-icon :size="toVpx(28)"><VideoPlay /></el-icon>
+                      </div>
+                    </div>
+
+                    <!-- 换行 -->
+                    <br v-else-if="segment.type === 'br'" />
+                  </template>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </transition>
-  <VideoPlayer ref="videoPlayerRef" />
+    </transition>
+    <VideoPlayer ref="videoPlayerRef" />
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
