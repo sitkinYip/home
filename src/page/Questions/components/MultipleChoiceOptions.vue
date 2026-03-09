@@ -276,6 +276,8 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   border-radius: 50%;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  margin-top: 4vpx; // 对齐首行文本中线
+  margin-bottom: 6vpx;
 
   .key-char {
     font-size: 13vpx; // 14 -> 13
@@ -286,10 +288,13 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
 }
 
 .option-text {
+  display: flex;
+  align-items: center;
   font-size: 12vpx; // 15 -> 14
   color: #fff;
   font-weight: 500;
   line-height: 1.5; // Improve readability for multi-line
+  min-height: 36vpx; // 初始保留两行高度 (12 * 1.5 * 2)
   flex: 1;
   word-break: break-word; // Handle long words/mixed content
   text-align: left;
