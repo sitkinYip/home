@@ -110,7 +110,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import gsap from "gsap";
 import { useRouter } from "vue-router";
 import { useQuestionsStore } from "@/store/questions";
@@ -148,6 +148,7 @@ import RankUpAura from "./components/RankUpAura.vue";
 import { usePenalty } from "./composables/usePenalty";
 import { useAnswerCheck } from "./composables/useAnswerCheck";
 import { useArtifacts } from "./composables/useArtifacts";
+import { videoEventBus } from "@/utils/videoEventBus";
 import { showNotify, showImagePreview } from "vant";
 
 /**
@@ -241,6 +242,35 @@ const { openVideo, openPage, previewImage, handleArtifactAction } = useArtifacts
 // 背景音乐 Composable（compact 模式下不使用）
 const bgm = useBgm();
 
+// 监听视频播放事件，控制 BGM 暂停/继续（仅非 compact 模式）
+const handleVideoStarted = () => {
+  if (bgm.isPlaying.value) {
+    bgm.pause();
+  }
+};
+
+const handleVideoEnded = () => {
+  if (bgm.hasBgm.value && !bgm.isPlaying.value) {
+    bgm.play();
+  }
+};
+
+if (!props.compact) {
+  onMounted(() => {
+    // 视频开始播放时暂停 BGM
+    videoEventBus.on('video-started', handleVideoStarted);
+    
+    // 视频播放结束时恢复 BGM
+    videoEventBus.on('video-ended', handleVideoEnded);
+  });
+  
+  // 组件卸载时取消订阅
+  onUnmounted(() => {
+    videoEventBus.off('video-started', handleVideoStarted);
+    videoEventBus.off('video-ended', handleVideoEnded);
+  });
+}
+
 // 等级升级动画 Composable（compact 模式下不使用，由外层统一管理）
 const rankUp = useRankUp(userId);
 
@@ -287,6 +317,14 @@ const handleHeaderClick = () => {
 let pendingFinalAutoPlay: { autoPlayType: AutoPlayResult; qaInfo: LevelRecord } | null = null;
 
 /**
+ * 提取视频线索中的 tips 文字
+ */
+const extractVideoTips = (thread: ThreadItemList): string | undefined => {
+  const videoItem = thread.find((t: ThreadItem) => t.type === "video" && t.tips);
+  return videoItem?.tips;
+};
+
+/**
  * 执行延迟的 AutoPlay（VictoryAura 关闭后调用）
  * binGo 已在 onConfirmAnswer 中 emit 过，此处仅执行媒体展示
  */
@@ -303,7 +341,9 @@ const executePendingAutoPlay = () => {
       (t: ThreadItem) => t.state === "AutoPlay" && t.type === "video",
     );
     if (autoPlayItem?.url && videoPlayerRef.value) {
-      openVideo(autoPlayItem.url);
+      // 提取并传递 tips 文字
+      const tips = autoPlayItem.tips;
+      openVideo(autoPlayItem.url, tips);
     }
   } else if (autoPlayType === "image") {
     const autoPlayItem = qaInfo.thread.find(

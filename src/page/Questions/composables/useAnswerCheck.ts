@@ -83,7 +83,7 @@ export function useAnswerCheck(
     talk: (msg: string, dur?: number) => Promise<void>,
     victoryAuraRef: any,
     reportAction: (content: string, title: string) => void,
-    openVideo: (url: string) => void,
+    openVideo: (url: string, tips?: string) => void,
     videoPlayerRef: any,
     magicScrollRef?: any,
   ): Promise<AutoPlayResult> => {
@@ -154,7 +154,7 @@ export function useAnswerCheck(
       // 7. 非最终关：过渡动画完成后，立即执行自动播放媒体
       if (autoPlayItem) {
         if (autoPlayItem.type === "video" && autoPlayItem.url && videoPlayerRef.value) {
-          openVideo(autoPlayItem.url);
+          openVideo(autoPlayItem.url, autoPlayItem.tips);
           autoPlayType = "video";
         } else if (autoPlayItem.type === "img") {
           const images = autoPlayItem.imgList?.length

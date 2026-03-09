@@ -269,7 +269,7 @@ Questions/index.vue                    ← 页面入口
 
 ### 4.7 ArtifactCard（遗物卡片）
 
-**布局**：`flex`，图标区（44vpx 方形/圆形）+ 信息区（标签+内容预览）+ 箭头。
+**布局**：`flex`，图标区（44vpx 方形/圆形）+ 信息区（标签 + 内容预览）+ 箭头。
 **特殊类型装饰**：
 
 - `letter`：玫瑰色圆形图标 + 心跳动画 + 神圣光晕 + 彩虹流动边框
@@ -282,7 +282,20 @@ Questions/index.vue                    ← 页面入口
 - `{{url}}` → 图片（预览模式显示占位文字）
 - `\n` → 换行
 
-### 4.8 MagicScroll（羊皮纸弹窗）
+### 4.8 VideoPlayer（视频播放器）
+
+**触发方式**：`ref.open(url, tips?)`，第二个参数为可选的提示文字。
+**视觉**：全屏遮罩 + 毛玻璃背景 + 金色魔法边框装饰 + 关闭按钮。
+**提示文字特性**：
+- **位置**：视频上方，下滑入场动画（`tip-slide-down`）
+- **样式**：金色文字（`#ffd700`），黑色渐变背景，文字阴影 + 金色光晕
+- **自动计时**：根据文字长度自动计算显示时长（1 字/秒，最少 3 秒，最多 10 秒）
+- **自动隐藏**：达到时长后淡出 + 模糊 + 上移动画
+- **适配**：支持多行文字（`white-space: pre-wrap`），不干扰视频操作（`pointer-events: none`）
+**z-index**：10010（高于 MagicScroll 等弹窗层）
+**回调**：`onEnded()`、`onClosed()`、`clearOnEnded()`
+
+### 4.9 MagicScroll（羊皮纸弹窗）
 
 **触发方式**：`ref.show({ title, content })`。
 **视觉**：全屏遮罩 + 魔法粒子 + 中央光芒 + 羊皮纸卡片（四角装饰）。
@@ -432,6 +445,7 @@ interface ThreadItem {
   query?: Record<string, string>; // 路由参数
   nextIndex?: number; // 下一关序号（topic 类型）
   title?: string; // 自定义标签文字
+  tips?: string; // 视频播放时的提示文字（仅 video 类型使用）
 }
 ```
 
@@ -529,3 +543,83 @@ Questions/
 8. **富文本**：如需渲染用户配置的文本，是否使用了 `useContentParser` / `parseContent()`？
 9. **反馈**：交互是否提供了视觉/触觉/听觉反馈？
 10. **清理**：定时器、事件监听、音频实例是否在 `onUnmounted` 中清理？
+
+---
+
+## 十、使用示例：视频播放提示
+
+### 10.1 数据配置示例
+
+```typescript
+// ThreadItem 配置示例
+const threadItem: ThreadItem = {
+  type: "video",
+  content: "观看这段重要的视频线索",
+  url: "https://example.com/video.mp4",
+  tips: "注意观察画面中的金色符文，那是解开谜题的关键", // 视频播放提示
+  state: "AutoPlay"
+};
+```
+
+### 10.2 提示文字特性
+
+- **自动计时**：根据文字长度自动计算显示时长（1 字/秒）
+  - 示例：`"注意观察画面中的金色符文，那是解开谜题的关键"`（19 字）→ 显示 19 秒
+  - 最少显示 3 秒，最多显示 10 秒
+- **视觉样式**：金色文字 + 黑色渐变背景 + 金色光晕阴影
+- **动画效果**：下滑入场（0.6s 弹性动画）→ 静态展示 → 淡出 + 模糊 + 上移（0.8s）
+- **不干扰操作**：提示文字层 `pointer-events: none`，用户可正常点击视频控制条
+
+### 10.3 调用方式
+
+```typescript
+// 方式 1：通过 ref 直接调用（带提示）
+videoPlayerRef.value?.open(
+  "https://example.com/video.mp4",
+  "注意观察画面中的金色符文，那是解开谜题的关键"
+);
+
+// 方式 2：通过 ref 调用（不带提示，保持原有逻辑）
+videoPlayerRef.value?.open("https://example.com/video.mp4");
+
+// 方式 3：通过 useArtifacts composable 调用
+const { openVideo } = useArtifacts(videoPlayerRef, magicScrollRef);
+openVideo("https://example.com/video.mp4", "仔细观察，答案就在其中");
+```
+
+### 10.4 完整关卡配置示例
+
+```json
+{
+  "step": 5,
+  "question": [
+    {
+      "text": "请观看下面的视频，找出隐藏的秘密",
+      "video": "https://example.com/clue.mp4"
+    }
+  ],
+  "answer": "魔法石",
+  "thread": [
+    {
+      "type": "video",
+      "content": "重要线索视频",
+      "url": "https://example.com/reveal.mp4",
+      "tips": "视频中会出现三个符号，请记住它们的顺序",
+      "state": "AutoPlay"
+    },
+    {
+      "type": "text",
+      "content": "你发现了什么？",
+      "content": "[[黄金]] ((查看地图||https://map.example.com))"
+    }
+  ]
+}
+```
+
+### 10.5 注意事项
+
+1. **tips字段仅对 video 类型的 ThreadItem 生效**
+2. **提示文字会自动根据内容长度计算显示时间**，无需手动配置
+3. **用户手动关闭视频时，提示计时器会自动清除**
+4. **视频播放结束时，提示文字会立即隐藏**
+5. **支持多行文字**（使用 `\n` 换行），但建议控制在 2 行以内以保持美观

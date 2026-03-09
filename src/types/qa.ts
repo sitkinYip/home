@@ -31,6 +31,7 @@ export interface ThreadItem {
   query?: Record<string, string>;
   nextIndex?: number;
   title?: string;
+   tips?: string;
 }
 
 export type QuestionItemList = QuestionItem[];
@@ -119,6 +120,7 @@ export interface MultiQuestClueRecord {
   id: string;
   qas: string;
   content: string;
+  title?: string;
   collectionId: string;
   collectionName: string;
   created: string;
