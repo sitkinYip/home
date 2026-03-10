@@ -1,123 +1,137 @@
 <template>
-  <!-- 多题模式 -->
-  <div id="Questions" v-if="isMultiMode">
-    <!-- 数据加载完成且有关卡数据 -->
-    <div v-if="multiLevels.length > 0" class="adventure-container multi-quest-container">
-      <!-- 动态背景层 -->
-      <div class="magic-bg" :style="mainBgImgStyle"></div>
-      <div class="overlay"></div>
+  <div class="questions-module-wrapper">
+    <!-- 多题模式 -->
+    <div id="Questions" v-if="isMultiMode">
+      <!-- 数据加载完成且有关卡数据 -->
+      <div v-if="multiLevels.length > 0" class="adventure-container multi-quest-container">
+        <!-- 动态背景层 -->
+        <div class="magic-bg" :style="mainBgImgStyle"></div>
+        <div class="overlay"></div>
 
-      <div class="quest-swiper-wrapper">
-        <!-- 多题模式统一头部（Swiper 外，最顶部） -->
-        <MultiQuestHeader
-          :active-level="activeLevel"
-          :rank-info="multiRankInfo"
-          :is-bin-go="activeSlideIsBinGo"
-          :is-error="activeSlideIsError"
-        />
+        <div class="quest-swiper-wrapper">
+          <!-- 多题模式统一头部（Swiper 外，最顶部） -->
+          <MultiQuestHeader
+            :active-level="activeLevel"
+            :rank-info="multiRankInfo"
+            :is-bin-go="activeSlideIsBinGo"
+            :is-error="activeSlideIsError"
+          />
 
-        <!-- 进度指示器 -->
-        <div class="quest-progress-bar">
-          <div class="progress-track">
-            <div
-              class="progress-fill"
-              :style="{ width: `${(completedCount / multiLevels.length) * 100}%` }"
-            ></div>
+          <!-- 进度指示器 -->
+          <div class="quest-progress-bar">
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                :style="{ width: `${(completedCount / multiLevels.length) * 100}%` }"
+              ></div>
+            </div>
+            <span class="progress-label">{{ completedCount }} / {{ multiLevels.length }}</span>
           </div>
-          <span class="progress-label">{{ completedCount }} / {{ multiLevels.length }}</span>
+
+          <Swiper
+            ref="swiperRef"
+            :slides-per-view="swiperSlidesPerView"
+            :centered-slides="true"
+            :space-between="swiperSpaceBetween"
+            :grab-cursor="true"
+            :allow-touch-move="true"
+            :allow-slide-next="canSlideNext"
+            @swiper="onSwiperInit"
+            @slide-change="onSlideChange"
+            class="quest-swiper"
+          >
+            <SwiperSlide
+              v-for="(level, index) in multiLevels"
+              :key="level.step"
+              class="quest-slide"
+            >
+              <div
+                class="quest-slide-inner"
+                :class="{
+                  'is-active': activeSlideIndex === index,
+                  'is-completed': completedSteps.has(level.step),
+                }"
+              >
+                <!-- 关卡序号徽徽章 -->
+                <div class="slide-badge">
+                  <span class="badge-step">{{ index + 1 }}</span>
+                  <el-icon v-if="completedSteps.has(level.step)" class="badge-check">
+                    <Select />
+                  </el-icon>
+                </div>
+
+                <QuestPage
+                  :ref="(el: any) => setQuestPageRef(el, index)"
+                  :compact="true"
+                  :hide-header="true"
+                  :level-data="level"
+                  :prop-step="level.step"
+                  :prop-user-id="userId"
+                  @bin-go="handleBinGo"
+                />
+              </div>
+            </SwiperSlide>
+          </Swiper>
+
+          <!-- 答对后滑动提示 -->
+          <SwipeHint :show="showSwipeHint" @dismiss="showSwipeHint = false" />
         </div>
 
-        <Swiper
-          ref="swiperRef"
-          :slides-per-view="swiperSlidesPerView"
-          :centered-slides="true"
-          :space-between="swiperSpaceBetween"
-          :grab-cursor="true"
-          :allow-touch-move="true"
-          :allow-slide-next="canSlideNext"
-          @swiper="onSwiperInit"
-          @slide-change="onSlideChange"
-          class="quest-swiper"
-        >
-          <SwiperSlide v-for="(level, index) in multiLevels" :key="level.step" class="quest-slide">
-            <div
-              class="quest-slide-inner"
-              :class="{
-                'is-active': activeSlideIndex === index,
-                'is-completed': completedSteps.has(level.step),
-              }"
-            >
-              <!-- 关卡序号徽章 -->
-              <div class="slide-badge">
-                <span class="badge-step">{{ index + 1 }}</span>
-                <el-icon v-if="completedSteps.has(level.step)" class="badge-check">
-                  <Select />
-                </el-icon>
-              </div>
+        <!-- 等级升级动画 -->
+        <RankUpAura
+          ref="rankUpAuraRef"
+          :rank-info="rankUp.currentRankInfo.value"
+          @close="rankUp.dismissRankUp"
+        />
 
-              <QuestPage
-                :ref="(el: any) => setQuestPageRef(el, index)"
-                :compact="true"
-                :hide-header="true"
-                :level-data="level"
-                :prop-step="level.step"
-                :prop-user-id="userId"
-                @bin-go="handleBinGo"
-              />
-            </div>
-          </SwiperSlide>
-        </Swiper>
+        <!-- 多题通关特效 -->
+        <MultiQuestAura ref="multiAuraRef" @close="handleAuraClose" />
 
-        <!-- 答对后滑动提示 -->
-        <SwipeHint :show="showSwipeHint" @dismiss="showSwipeHint = false" />
+        <!-- 多题线索弹窗 -->
+        <MultiQuestClueModal ref="multiClueModalRef" @closed="handleClueModalClosed" />
+
+        <!-- 多题线索复用悬浮按钮 -->
+        <MultiQuestClueFloat :visible="showMultiClueFloat" @open="openClueModal" />
+
+        <!-- 背景音乐授权提示 -->
+        <BgmAuthHint
+          :visible="bgm.showAuthHint.value"
+          @authorize="bgm.authorize"
+          @dismiss="bgm.dismissAuthHint"
+        />
+
+        <!-- 背景音乐悬浮控制球 -->
+        <BgmFloatButton
+          :visible="bgm.hasBgm.value"
+          :is-playing="bgm.isPlaying.value"
+          @toggle="bgm.toggle"
+        />
       </div>
 
-      <!-- 等级升级动画 -->
-      <RankUpAura
-        ref="rankUpAuraRef"
-        :rank-info="rankUp.currentRankInfo.value"
-        @close="rankUp.dismissRankUp"
+      <!-- 迷失状态（关卡找不到或接口失败） -->
+      <AdventureLost
+        v-else-if="questionsStore.isLost"
+        :has-first-step="questionsStore.hasFirstStep"
       />
 
-      <!-- 多题通关特效 -->
-      <MultiQuestAura ref="multiAuraRef" @close="handleAuraClose" />
-
-      <!-- 多题线索弹窗 -->
-      <MultiQuestClueModal ref="multiClueModalRef" @closed="handleClueModalClosed" />
-
-      <!-- 多题线索复用悬浮按钮 -->
-      <MultiQuestClueFloat :visible="showMultiClueFloat" @open="openClueModal" />
-
-      <!-- 背景音乐授权提示 -->
-      <BgmAuthHint
-        :visible="bgm.showAuthHint.value"
-        @authorize="bgm.authorize"
-        @dismiss="bgm.dismissAuthHint"
-      />
-
-      <!-- 背景音乐悬浮控制球 -->
-      <BgmFloatButton
-        :visible="bgm.hasBgm.value"
-        :is-playing="bgm.isPlaying.value"
-        @toggle="bgm.toggle"
-      />
+      <!-- 加载中 -->
+      <div v-else class="loading-screen">
+        <div class="loader-spell"></div>
+        <p>正在吟唱召唤咒语...</p>
+      </div>
     </div>
 
-    <!-- 迷失状态（关卡找不到或接口失败） -->
-    <AdventureLost
-      v-else-if="questionsStore.isLost"
-      :has-first-step="questionsStore.hasFirstStep"
+    <!-- 单题模式：直接渲染 QuestPage，保持原有行为 -->
+    <QuestPage v-else />
+
+    <!-- 实时通知组件 (统一入口) -->
+    <NotificationModal ref="notificationModalRef" />
+    <NotificationFloat
+      :notifications="notifications"
+      :visible="true"
+      @open-message="(msg) => notificationModalRef?.show(msg)"
     />
-
-    <!-- 加载中 -->
-    <div v-else class="loading-screen">
-      <div class="loader-spell"></div>
-      <p>正在吟唱召唤咒语...</p>
-    </div>
   </div>
-
-  <!-- 单题模式：直接渲染 QuestPage，保持原有行为 -->
-  <QuestPage v-else />
 </template>
 
 <script lang="ts" setup>
@@ -148,13 +162,23 @@ import MultiQuestClueModal from "./components/MultiQuestClueModal.vue";
 import MultiQuestClueFloat from "./components/MultiQuestClueFloat.vue";
 import RankUpAura from "./components/RankUpAura.vue";
 import MultiQuestHeader from "./components/MultiQuestHeader.vue";
+import { defineAsyncComponent } from "vue";
+import { useNotifications } from "./composables/useNotifications";
+
+// Async Components
+const NotificationModal = defineAsyncComponent(() => import("./components/NotificationModal.vue"));
+const NotificationFloat = defineAsyncComponent(() => import("./components/NotificationFloat.vue"));
 
 const questionsStore = useQuestionsStore();
 
 const multiAuraRef = ref<InstanceType<typeof MultiQuestAura> | null>(null);
 const multiClueModalRef = ref<InstanceType<typeof MultiQuestClueModal> | null>(null);
 const rankUpAuraRef = ref<InstanceType<typeof RankUpAura> | null>(null);
+const notificationModalRef = ref<any>(null);
 const showMultiClueFloat = ref(false);
+
+// Notifications
+const { notifications, startPolling, stopPolling, onNewMessage } = useNotifications();
 
 // QuestPage 实例 ref 数组（用于获取各 slide 的 isBinGo/isError 状态）
 const questPageRefs = ref<InstanceType<typeof QuestPage>[]>([]);
@@ -266,6 +290,7 @@ onMounted(() => {
 onUnmounted(() => {
   videoEventBus.off("video-started", handleVideoStarted);
   videoEventBus.off("video-ended", handleVideoEnded);
+  stopPolling();
 });
 
 // 等级升级动画
@@ -617,6 +642,12 @@ const initMultiMode = async () => {
       rankUpAuraRef.value?.startEffect();
     }, 1500);
   }
+
+  // 延迟启动通知轮询
+  onNewMessage((msg) => {
+    notificationModalRef.value?.show(msg);
+  });
+  startPolling(6000);
 };
 
 onMounted(() => {
@@ -625,6 +656,12 @@ onMounted(() => {
 
   if (isMultiMode) {
     initMultiMode();
+  } else {
+    // 单题模式下也执行通知初始化
+    onNewMessage((msg) => {
+      notificationModalRef.value?.show(msg);
+    });
+    startPolling(5000);
   }
 });
 </script>

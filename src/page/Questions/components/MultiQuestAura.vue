@@ -28,6 +28,9 @@
             <div v-if="isInteractive" class="action-hint">点击任意处继续</div>
           </transition>
         </div>
+
+        <!-- 局部的礼花画布 -->
+        <canvas ref="confettiCanvasRef" class="confetti-canvas"></canvas>
       </div>
     </transition>
   </Teleport>
@@ -40,6 +43,8 @@ import confetti from "canvas-confetti";
 
 const visible = ref(false);
 const isInteractive = ref(false);
+const confettiCanvasRef = ref<HTMLCanvasElement | null>(null);
+let myConfetti: confetti.CreateTypes | null = null;
 
 const emit = defineEmits(["close"]);
 
@@ -73,6 +78,9 @@ const startEffect = () => {
       "-=0.5",
     );
 
+    if (confettiCanvasRef.value && !myConfetti) {
+      myConfetti = confetti.create(confettiCanvasRef.value, { resize: true });
+    }
     triggerConfetti();
   });
 };
@@ -80,24 +88,29 @@ const startEffect = () => {
 const handleClose = () => {
   if (!isInteractive.value) return;
   visible.value = false;
+  if (myConfetti) {
+    myConfetti.reset();
+    myConfetti = null;
+  }
   emit("close");
 };
 
 const triggerConfetti = () => {
+  if (!myConfetti) return;
   const end = Date.now() + 5 * 1000;
   const colors = ["#ffd700", "#00d2ff", "#8a2be2"];
 
   (function frame() {
-    if (!visible.value) return;
+    if (!visible.value || !myConfetti) return;
 
-    confetti({
+    myConfetti({
       particleCount: 5,
       angle: 60,
       spread: 70,
       origin: { x: 0 },
       colors: colors,
     });
-    confetti({
+    myConfetti({
       particleCount: 5,
       angle: 120,
       spread: 70,
@@ -283,6 +296,16 @@ defineExpose({ startEffect });
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.confetti-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
 }
 
 .hint-fade-enter-active {

@@ -42,7 +42,7 @@ const emit = defineEmits(["open"]);
 // 按钮尺寸 (从 48 放大至 52 以容纳更丰富的效果)
 const BTN_SIZE = 52;
 const EDGE_MARGIN = 20;
-const BOTTOM_MARGIN = 80;
+const BOTTOM_MARGIN = 200;
 
 // 状态
 const isDragging = ref(false);

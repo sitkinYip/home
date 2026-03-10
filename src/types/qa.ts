@@ -31,7 +31,7 @@ export interface ThreadItem {
   query?: Record<string, string>;
   nextIndex?: number;
   title?: string;
-   tips?: string;
+  tips?: string;
 }
 
 export type QuestionItemList = QuestionItem[];
@@ -121,6 +121,27 @@ export interface MultiQuestClueRecord {
   qas: string;
   content: string;
   title?: string;
+  buttonText?: string;
+  desc?: string;
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  updated: string;
+}
+
+/** 实时通知消息 */
+export interface NotificationRecord {
+  id: string;
+  /** 消息标题 */
+  title: string;
+  /** 弹窗正文（支持富文本标记：[[高亮]]、((文字||url))、{{图片url}}、\n 换行） */
+  content: string;
+  /** 弹窗顶部大标题 */
+  popupTitle?: string;
+  /** 弹窗关闭按钮文案 */
+  buttonText?: string;
+  /** 是否启用 */
+  enabled: boolean;
   collectionId: string;
   collectionName: string;
   created: string;

@@ -163,18 +163,9 @@ export function useContentParser(content: Ref<string> | string, options: ParseOp
     });
   };
 
-  /**
-   * 处理视频点击（新窗口打开视频链接）
-   */
-  const handleVideoClick = (url: string) => {
-    if (!url) return;
-    window.open(url, "_blank");
-  };
-
   return {
     parsedContent,
     handleLinkClick,
     handleImageClick,
-    handleVideoClick,
   };
 }

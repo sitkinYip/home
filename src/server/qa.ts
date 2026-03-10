@@ -4,6 +4,7 @@ import {
   TLetterecord,
   PhraseListRecord,
   MultiQuestClueRecord,
+  NotificationRecord,
 } from "@/types/qa";
 import { request } from "@/fetch";
 // const API_BASE = "https://api.sitkin.top/api/collections/levels/records";
@@ -68,5 +69,20 @@ export const fetchMultiQuestClue = async (qas: string): Promise<MultiQuestClueRe
     return data.items.length > 0 ? data.items[0] : null;
   } catch {
     return null;
+  }
+};
+
+/**
+ * 获取实时通知列表
+ */
+export const fetchNotifications = async (): Promise<NotificationRecord[]> => {
+  const path = `/notifications/records?filter=(enabled=true)&sort=-created`;
+  try {
+    const data = await request<ApiResponse<NotificationRecord>>(path, {
+      timeout: 5000,
+    });
+    return data.items;
+  } catch {
+    return [];
   }
 };

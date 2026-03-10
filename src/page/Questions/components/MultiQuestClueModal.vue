@@ -37,9 +37,9 @@
                 />
               </div>
               <div v-else-if="segment.type === 'video'" class="clue-video-wrapper">
-                <div class="video-placeholder" @click="handleVideoClick(segment.url!)">
+                <div class="video-placeholder" @click="openVideoPlayer(segment.url!)">
                   <el-icon class="play-icon"><VideoPlay /></el-icon>
-                  <span>点击查看视频影像</span>
+                  <span>点击查看视频</span>
                 </div>
               </div>
               <br v-else-if="segment.type === 'br'" />
@@ -48,12 +48,17 @@
         </div>
 
         <div class="modal-footer">
-          <div class="hint-text">这个窗口已被收录在界面的右下角浮标中</div>
-          <button class="confirm-btn" @click="handleClose">我知道了</button>
+          <div class="hint-text">
+            {{ store.multiQuestClue?.desc || "这个窗口已被收录在界面的右下角浮标中" }}
+          </div>
+          <button class="confirm-btn" @click="handleClose">
+            {{ store.multiQuestClue?.buttonText || "我知道了" }}
+          </button>
         </div>
       </div>
     </div>
   </transition>
+  <VideoPlayer ref="videoPlayerRef" />
 </template>
 
 <script lang="ts" setup>
@@ -62,6 +67,7 @@ import { Opportunity, Close, VideoPlay } from "@element-plus/icons-vue";
 import { useQuestionsStore } from "@/store/questions";
 import { useContentParser } from "../composables/useContentParser";
 import { tracker } from "@/utils/eventTracker";
+import VideoPlayer from "@/components/VideoPlayer.vue";
 
 const store = useQuestionsStore();
 
@@ -73,8 +79,12 @@ const clueData = computed(() => store.multiQuestClue?.content || "");
 const clueTitle = computed(() => store.multiQuestClue?.title || "隐藏的线索");
 
 // 利用现有的 composable 解析 content
-const { parsedContent, handleLinkClick, handleImageClick, handleVideoClick } =
-  useContentParser(clueData);
+const { parsedContent, handleLinkClick, handleImageClick } = useContentParser(clueData);
+
+const videoPlayerRef = ref<any>(null);
+const openVideoPlayer = (url: string) => {
+  videoPlayerRef.value?.open(url);
+};
 
 const show = () => {
   if (clueData.value) {
