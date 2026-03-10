@@ -11,6 +11,7 @@ import "vant/es/toast/style";
 import "vant/es/dialog/style";
 import "vant/es/notify/style";
 import "vant/es/image-preview/style";
+import { Lazyload } from "vant";
 
 // swiper
 import "swiper/css";
@@ -41,6 +42,7 @@ app.config.globalProperties.toVpx = toVpx;
 
 app.use(pinia);
 app.use(router);
+app.use(Lazyload);
 app.mount("#app");
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
