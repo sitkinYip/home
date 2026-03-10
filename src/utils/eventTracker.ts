@@ -5,6 +5,23 @@
 
 import { getQueryParam } from "./qa/questions";
 
+export enum UserName {
+  TRAVELER = "旅行者",
+  TR = "旅行者",
+  tr = "旅行者",
+  CXY = "陈晓滢",
+  cxy = "陈晓滢",
+  XX = "夏夏",
+  xx = "夏夏",
+  XY = "晓滢",
+  xy = "晓滢",
+}
+
+const getUserName = () => {
+  const queryUser = getQueryParam("user")?.[0] as keyof typeof UserName | null;
+  return queryUser ? UserName[queryUser] : null;
+};
+
 // 事件类型定义
 export enum EventType {
   // 页面访问
@@ -242,7 +259,7 @@ class EventTracker {
    */
   track(data: EventData, userName?: string): void {
     // 优先从 URL query 中获取 user 字段
-    const queryUser = getQueryParam("user")?.[0];
+    const queryUser = getUserName();
 
     // 优先级: URL query -> 显式传入的 userName -> data.userName -> 默认值
     const name = queryUser || userName || data.userName || this.defaultUserName;
