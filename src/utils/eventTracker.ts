@@ -236,7 +236,12 @@ class EventTracker {
    * @param userName 可选的用户名，不传则使用默认值
    */
   track(data: EventData, userName?: string): void {
-    const name = userName || data.userName || this.defaultUserName;
+    // 优先从 URL query 中获取 user 字段
+    const queryUser = getQueryParam("user")?.[0];
+
+    // 优先级: URL query -> 显式传入的 userName -> data.userName -> 默认值
+    const name = queryUser || userName || data.userName || this.defaultUserName;
+
     const message = this.buildMessage(data, name);
     this.sendEvent(message);
   }
