@@ -96,6 +96,7 @@ const show = () => {
 
 const handleClose = () => {
   visible.value = false;
+  tracker.trackClueModalClose(clueTitle.value, undefined, "旅行者");
   emit("closed");
 };
 

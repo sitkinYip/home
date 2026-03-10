@@ -21,6 +21,11 @@ export enum EventType {
   MAGIC_SCROLL_OPEN = "magic_scroll_open",
   CLUE_MODAL_OPEN = "clue_modal_open",
 
+  // 弹窗/组件关闭
+  MODAL_CLOSE = "modal_close",
+  MAGIC_SCROLL_CLOSE = "magic_scroll_close",
+  CLUE_MODAL_CLOSE = "clue_modal_close",
+
   // 跳转事件
   LINK_CLICK = "link_click",
   ROUTE_NAVIGATE = "route_navigate",
@@ -301,6 +306,21 @@ class EventTracker {
   }
 
   /**
+   * 快捷方法：MagicScroll 关闭
+   */
+  trackMagicScrollClose(title: string, content?: string, userName?: string): void {
+    this.track(
+      {
+        type: EventType.MAGIC_SCROLL_CLOSE,
+        title: "关闭神谕密卷",
+        content: title,
+        extra: { hasContent: !!content },
+      },
+      userName,
+    );
+  }
+
+  /**
    * 快捷方法：线索弹窗打开
    */
   trackClueModalOpen(title: string, contentId?: string, userName?: string): void {
@@ -313,6 +333,21 @@ class EventTracker {
       {
         type: EventType.CLUE_MODAL_OPEN,
         title: "隐藏的线索",
+        content: title,
+        extra: { contentId },
+      },
+      userName,
+    );
+  }
+
+  /**
+   * 快捷方法：线索弹窗关闭
+   */
+  trackClueModalClose(title: string, contentId?: string, userName?: string): void {
+    this.track(
+      {
+        type: EventType.CLUE_MODAL_CLOSE,
+        title: "关闭隐藏的线索",
         content: title,
         extra: { contentId },
       },

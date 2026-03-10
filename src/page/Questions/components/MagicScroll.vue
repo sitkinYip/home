@@ -194,6 +194,7 @@ const show = (data: { title: string; content: string }) => {
 
 const handleClose = () => {
   visible.value = false;
+  tracker.trackMagicScrollClose(title.value, rawText.value, "旅行者");
 };
 
 // 监听可见性，同步全局标记

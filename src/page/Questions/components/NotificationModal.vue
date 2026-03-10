@@ -104,6 +104,7 @@ import { NotificationRecord } from "@/types/qa";
 import { useContentParser } from "../composables/useContentParser";
 import { toVpx } from "@/utils/toVpx";
 import VideoPlayer from "@/components/VideoPlayer.vue";
+import { tracker, EventType } from "@/utils/eventTracker";
 
 const visible = ref(false);
 const item = ref<NotificationRecord | null>(null);
@@ -124,6 +125,16 @@ const show = (data: NotificationRecord) => {
   item.value = data;
   rawContent.value = data.content;
   visible.value = true;
+
+  // 上报弹窗打开事件
+  tracker.track({
+    type: EventType.MODAL_OPEN,
+    title: data.popupTitle || "魔法通知",
+    content: data.title,
+    extra: {
+      notificationId: data.id,
+    },
+  });
 };
 
 /**
@@ -131,6 +142,16 @@ const show = (data: NotificationRecord) => {
  */
 const handleClose = () => {
   visible.value = false;
+  if (item.value) {
+    tracker.track({
+      type: EventType.MODAL_CLOSE,
+      title: item.value.popupTitle || "魔法通知",
+      content: item.value.title,
+      extra: {
+        notificationId: item.value.id,
+      },
+    });
+  }
 };
 
 defineExpose({ show });
