@@ -10,6 +10,7 @@ const seenIds = ref<Set<string>>(new Set());
 const timer = ref<ReturnType<typeof setTimeout> | null>(null);
 const isPolling = ref(false);
 const isRequesting = ref(false); // 请求并发锁
+const currentUser = ref("");
 const onNewMessageCallbacks = new Set<(msg: NotificationRecord) => void>();
 let isInitialized = false;
 
@@ -62,7 +63,7 @@ const pollInternal = async () => {
 
   isRequesting.value = true;
   try {
-    const remoteList = await fetchNotifications();
+    const remoteList = await fetchNotifications(currentUser.value);
     notifications.value = remoteList;
 
     // 检查是否有未曾弹通过的消息
@@ -110,10 +111,12 @@ export function useNotifications() {
 
   /**
    * 开始轮询
+   * @param user 当前用户Id，为空则不作过滤
    * @param delay 初始延迟（毫秒）
    */
-  const startPolling = (delay = 3000) => {
+  const startPolling = (user?: string, delay = 3000) => {
     isPolling.value = true;
+    currentUser.value = user || "";
     stopPollingInternal();
     timer.value = setTimeout(pollInternal, delay);
   };

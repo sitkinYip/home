@@ -75,8 +75,13 @@ export const fetchMultiQuestClue = async (qas: string): Promise<MultiQuestClueRe
 /**
  * 获取实时通知列表
  */
-export const fetchNotifications = async (): Promise<NotificationRecord[]> => {
-  const path = `/notifications/records?filter=(enabled=true)&sort=-created`;
+export const fetchNotifications = async (user?: string): Promise<NotificationRecord[]> => {
+  const filterParams = ["(enabled=true)"];
+  if (user) {
+    filterParams.push(`(user='${user}')`);
+  }
+  const filterStr = encodeURIComponent(filterParams.join("&&"));
+  const path = `/notifications/records?filter=${filterStr}&sort=-created`;
   try {
     const data = await request<ApiResponse<NotificationRecord>>(path, {
       timeout: 5000,

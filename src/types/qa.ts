@@ -142,6 +142,7 @@ export interface NotificationRecord {
   buttonText?: string;
   /** 是否启用 */
   enabled: boolean;
+  user?: string;
   collectionId: string;
   collectionName: string;
   created: string;

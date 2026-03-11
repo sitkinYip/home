@@ -645,7 +645,7 @@ const initMultiMode = async () => {
   onNewMessage((msg) => {
     notificationModalRef.value?.show(msg);
   });
-  startPolling(6000);
+  startPolling(userId, 6000);
 };
 
 onMounted(() => {
@@ -659,7 +659,7 @@ onMounted(() => {
     onNewMessage((msg) => {
       notificationModalRef.value?.show(msg);
     });
-    startPolling(5000);
+    startPolling(userId, 5000);
   }
 });
 </script>
