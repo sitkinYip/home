@@ -307,14 +307,14 @@ class EventTracker {
    */
   trackMagicScrollOpen(title: string, content?: string, userName?: string): void {
     // 去重检查：相同内容的弹窗只上报一次
-    if (!this.shouldReportModalEvent(EventType.MAGIC_SCROLL_OPEN, "神谕密卷", title)) {
+    /* if (!this.shouldReportModalEvent(EventType.MAGIC_SCROLL_OPEN, "神谕密卷", title)) {
       return; // 已上报，跳过
-    }
+    } */
 
     this.track(
       {
         type: EventType.MAGIC_SCROLL_OPEN,
-        title: "神谕密卷",
+        title: "打开线索富文本弹窗",
         content: title,
         extra: { hasContent: !!content },
       },
@@ -329,7 +329,7 @@ class EventTracker {
     this.track(
       {
         type: EventType.MAGIC_SCROLL_CLOSE,
-        title: "关闭神谕密卷",
+        title: "关闭线索富文本弹窗",
         content: title,
         extra: { hasContent: !!content },
       },
@@ -342,9 +342,9 @@ class EventTracker {
    */
   trackClueModalOpen(title: string, contentId?: string, userName?: string): void {
     // 去重检查：相同内容的弹窗只上报一次
-    if (!this.shouldReportModalEvent(EventType.CLUE_MODAL_OPEN, "隐藏的线索", title)) {
+    /* if (!this.shouldReportModalEvent(EventType.CLUE_MODAL_OPEN, "隐藏的线索", title)) {
       return; // 已上报，跳过
-    }
+    } */
 
     this.track(
       {

@@ -209,10 +209,8 @@ const trackPageVisit = () => {
       { steps: multiSteps.join(","), count: multiSteps.length },
       "旅行者",
     );
-  } else {
-    const singleStep = getQueryParam("qa")?.[0] || "1";
-    tracker.trackPageVisit("单题模式", { step: singleStep }, "旅行者");
   }
+  // 单题模式的具体访问上报（包含题目名称等详细信息）统一在 QuestPage.vue 的 initData 中处理，此处不重复上报
 };
 
 // 多题模式数据
