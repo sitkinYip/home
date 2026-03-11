@@ -19,7 +19,7 @@ export enum UserName {
 
 const getUserName = () => {
   const queryUser = getQueryParam("user")?.[0] as keyof typeof UserName | null;
-  return queryUser ? UserName[queryUser] : null;
+  return queryUser ? UserName[queryUser] : queryUser || null;
 };
 
 // 事件类型定义

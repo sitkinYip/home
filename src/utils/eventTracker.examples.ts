@@ -24,6 +24,18 @@ export function exampleOnMounted() {
     },
     "旅行者",
   );
+
+  // 清除记忆工具页访问
+  tracker.trackPageVisit(
+    "记忆净化仪",
+    {
+      rawType: "qa",
+      step: "1",
+      user: "user123",
+      rank: "",
+    },
+    "旅行者",
+  );
 }
 
 // ============================================

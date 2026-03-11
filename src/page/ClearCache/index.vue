@@ -97,6 +97,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { showNotify, showToast } from "vant";
 import { DocumentDelete, Warning, Check, ArrowLeft } from "@element-plus/icons-vue";
+import { tracker } from "@/utils/eventTracker";
 
 /** === 路由提取 === */
 const route = useRoute();
@@ -166,6 +167,9 @@ const refreshMatchedKeys = () => {
 };
 
 onMounted(() => {
+  // 页面访问埋点
+  tracker.trackPageVisit("记忆净化仪", { rawType, step, user, rank }, user || undefined);
+
   if (isValidQuery.value) {
     refreshMatchedKeys();
   } else {
