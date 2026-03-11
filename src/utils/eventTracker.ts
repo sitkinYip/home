@@ -19,7 +19,7 @@ export enum UserName {
 
 const getUserName = () => {
   const queryUser = getQueryParam("user")?.[0] as keyof typeof UserName | null;
-  return queryUser ? UserName[queryUser] : queryUser || null;
+  return queryUser ? UserName[queryUser] || queryUser : null;
 };
 
 // 事件类型定义
@@ -138,8 +138,8 @@ class EventTracker {
   private sendEvent(message: string): void {
     // 每天都动态检测 URL 参数，确保调试模式生效
     const isDebug = getQueryParam("debug")?.[0] === "1";
-
-    if (isDebug) {
+    const userName = getUserName();
+    if (isDebug || !userName) {
       this.printDebugMessage(message);
       return;
     }
