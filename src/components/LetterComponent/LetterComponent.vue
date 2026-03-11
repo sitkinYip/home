@@ -146,17 +146,19 @@ const audioPlayer: HTMLAudioElement = new Audio();
  */
 const playAudioSync = (url: string): Promise<void> => {
   return new Promise((resolve) => {
-    audioPlayer.src = url;
-    audioPlayer.play().catch((err) => {
-      console.warn("音频播放失败，可能是浏览器限制:", err);
-      resolve(); // 播放失败也继续，防止打字机逻辑阻塞
-    });
-
+    // 先注册事件，再触发播放
     audioPlayer.onended = () => resolve();
     audioPlayer.onerror = () => {
       console.error("音频加载错误");
       resolve();
     };
+
+    audioPlayer.src = url;
+    audioPlayer.load();
+    audioPlayer.play().catch((err) => {
+      console.warn("音频播放失败，可能是浏览器限制:", err);
+      resolve(); // 播放失败也继续，防止打字机逻辑阻塞
+    });
   });
 };
 
@@ -264,14 +266,19 @@ const openLetter = (): void => {
   emit("open");
 
   // 解锁移动端音频自动播放权限（必须由用户交互触发）
+  // 直接用 audioPlayer 本身解锁，确保后续段落 play() 被授权
+  const firstAudioUrl =
+    props.paragraphs?.find((p) => p.audio)?.audio ||
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+  audioPlayer.src = firstAudioUrl;
+  audioPlayer.load();
   audioPlayer
     .play()
     .then(() => {
       audioPlayer.pause();
+      audioPlayer.currentTime = 0;
     })
-    .catch(() => {
-      // 捕获静音或未交互的异常
-    });
+    .catch(() => {});
 
   isOpen.value = true;
   lockBodyScroll();

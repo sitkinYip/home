@@ -172,11 +172,18 @@ const handleOpen = async (): Promise<void> => {
   emit("open");
 
   // 解锁移动端音频限制：必须在用户点击的同步线程中调用一次 play()
+  // 用第一个有 audio 的段落 URL（或静默 blob）正确解锁，空 src 的 play() 会直接报错
   if (audioPlayer.value) {
+    const firstAudioUrl =
+      props.paragraphs?.find((p) => p.audio)?.audio ||
+      "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+    audioPlayer.value.src = firstAudioUrl;
+    audioPlayer.value.load();
     audioPlayer.value
       .play()
       .then(() => {
         audioPlayer.value?.pause(); // 解锁后立即暂停，等待打字机触发
+        audioPlayer.value!.currentTime = 0; // 重置播放进度
       })
       .catch(() => {});
   }

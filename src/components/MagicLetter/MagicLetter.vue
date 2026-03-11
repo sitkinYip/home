@@ -206,10 +206,12 @@ const audioPlayer = new Audio();
 
 const playAudioSync = (url: string): Promise<void> => {
   return new Promise((resolve) => {
-    audioPlayer.src = url;
-    audioPlayer.play().catch(() => resolve());
+    // 先注册事件，再触发播放，防止短音频在注册前就结束
     audioPlayer.onended = () => resolve();
     audioPlayer.onerror = () => resolve();
+    audioPlayer.src = url;
+    audioPlayer.load();
+    audioPlayer.play().catch(() => resolve());
   });
 };
 
@@ -292,9 +294,19 @@ const startOpen = () => {
   if (isEnvelopeOpening.value) return;
 
   emit("open");
+  // 解锁移动端音频限制：用第一个有 audio 的段落 URL（或静默 blob）正确解锁
+  // 空 src 的 play() 会直接抛错，导致该 Audio 实例永远无法自动播放
+  const firstAudioUrl =
+    props.paragraphs?.find((p) => p.audio)?.audio ||
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+  audioPlayer.src = firstAudioUrl;
+  audioPlayer.load();
   audioPlayer
     .play()
-    .then(() => audioPlayer.pause())
+    .then(() => {
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+    })
     .catch(() => {});
   lockBodyScroll();
 
