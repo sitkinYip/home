@@ -5,6 +5,7 @@
 
 import { ref, onUnmounted } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
+import { tracker } from "@/utils/eventTracker";
 
 export function useBgm() {
   // 状态
@@ -15,6 +16,7 @@ export function useBgm() {
   // 音频实例
   let bgmAudio: HTMLAudioElement | null = null;
   let authHintTimer: ReturnType<typeof setTimeout> | null = null;
+  let hasTrackedFirstPlay = false;
 
   /**
    * 初始化背景音乐
@@ -40,6 +42,11 @@ export function useBgm() {
       isPlaying.value = true;
       showAuthHint.value = false;
       clearAuthHintTimer();
+
+      if (!hasTrackedFirstPlay) {
+        tracker.trackMediaPlay("audio", url, "背景音乐");
+        hasTrackedFirstPlay = true;
+      }
     });
 
     bgmAudio.addEventListener("pause", () => {
