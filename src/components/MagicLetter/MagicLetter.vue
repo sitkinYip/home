@@ -273,7 +273,8 @@ const typeText = async () => {
     }
 
     for (const char of text) {
-      displayedParagraphs.value[i].currentText += char;
+      // 将普通空格替换为不间断空格，防止 HTML 折叠连续空格
+      displayedParagraphs.value[i].currentText += char === " " ? "\u00a0" : char;
       await new Promise((r) => setTimeout(r, props.speed));
     }
 

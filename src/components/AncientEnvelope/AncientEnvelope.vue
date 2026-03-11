@@ -214,11 +214,11 @@ const startTypewriting = async (): Promise<void> => {
       audioPlayer.value.play().catch((e) => console.log("Audio skip:", e));
     }
 
-    // 逐字拆分并累加输出
+    // 逐字拆分并累加输出（将普通空格替换为不间断空格，防止 HTML 折叠）
     const chars: string[] = Array.from(p.content);
     for (const char of chars) {
       if (currentP.displayed !== undefined) {
-        currentP.displayed += char;
+        currentP.displayed += char === " " ? "\u00a0" : char;
       }
 
       // 关键步骤：等待 Vue 将新字符渲染到 DOM
