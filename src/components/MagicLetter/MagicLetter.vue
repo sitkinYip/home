@@ -1,5 +1,5 @@
 <template>
-  <div class="magic-letter-container">
+  <div class="magic-letter-container" :class="{ 'is-closing': isClosing }" @click="handleClose">
     <!-- 背景层（高斯模糊） -->
     <div class="blur-backdrop"></div>
 
@@ -73,6 +73,7 @@
         'letter-flying': isLetterFlying,
         'letter-arrived': isLetterArrived,
       }"
+      @click.stop
     >
       <div class="letter-parchment">
         <!-- 羊皮纸纹理 -->
@@ -143,6 +144,11 @@
     <div v-if="showSparks" class="magic-sparks">
       <div v-for="i in 16" :key="'sp-' + i" class="spark-dot"></div>
     </div>
+
+    <!-- 完成后底部收起提示 -->
+    <div v-if="isFinished && isLetterArrived && !isClosing" class="dismiss-hint">
+      轻触信件外收起
+    </div>
   </div>
 </template>
 
@@ -183,7 +189,7 @@ const props = withDefaults(defineProps<Props>(), {
   sealText: "✦",
 });
 
-const emit = defineEmits(["open"]);
+const emit = defineEmits(["open", "finish", "close"]);
 
 // 动画阶段状态
 const isEnvelopeOpening = ref(false); // 信封正在打开
@@ -192,6 +198,9 @@ const isSealPopping = ref(false); // 封蜡弹开
 const isLetterFlying = ref(false); // 信纸正在飞出
 const isLetterArrived = ref(false); // 信纸到达最终位置
 const showSparks = ref(false); // 显示魔法火花
+
+const isFinished = ref(false); // 所有内容是否全部播放完毕
+const isClosing = ref(false); // 是否正在执行收起动画
 
 // 内容状态
 const displayedParagraphs = ref<DisplayedParagraph[]>([]);
@@ -317,6 +326,8 @@ const typeText = async () => {
   }
 
   isTyping.value = false;
+  isFinished.value = true;
+  emit("finish");
 };
 
 /**
@@ -372,6 +383,41 @@ const startOpen = () => {
       }, props.carouselInterval);
     }
   }, 1800);
+};
+
+/**
+ * 点击外部收起信件
+ */
+const handleClose = () => {
+  if (!isFinished.value || isClosing.value) return;
+  isClosing.value = true;
+
+  if (carouselTimer) {
+    clearInterval(carouselTimer);
+    carouselTimer = null;
+  }
+  audioPlayer.pause();
+  unlockBodyScroll();
+
+  setTimeout(() => {
+    isTyping.value = false;
+    isFinished.value = false;
+    displayedParagraphs.value = [];
+    currentImgIndex.value = 0;
+
+    // 重置所有动画阶段状态
+    isEnvelopeOpening.value = false;
+    isEnvelopeOpened.value = false;
+    isSealPopping.value = false;
+    isLetterFlying.value = false;
+    isLetterArrived.value = false;
+    showSparks.value = false;
+
+    setTimeout(() => {
+      isClosing.value = false;
+      emit("close");
+    }, 300);
+  }, 400); // 留出 fade-out 动画的时间
 };
 
 onUnmounted(() => {
@@ -1027,5 +1073,35 @@ onUnmounted(() => {
   .letter-scroll {
     padding-bottom: calc(60vpx + env(safe-area-inset-bottom));
   }
+}
+/* 完成提示：底部轻量提示 */
+.dismiss-hint {
+  position: fixed;
+  bottom: 28vpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  font-size: 12vpx;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 2vpx;
+  pointer-events: none;
+  animation: hint-fade-in 1s ease forwards;
+}
+
+@keyframes hint-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8vpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 收起动画：整个容器淡出 */
+.magic-letter-container.is-closing {
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 </style>

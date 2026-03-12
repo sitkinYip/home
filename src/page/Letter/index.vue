@@ -28,6 +28,7 @@
       v-bind="componentProps"
       class="letter-content-layer"
       @open="handleOpenLetter"
+      @close="handleCloseLetter"
     />
 
     <!-- BGM 浮动控制按钮 -->
@@ -41,12 +42,17 @@
       <div class="bgm-wave" v-if="bgmPlaying"><span></span><span></span><span></span></div>
       <div class="bgm-icon" v-else>♪</div>
     </div>
+
+    <!-- 返回按钮 -->
+    <div v-if="returnPath && !isLetterOpened" class="back-fab" @click="goBack" title="返回">
+      <span class="back-arrow">&#8249;</span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { Compass } from "@element-plus/icons-vue";
 import { fetchLetter } from "@/server/qa";
 import type { TLetterecord } from "@/types/qa";
@@ -65,6 +71,30 @@ const MagicLetter = defineAsyncComponent(
 );
 
 const route = useRoute();
+const router = useRouter();
+
+const isLetterOpened = ref(false); // 跟踪信件是否展开，用于控制返回按钮显示
+
+/**
+ * 来源路由：优先读 returnTo 参数，fallback 到 history.state.back
+ * 只有存在来源时才显示返回按钮
+ */
+const returnPath = computed<string | null>(() => {
+  const fromQuery = route.query.returnTo as string | undefined;
+  if (fromQuery) return decodeURIComponent(fromQuery);
+  const stateBack = window.history.state?.back as string | undefined;
+  return stateBack || null;
+});
+
+/**
+ * 返回来源页
+ */
+const goBack = () => {
+  if (returnPath.value) {
+    router.replace(returnPath.value);
+  }
+};
+
 const isError = ref(false);
 const allLetters = ref<TLetterecord[]>([]);
 const CACHE_KEY = "letter_records_cache";
@@ -187,6 +217,8 @@ const checkErrorState = () => {
  * 处理开信事件：播放 BGM (解锁移动端音频限制)
  */
 const handleOpenLetter = () => {
+  isLetterOpened.value = true;
+
   const letter = currentLetter.value;
   if (!letter || !letter.mainAudio) return;
 
@@ -200,6 +232,18 @@ const handleOpenLetter = () => {
   bgmAudio.volume = 0.15; // BGM 音量大幅降低，让段落语音更清晰
   bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
   bgmPlaying.value = true;
+};
+
+/**
+ * 处理收起信件事件：重置状态并停止 BGM
+ */
+const handleCloseLetter = () => {
+  isLetterOpened.value = false;
+  if (bgmAudio) {
+    bgmAudio.pause();
+    bgmAudio = null;
+    bgmPlaying.value = false;
+  }
 };
 
 onMounted(() => {
@@ -453,5 +497,44 @@ $magic-gold: #ffd700;
     transform: scaleY(1);
     opacity: 1;
   }
+}
+/* 返回按钮 */
+.back-fab {
+  position: fixed;
+  top: 20vpx;
+  left: 20vpx;
+  z-index: 9999;
+  width: 36vpx;
+  height: 36vpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1vpx solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.3s ease,
+    transform 0.2s ease;
+  user-select: none;
+}
+
+.back-fab:hover {
+  background: rgba(0, 0, 0, 0.45);
+  transform: scale(1.08);
+}
+
+.back-fab:active {
+  transform: scale(0.94);
+}
+
+.back-arrow {
+  font-size: 22vpx;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.55);
+  margin-right: 2vpx;
+  font-weight: 300;
 }
 </style>

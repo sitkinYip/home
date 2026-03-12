@@ -148,7 +148,16 @@ export function useContentParser(content: Ref<string> | string, options: ParseOp
     if (url.startsWith("http")) {
       window.open(url, "_blank");
     } else {
-      router.push(url);
+      // 跳转 /letter 路由时，将当前路径作为 returnTo 参数携带
+      // 这样 Letter 页面可以展示返回按钮，并导航回来源页
+      const isLetterRoute = url.startsWith("/letter");
+      if (isLetterRoute) {
+        const currentPath = router.currentRoute.value.fullPath;
+        const separator = url.includes("?") ? "&" : "?";
+        router.replace(`${url}${separator}returnTo=${encodeURIComponent(currentPath)}`);
+      } else {
+        router.replace(url);
+      }
     }
   };
 

@@ -112,7 +112,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import gsap from "gsap";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useQuestionsStore } from "@/store/questions";
 import { useBgm } from "./composables/useBgm";
 import { useRankUp } from "./composables/useRankUp";
@@ -186,6 +186,7 @@ const emit = defineEmits<{
 
 const questionsStore = useQuestionsStore();
 const router = useRouter();
+const route = useRoute();
 const isDebug = getQueryParam("debug")?.[0] === "1";
 
 // 初始化事件追踪器
@@ -381,7 +382,13 @@ const handleVictoryClose = () => {
   if (path) {
     // 上报路由跳转事件
     tracker.trackRouteNavigate(path, query, "QuestPage", userName.value);
-    return router.replace({ path, query });
+    return router.replace({
+      path,
+      query: {
+        ...query,
+        returnTo: route.fullPath,
+      },
+    });
   }
   if (link) {
     // 上报外部链接跳转事件

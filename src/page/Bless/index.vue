@@ -28,6 +28,11 @@
     <div v-if="showFinalUI" class="final-content" ref="finalUiRef">
       <LyricsScrolling :data="mySubtitles" :defaultDuration="2500" />
     </div>
+
+    <!-- 返回按钮 -->
+    <div v-if="returnPath" class="back-fab" @click="goBack" title="返回">
+      <span class="back-arrow">&#8249;</span>
+    </div>
   </div>
 </template>
 
@@ -38,7 +43,7 @@
  */
 
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import LyricsScrolling from "../../components/LyricsScrolling/LyricsScrolling.vue";
 import { fetchPhrase } from "@/server/qa";
 import type { IphraseItem } from "@/types/qa";
@@ -57,6 +62,20 @@ import ErrorState from "./components/ErrorState.vue";
 import StartButton from "./components/StartButton.vue";
 
 const route = useRoute();
+const router = useRouter();
+
+/**
+ * 来源路由：优先读 returnTo 参数，fallback 到 history.state.back
+ */
+const returnPath = (() => {
+  const fromQuery = route.query.returnTo as string | undefined;
+  if (fromQuery) return decodeURIComponent(fromQuery);
+  return (window.history.state?.back as string | undefined) || null;
+})();
+
+const goBack = () => {
+  if (returnPath) router.replace(returnPath);
+};
 
 // --- 状态管理 ---
 const isLoading = ref(true);
@@ -454,5 +473,44 @@ canvas {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+/* 返回按钮 */
+.back-fab {
+  position: fixed;
+  top: 20vpx;
+  left: 20vpx;
+  z-index: 9999;
+  width: 36vpx;
+  height: 36vpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1vpx solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.3s ease,
+    transform 0.2s ease;
+  user-select: none;
+}
+
+.back-fab:hover {
+  background: rgba(0, 0, 0, 0.45);
+  transform: scale(1.08);
+}
+
+.back-fab:active {
+  transform: scale(0.94);
+}
+
+.back-arrow {
+  font-size: 22vpx;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.55);
+  margin-right: 2vpx;
+  font-weight: 300;
 }
 </style>

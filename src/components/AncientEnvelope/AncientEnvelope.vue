@@ -1,5 +1,10 @@
 <template>
-  <div class="ancient-envelope-final" :style="containerVars">
+  <div
+    class="ancient-envelope-final"
+    :style="containerVars"
+    :class="{ 'is-closing': isClosing }"
+    @click="handleClose"
+  >
     <!-- 音频播放器：用于段落配音，设置 playsinline 以适配移动端 -->
     <audio ref="audioPlayer" playsinline preload="auto"></audio>
 
@@ -9,7 +14,7 @@
       <div class="envelope-pocket" :class="{ 'env-fade-out': isFullyCentered }">
         <div class="env-part env-back"></div>
         <!-- 信封封面，点击触发 handleOpen -->
-        <div class="env-part env-front" @click="handleOpen">
+        <div class="env-part env-front" @click.stop="handleOpen">
           <div class="red-box-main" :class="{ mini: isOpened }">
             <div class="calligraphy">{{ props.hintText || "亲启" }}</div>
           </div>
@@ -22,6 +27,7 @@
         v-if="isOpened"
         class="letter-paper"
         :class="{ 'is-rising': isLetterUp, 'is-zoom-center': isFullyCentered }"
+        @click.stop
       >
         <div class="paper-border-outer">
           <!-- 核心滚动容器：paper-border-inner -->
@@ -66,6 +72,11 @@
         </div>
       </div>
     </div>
+
+    <!-- 完成后底部收起提示 -->
+    <div v-if="isFinished && isFullyCentered && !isClosing" class="dismiss-hint">
+      轻触信件外收起
+    </div>
   </div>
 </template>
 
@@ -107,7 +118,7 @@ const props = withDefaults(defineProps<Props>(), {
   images: () => [],
 });
 
-const emit = defineEmits(["open"]);
+const emit = defineEmits(["open", "finish", "close"]);
 
 // --- 响应式状态 (State) ---
 
@@ -115,6 +126,8 @@ const isOpened = ref<boolean>(false); // 是否触发开启信封
 const isLetterUp = ref<boolean>(false); // 信纸是否开始升起
 const isFullyCentered = ref<boolean>(false); // 信纸是否完成居中放大
 const isTyping = ref<boolean>(false); // 打字机是否正在工作中
+const isFinished = ref<boolean>(false); // 所有内容是否全部播放完毕
+const isClosing = ref<boolean>(false); // 是否正在执行收起动画
 const currentImgIndex = ref<number>(0); // 当前显示的图片轮播索引
 const renderedParagraphs = reactive<Paragraph[]>([]); // 实际在页面渲染的段落数组
 
@@ -254,6 +267,8 @@ const startTypewriting = async (): Promise<void> => {
     }
   }
   isTyping.value = false;
+  isFinished.value = true;
+  emit("finish");
 };
 
 /**
@@ -302,6 +317,39 @@ const forceRepaint = (): void => {
   });
 };
 
+/**
+ * 交互：点击信件外空白收起信件
+ * 只有打字机完毕后才能触发
+ */
+const handleClose = (): void => {
+  if (!isFinished.value || isClosing.value) return;
+  isClosing.value = true;
+
+  // 停止音频和轮播
+  if (slideshowTimer) {
+    clearInterval(slideshowTimer);
+    slideshowTimer = null;
+  }
+  if (audioPlayer.value) {
+    audioPlayer.value.pause();
+  }
+
+  // 逐步逆北：在 is-closing 的 opacity:0 过渡完成后重置状态
+  setTimeout(() => {
+    isFullyCentered.value = false;
+    isLetterUp.value = false;
+    isTyping.value = false;
+    isFinished.value = false;
+    renderedParagraphs.splice(0, renderedParagraphs.length);
+    currentImgIndex.value = 0;
+
+    setTimeout(() => {
+      isOpened.value = false;
+      isClosing.value = false;
+      emit("close");
+    }, 300);
+  }, 350);
+};
 /**
  * 交互：处理用户手动触摸
  * 当用户滑动查看历史文字时，暂停自动滚动 3 秒，避免“抢夺”视口
@@ -603,5 +651,35 @@ onUnmounted(() => {
 .bg-slideshow-enter-from,
 .bg-slideshow-leave-to {
   opacity: 0;
+}
+/* 完成提示：底部轻量提示 */
+.dismiss-hint {
+  position: fixed;
+  bottom: 28vpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  font-size: 12vpx;
+  color: rgba(163, 46, 46, 0.5);
+  letter-spacing: 2vpx;
+  pointer-events: none;
+  animation: hint-fade-in 1s ease forwards;
+}
+
+@keyframes hint-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8vpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 收起动画：整个容器淡出 */
+.ancient-envelope-final.is-closing {
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
 </style>

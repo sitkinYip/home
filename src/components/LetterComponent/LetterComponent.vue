@@ -1,6 +1,9 @@
 <template>
-  <div :class="['letter-container', styleType, { 'is-open': isOpen }]">
-    <div class="envelope-wrapper" @click="openLetter">
+  <div
+    :class="['letter-container', styleType, { 'is-open': isOpen, 'is-closing': isClosing }]"
+    @click="handleClose"
+  >
+    <div class="envelope-wrapper" @click.stop="openLetter">
       <div class="envelope">
         <!-- 信封盖子 -->
         <div class="flap"></div>
@@ -69,6 +72,9 @@
       <!-- 开启提示 -->
       <div class="hint" v-if="!isOpen">{{ hintText }}</div>
     </div>
+
+    <!-- 完成后底部收起提示 -->
+    <div v-if="isFinished && isOpen && !isClosing" class="dismiss-hint">轻触信件外收起</div>
   </div>
 </template>
 
@@ -139,7 +145,7 @@ const props = withDefaults(defineProps<Props>(), {
   sealText: "✦",
 });
 
-const emit = defineEmits(["open"]);
+const emit = defineEmits(["open", "finish", "close"]);
 
 // --- 响应式状态 ---
 const isOpen = ref<boolean>(false); // 信件是否已开启
@@ -147,6 +153,8 @@ const displayedParagraphs = ref<DisplayedParagraph[]>([]); // 实际渲染的段
 const isTyping = ref<boolean>(false); // 是否正在打字中
 const activeParagraphIndex = ref<number>(0); // 当前正在打字的段落索引
 const currentImgIndex = ref<number>(0); // 当前背景图索引
+const isFinished = ref<boolean>(false); // 所有内容是否全部播放完毕
+const isClosing = ref<boolean>(false); // 是否正在执行收起动画
 const scrollContainer = ref<HTMLDivElement | null>(null); // 滚动容器引用
 
 // --- 内部变量 ---
@@ -302,6 +310,8 @@ const typeText = async (): Promise<void> => {
   }
 
   isTyping.value = false;
+  isFinished.value = true;
+  emit("finish");
 };
 
 /**
@@ -340,6 +350,34 @@ const openLetter = (): void => {
       }, props.carouselInterval);
     }
   }, 1000);
+};
+
+/**
+ * 点击外部收起信件
+ */
+const handleClose = (): void => {
+  if (!isFinished.value || isClosing.value) return;
+  isClosing.value = true;
+
+  if (carouselTimer) {
+    clearInterval(carouselTimer);
+    carouselTimer = null;
+  }
+  audioPlayer.pause();
+  unlockBodyScroll();
+
+  setTimeout(() => {
+    isTyping.value = false;
+    isFinished.value = false;
+    displayedParagraphs.value = [];
+    currentImgIndex.value = 0;
+
+    setTimeout(() => {
+      isOpen.value = false;
+      isClosing.value = false;
+      emit("close");
+    }, 300);
+  }, 350);
 };
 
 /**
@@ -647,5 +685,35 @@ onUnmounted(() => {
   text-shadow:
     0 0 6vpx rgba(255, 215, 0, 0.8),
     1vpx 1vpx 2vpx rgba(0, 0, 0, 0.6);
+}
+/* 完成提示：底部轻量提示 */
+.dismiss-hint {
+  position: fixed;
+  bottom: 28vpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  font-size: 12vpx;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 2vpx;
+  pointer-events: none;
+  animation: hint-fade-in 1s ease forwards;
+}
+
+@keyframes hint-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8vpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 收起动画：整个容器淡出 */
+.letter-container.is-closing {
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
 </style>

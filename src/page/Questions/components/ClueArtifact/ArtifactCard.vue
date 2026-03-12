@@ -121,7 +121,14 @@ const handleClick = (e: MouseEvent) => {
   gsap.to(target, { scale: 0.96, duration: 0.1, yoyo: true, repeat: 1 });
 
   if (props.type === "letter" && props.path) {
-    router.replace({ path: props.path, query: props.query || {} });
+    router.replace({
+      path: props.path,
+      query: {
+        ...(props.query || {}),
+        // 记录来源路由，让 Letter 页面可以展示返回按钮
+        returnTo: route.fullPath,
+      },
+    });
     return;
   }
 
