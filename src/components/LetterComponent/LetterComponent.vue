@@ -315,7 +315,7 @@ onUnmounted(() => {
   --text-color: #222;
   --envelope-color: #c0392b;
   --flap-color: #a5281b;
-  --letter-line-height: 36px;
+  --letter-line-height: 36vpx;
 
   position: fixed;
   top: 0;
@@ -335,7 +335,8 @@ onUnmounted(() => {
   --text-color: #2c3e50;
   --envelope-color: #353b48;
   --flap-color: #2f3640;
-  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    Arial, sans-serif;
 }
 
 .ancient {
@@ -344,13 +345,14 @@ onUnmounted(() => {
   --text-color: #3d2b1f;
   --envelope-color: #8b0000;
   --flap-color: #6e0000;
-  font-family: "STKaiti", "KaiTi", serif;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti", "华文楷体", "KaiTi", "楷体",
+    Georgia, serif;
 }
 
 .envelope-wrapper {
   position: relative;
-  width: min(400px, 85vw);
-  height: min(260px, 55vw);
+  width: 340vpx;
+  height: 215vpx;
 }
 
 .envelope {
@@ -365,9 +367,9 @@ onUnmounted(() => {
   top: 0;
   width: 0;
   height: 0;
-  border-left: calc(min(400px, 85vw) / 2) solid transparent;
-  border-right: calc(min(400px, 85vw) / 2) solid transparent;
-  border-top: calc(min(260px, 55vw) / 2) solid var(--flap-color);
+  border-left: 170vpx solid transparent;
+  border-right: 170vpx solid transparent;
+  border-top: 108vpx solid var(--flap-color);
   z-index: 3;
   transform-origin: top;
   transition: transform 0.6s ease-in-out;
@@ -379,9 +381,9 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   background-color: var(--envelope-color);
-  border-left: calc(min(400px, 85vw) / 2) solid transparent;
-  border-right: calc(min(400px, 85vw) / 2) solid transparent;
-  border-bottom: calc(min(260px, 55vw) / 1.8) solid var(--flap-color);
+  border-left: 170vpx solid transparent;
+  border-right: 170vpx solid transparent;
+  border-bottom: 120vpx solid var(--flap-color);
   z-index: 2;
 }
 
@@ -390,7 +392,7 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   width: 94%;
-  bottom: 10px;
+  bottom: 10vpx;
   height: 80%;
   background-color: var(--paper-bg);
   z-index: 1;
@@ -400,28 +402,28 @@ onUnmounted(() => {
 
 .is-open .letter-paper {
   z-index: 4;
-  height: calc(50vh + 130px - 70px);
-  max-height: 600px;
-  bottom: 30px;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+  height: calc(50vh + 130vpx - 70vpx);
+  max-height: 600vpx;
+  bottom: 30vpx;
+  box-shadow: 0 -10vpx 30vpx rgba(0, 0, 0, 0.2);
 }
 
 .content-wrapper {
   width: 100%;
   height: 100%;
-  padding: 0px 25px;
+  padding: 0px 25vpx;
   box-sizing: border-box;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   line-height: var(--letter-line-height);
   background-image: repeating-linear-gradient(
     transparent,
-    transparent calc(var(--letter-line-height) - 1px),
-    var(--line-color) calc(var(--letter-line-height) - 1px),
+    transparent calc(var(--letter-line-height) - 1vpx),
+    var(--line-color) calc(var(--letter-line-height) - 1vpx),
     var(--line-color) var(--letter-line-height)
   );
   background-attachment: local;
-  background-position: 0 0px;
+  background-position: 0 0vpx;
 }
 
 .content-wrapper::-webkit-scrollbar {
@@ -431,7 +433,7 @@ onUnmounted(() => {
 .text-content {
   position: relative;
   z-index: 5;
-  padding-top: 4px;
+  padding-top: 4vpx;
 }
 
 .paragraph-row {
@@ -441,7 +443,7 @@ onUnmounted(() => {
 .line-text {
   margin: 0 !important;
   padding: 0 !important;
-  font-size: 18px;
+  font-size: 18vpx;
   font-weight: 500;
   line-height: var(--letter-line-height) !important;
   width: 100%;
@@ -450,7 +452,7 @@ onUnmounted(() => {
 }
 
 .extra-space {
-  height: 100px;
+  height: 100vpx;
 }
 
 .bg-carousel {
@@ -474,11 +476,11 @@ onUnmounted(() => {
 
 .cursor {
   display: inline-block;
-  width: 2px;
-  height: 20px;
+  width: 2vpx;
+  height: 20vpx;
   vertical-align: middle;
-  margin-left: 2px;
-  margin-top: -4px;
+  margin-left: 2vpx;
+  margin-top: -4vpx;
   animation: blink 0.8s infinite;
 }
 
@@ -495,16 +497,10 @@ onUnmounted(() => {
 
 .hint {
   position: absolute;
-  bottom: -50px;
+  bottom: -50vpx;
   width: 100%;
   text-align: center;
   color: #666;
-  font-size: 14px;
-}
-
-@media (max-width: 480px) {
-  .line-text {
-    font-size: 16px;
-  }
+  font-size: 14vpx;
 }
 </style>

@@ -14,7 +14,7 @@
           top: `${Math.random() * 100}%`,
           animationDelay: `${Math.random() * 5}s`,
           animationDuration: `${3 + Math.random() * 3}s`,
-          '--size': `${2 + Math.random() * 3}px`,
+          '--size': `${toVpx(2 + Math.random() * 3)}`,
         }"
       ></div>
     </div>
@@ -128,6 +128,11 @@
             <div class="content-footer"></div>
           </div>
         </div>
+
+        <!-- 顶部遮罩：防止文字滚动时超出装订线（不依赖 mask-image）-->
+        <div class="scroll-fade-top" aria-hidden="true"></div>
+        <!-- 底部遮罩 -->
+        <div class="scroll-fade-bottom" aria-hidden="true"></div>
 
         <!-- 边缘做旧效果 -->
         <div class="aged-edges"></div>
@@ -355,8 +360,6 @@ onUnmounted(() => {
    哈利波特魔法信件 - 连贯开信动画版
    ============================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Dancing+Script:wght@500;700&display=swap");
-
 .magic-letter-container {
   --parchment: #f3e5c3;
   --parchment-dark: #d4b896;
@@ -381,7 +384,7 @@ onUnmounted(() => {
   inset: 0;
   background: radial-gradient(ellipse at 30% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(139, 0, 0, 0.1) 0%, transparent 40%);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(2vpx);
   z-index: 0;
 }
 
@@ -400,8 +403,8 @@ onUnmounted(() => {
   background: var(--gold);
   border-radius: 50%;
   box-shadow:
-    0 0 6px var(--gold),
-    0 0 12px rgba(255, 215, 0, 0.6);
+    0 0 6vpx var(--gold),
+    0 0 12vpx rgba(255, 215, 0, 0.6);
   animation: dust-float 4s ease-in-out infinite;
   opacity: 0;
 }
@@ -417,7 +420,7 @@ onUnmounted(() => {
   }
   50% {
     opacity: 0.7;
-    transform: translateY(-30px) scale(1);
+    transform: translateY(-30vpx) scale(1);
   }
   70% {
     opacity: 0.9;
@@ -438,7 +441,7 @@ onUnmounted(() => {
 
 .envelope-scene.envelope-opened {
   opacity: 0;
-  transform: scale(0.8) translateY(50px);
+  transform: scale(0.8) translateY(50vpx);
   pointer-events: none;
 }
 
@@ -449,8 +452,8 @@ onUnmounted(() => {
 
 .envelope-body {
   position: relative;
-  width: min(300px, 80vw);
-  height: min(190px, 50vw);
+  width: 300vpx;
+  height: 190vpx;
   animation: envelope-float 3.5s ease-in-out infinite;
 }
 
@@ -464,7 +467,7 @@ onUnmounted(() => {
     transform: translateY(0) rotate(-0.5deg);
   }
   50% {
-    transform: translateY(-8px) rotate(0.5deg);
+    transform: translateY(-8vpx) rotate(0.5deg);
   }
 }
 
@@ -473,8 +476,8 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: linear-gradient(150deg, #c9a86c 0%, #a8895c 60%, #8b7355 100%);
-  border-radius: 4px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border-radius: 4vpx;
+  box-shadow: 0 8vpx 30vpx rgba(0, 0, 0, 0.4);
 }
 
 .envelope-back::before {
@@ -482,7 +485,7 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
-  border-radius: 4px;
+  border-radius: 4vpx;
 }
 
 /* 信封内侧 */
@@ -515,9 +518,9 @@ onUnmounted(() => {
   left: 0;
   width: 0;
   height: 0;
-  border-left: calc(min(300px, 80vw) / 2) solid transparent;
-  border-right: calc(min(300px, 80vw) / 2) solid transparent;
-  border-top: calc(min(190px, 50vw) * 0.5) solid #b8956f;
+  border-left: 150vpx solid transparent;
+  border-right: 150vpx solid transparent;
+  border-top: 95vpx solid #b8956f;
 }
 
 .flap-shadow {
@@ -526,9 +529,9 @@ onUnmounted(() => {
   left: 0;
   width: 0;
   height: 0;
-  border-left: calc(min(300px, 80vw) / 2) solid transparent;
-  border-right: calc(min(300px, 80vw) / 2) solid transparent;
-  border-top: calc(min(190px, 50vw) * 0.5) solid rgba(0, 0, 0, 0.1);
+  border-left: 150vpx solid transparent;
+  border-right: 150vpx solid transparent;
+  border-top: 95vpx solid rgba(0, 0, 0, 0.1);
 }
 
 .envelope-scene.envelope-opening .envelope-flap-top {
@@ -543,7 +546,7 @@ onUnmounted(() => {
   width: 100%;
   height: 55%;
   background: linear-gradient(180deg, #d4ad6a 0%, #c49a52 100%);
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 4vpx 4vpx;
   z-index: 4;
   display: flex;
   justify-content: center;
@@ -552,19 +555,20 @@ onUnmounted(() => {
 
 .recipient-info {
   text-align: center;
-  font-family: "Dancing Script", cursive;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti", "华文楷体", "KaiTi", "楷体",
+    Georgia, serif;
   color: var(--ink);
-  margin-top: 10px;
+  margin-top: 10vpx;
 }
 
 .recipient-name {
-  font-size: 16px;
+  font-size: 16vpx;
   font-weight: 700;
-  margin: 0 0 4px;
+  margin: 0 0 4vpx;
 }
 
 .recipient-addr {
-  font-size: 12px;
+  font-size: 12vpx;
   margin: 0;
   opacity: 0.7;
 }
@@ -572,11 +576,11 @@ onUnmounted(() => {
 /* 封蜡印章 */
 .wax-seal {
   position: absolute;
-  top: calc(min(190px, 50vw) * 0.5 - 24px);
+  top: 71vpx;
   left: 50%;
   transform: translateX(-50%);
-  width: 48px;
-  height: 48px;
+  width: 48vpx;
+  height: 48vpx;
   z-index: 10;
   transition: transform 0.3s ease;
 }
@@ -587,7 +591,7 @@ onUnmounted(() => {
 
 .seal-glow {
   position: absolute;
-  inset: -10px;
+  inset: -10vpx;
   background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 60%);
   border-radius: 50%;
   animation: glow-pulse 2s ease-in-out infinite;
@@ -615,20 +619,20 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 3px 10px rgba(0, 0, 0, 0.5),
-    inset 0 2px 4px rgba(255, 180, 120, 0.2),
-    inset 0 -2px 5px rgba(0, 0, 0, 0.4);
-  border: 2px solid #500000;
+    0 3vpx 10vpx rgba(0, 0, 0, 0.5),
+    inset 0 2vpx 4vpx rgba(255, 180, 120, 0.2),
+    inset 0 -2vpx 5vpx rgba(0, 0, 0, 0.4);
+  border: 2vpx solid #500000;
 }
 
 .seal-h {
-  font-family: "Cinzel", serif;
-  font-size: 22px;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  font-size: 22vpx;
   font-weight: 600;
   color: var(--gold);
   text-shadow:
-    0 0 8px var(--gold),
-    1px 1px 2px rgba(0, 0, 0, 0.6);
+    0 0 8vpx var(--gold),
+    1vpx 1vpx 2vpx rgba(0, 0, 0, 0.6);
 }
 
 /* 封蜡弹开 */
@@ -651,11 +655,12 @@ onUnmounted(() => {
 
 /* 提示文字 */
 .tap-hint {
-  margin-top: 30px;
-  font-family: "Dancing Script", cursive;
-  font-size: 15px;
+  margin-top: 30vpx;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti", "华文楷体", "KaiTi", "楷体",
+    Georgia, serif;
+  font-size: 15vpx;
   color: var(--gold);
-  text-shadow: 0 0 12px var(--gold);
+  text-shadow: 0 0 12vpx var(--gold);
   animation: hint-glow 2s ease-in-out infinite;
   text-align: center;
 }
@@ -677,14 +682,14 @@ onUnmounted(() => {
   position: absolute;
   z-index: 5;
   opacity: 0;
-  transform: translateY(100px) scale(0.5) rotateX(30deg);
+  transform: translateY(100vpx) scale(0.5) rotateX(30deg);
   transition: none;
   pointer-events: none;
 }
 
 .letter-scene.letter-flying {
   opacity: 1;
-  transform: translateY(-20px) scale(0.9) rotateX(5deg);
+  transform: translateY(-20vpx) scale(0.9) rotateX(5deg);
   transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -697,13 +702,13 @@ onUnmounted(() => {
 
 .letter-parchment {
   position: relative;
-  width: min(360px, 88vw);
-  height: min(520px, 75vh);
-  border-radius: 6px;
+  width: 360vpx;
+  height: 520vpx;
+  border-radius: 6vpx;
   overflow: hidden;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(255, 215, 0, 0.1);
+    0 20vpx 60vpx rgba(0, 0, 0, 0.5),
+    0 0 40vpx rgba(255, 215, 0, 0.1);
 }
 
 /* 羊皮纸纹理 */
@@ -720,41 +725,41 @@ onUnmounted(() => {
 /* 装饰边框 */
 .parchment-border {
   position: absolute;
-  inset: 12px;
-  border: 1px solid rgba(139, 105, 20, 0.25);
+  inset: 12vpx;
+  border: 1vpx solid rgba(139, 105, 20, 0.25);
   pointer-events: none;
   z-index: 3;
 }
 
 .corner {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--gold-dim);
+  width: 16vpx;
+  height: 16vpx;
+  border: 2vpx solid var(--gold-dim);
   opacity: 0.5;
 }
 
 .corner.tl {
-  top: -2px;
-  left: -2px;
+  top: -2vpx;
+  left: -2vpx;
   border-right: none;
   border-bottom: none;
 }
 .corner.tr {
-  top: -2px;
-  right: -2px;
+  top: -2vpx;
+  right: -2vpx;
   border-left: none;
   border-bottom: none;
 }
 .corner.bl {
-  bottom: -2px;
-  left: -2px;
+  bottom: -2vpx;
+  left: -2vpx;
   border-right: none;
   border-top: none;
 }
 .corner.br {
-  bottom: -2px;
-  right: -2px;
+  bottom: -2vpx;
+  right: -2vpx;
   border-left: none;
   border-top: none;
 }
@@ -764,17 +769,17 @@ onUnmounted(() => {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 18px;
+  font-size: 18vpx;
   color: var(--gold-dim);
   opacity: 0.5;
   z-index: 3;
 }
 
 .rune-top {
-  top: 18px;
+  top: 18vpx;
 }
 .rune-bottom {
-  bottom: 18px;
+  bottom: 18vpx;
   transform: translateX(-50%) rotate(180deg);
 }
 
@@ -811,32 +816,38 @@ onUnmounted(() => {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   z-index: 2;
-  padding: 50px 24px 60px;
+  padding: 50vpx 24vpx 60vpx;
   box-sizing: border-box;
-  /* 顶部和底部渐变遮罩，防止文字滚动时超出"装订线"边界 */
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0px,
-    black 48px,
-    black calc(100% - 48px),
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0px,
-    black 48px,
-    black calc(100% - 48px),
-    transparent 100%
-  );
+}
+
+/* 顶部/底部渐变遮罩 div，用羊皮纸背景色遮挡滚动文字，不依赖 mask-image */
+.scroll-fade-top,
+.scroll-fade-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50vpx;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.scroll-fade-top {
+  top: 0;
+  background: linear-gradient(to bottom, #f0e4c8 0%, rgba(240, 228, 200, 0) 100%);
+}
+
+.scroll-fade-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, #ddd0a8 0%, rgba(221, 208, 168, 0) 100%);
 }
 
 .letter-scroll::-webkit-scrollbar {
-  width: 4px;
+  width: 4vpx;
 }
 
 .letter-scroll::-webkit-scrollbar-thumb {
   background: rgba(139, 105, 20, 0.25);
-  border-radius: 2px;
+  border-radius: 2vpx;
 }
 
 .letter-content {
@@ -845,30 +856,31 @@ onUnmounted(() => {
 
 .content-header {
   text-align: center;
-  margin-bottom: 24px;
-  font-size: 14px;
+  margin-bottom: 4vpx;
+  font-size: 14vpx;
   color: var(--gold-dim);
   opacity: 0.6;
-  letter-spacing: 8px;
+  letter-spacing: 8vpx;
 }
 
 .para {
-  margin-bottom: 6px;
+  margin-bottom: 6vpx;
 }
 
 .para-text {
-  font-family: "Dancing Script", cursive;
-  font-size: 19px;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti", "华文楷体", "KaiTi", "楷体",
+    Georgia, serif;
+  font-size: 19vpx;
   font-weight: 500;
   color: var(--ink);
   line-height: 1.75;
   margin: 0;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1vpx 0 rgba(255, 255, 255, 0.3);
 }
 
 .quill {
   display: inline-block;
-  margin-left: 3px;
+  margin-left: 3vpx;
   animation: write 0.35s ease-in-out infinite;
 }
 
@@ -878,12 +890,12 @@ onUnmounted(() => {
     transform: rotate(-6deg);
   }
   50% {
-    transform: rotate(6deg) translateY(-2px);
+    transform: rotate(6deg) translateY(-2vpx);
   }
 }
 
 .content-footer {
-  height: 50px;
+  height: 50vpx;
 }
 
 /* 边缘做旧 */
@@ -893,9 +905,9 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 4;
   box-shadow:
-    inset 0 0 60px rgba(139, 105, 20, 0.15),
-    inset 0 0 20px rgba(101, 67, 33, 0.1);
-  border-radius: 6px;
+    inset 0 0 60vpx rgba(139, 105, 20, 0.15),
+    inset 0 0 20vpx rgba(101, 67, 33, 0.1);
+  border-radius: 6vpx;
 }
 
 /* =============================================
@@ -912,13 +924,13 @@ onUnmounted(() => {
 
 .spark-dot {
   position: absolute;
-  width: 5px;
-  height: 5px;
+  width: 5vpx;
+  height: 5vpx;
   background: var(--gold);
   border-radius: 50%;
   box-shadow:
-    0 0 8px var(--gold),
-    0 0 16px rgba(255, 215, 0, 0.7);
+    0 0 8vpx var(--gold),
+    0 0 16vpx rgba(255, 215, 0, 0.7);
   animation: spark-burst 0.7s ease-out forwards;
 }
 
@@ -977,58 +989,15 @@ onUnmounted(() => {
     opacity: 1;
   }
   100% {
-    transform: rotate(var(--a)) translateY(80px);
+    transform: rotate(var(--a)) translateY(80vpx);
     opacity: 0;
-  }
-}
-
-/* =============================================
-   移动端适配
-   ============================================= */
-@media (max-width: 480px) {
-  .envelope-body {
-    width: 85vw;
-    height: 54vw;
-  }
-
-  .wax-seal {
-    width: 42px;
-    height: 42px;
-    top: calc(54vw * 0.5 - 21px);
-  }
-
-  .seal-h {
-    font-size: 18px;
-  }
-
-  .recipient-name {
-    font-size: 14px;
-  }
-
-  .letter-parchment {
-    width: 92vw;
-    height: 72vh;
-  }
-
-  .para-text {
-    font-size: 17px;
-  }
-
-  .letter-scroll {
-    padding: 40px 18px 50px;
-  }
-}
-
-@media (max-width: 360px) {
-  .para-text {
-    font-size: 15px;
   }
 }
 
 /* iOS 安全区 */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .letter-scroll {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    padding-bottom: calc(60vpx + env(safe-area-inset-bottom));
   }
 }
 </style>

@@ -164,8 +164,13 @@ export default ({ mode }) => {
           }), */
           mobileForever({
             appSelector: "#Questions", // 页面最外层选择器，例如“#app”，用于设置在桌面端和移动端横屏时的居中样式
-            maxDisplayWidth: 480, // 限制视口单位的最大宽度
-            include: [/src\/page\/Questions/],
+            maxDisplayWidth: 680, // 限制视口单位的最大宽度
+            include: [
+              /src\/page\/Questions/,
+              /src\/components\/AncientEnvelope/,
+              /src\/components\/MagicLetter/,
+              /src\/components\/LetterComponent/,
+            ],
           }),
         ],
       },

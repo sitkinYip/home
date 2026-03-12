@@ -42,12 +42,14 @@ import type { TLetterecord } from "@/types/qa";
 let bgmAudio: HTMLAudioElement | null = null;
 
 const AncientEnvelope = defineAsyncComponent(
-  () => import("../components/AncientEnvelope/AncientEnvelope.vue"),
+  () => import("../../components/AncientEnvelope/AncientEnvelope.vue"),
 );
 const LetterComponent = defineAsyncComponent(
-  () => import("../components/LetterComponent/LetterComponent.vue"),
+  () => import("../../components/LetterComponent/LetterComponent.vue"),
 );
-const MagicLetter = defineAsyncComponent(() => import("../components/MagicLetter/MagicLetter.vue"));
+const MagicLetter = defineAsyncComponent(
+  () => import("../../components/MagicLetter/MagicLetter.vue"),
+);
 
 const route = useRoute();
 const isError = ref(false);

@@ -316,7 +316,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import "@/assets/fonts/LongCang/font.css";
 /* 容器：锁定全屏，背景保持深色 */
 .ancient-envelope-final {
   position: relative;
@@ -326,14 +325,16 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  font-family: "Long Cang", cursive;
+  /* 优先使用苹果/安卓/Windows自带的古风字体（行楷、魏碑、隶书、楷体等） */
+  font-family: "STXingkai", "华文行楷", "Xingkai SC", "Weibei SC", "魏碑", "LiSu", "隶书", "STKaiti",
+    "华文楷体", "KaiTi", "楷体", "FangSong", "仿宋", serif;
 }
 
 /* 舞台：控制信封和初始动画范围 */
 .scene-stage {
   position: relative;
-  width: 320px;
-  height: 500px;
+  width: 320vpx;
+  height: 500vpx;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -342,8 +343,8 @@ onUnmounted(() => {
 /* --- 信封相关样式 --- */
 .envelope-pocket {
   position: absolute;
-  width: 210px;
-  height: 380px;
+  width: 210vpx;
+  height: 380vpx;
   z-index: 10;
   transition:
     opacity 1s ease,
@@ -352,14 +353,14 @@ onUnmounted(() => {
 
 .env-fade-out {
   opacity: 0;
-  transform: translateY(80px);
+  transform: translateY(80vpx);
   pointer-events: none;
 }
 
 .env-part {
   position: absolute;
   inset: 0;
-  border-radius: 2px;
+  border-radius: 2vpx;
 }
 
 .env-back {
@@ -373,14 +374,14 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 -5vpx 20vpx rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
 
 .red-box-main {
-  width: 70px;
-  height: 240px;
-  border: 3px solid #a32e2e;
+  width: 70vpx;
+  height: 240vpx;
+  border: 3vpx solid #a32e2e;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -390,35 +391,35 @@ onUnmounted(() => {
 .red-box-main::after {
   content: "";
   position: absolute;
-  inset: 4px;
-  border: 1px solid #a32e2e;
+  inset: 4vpx;
+  border: 1vpx solid #a32e2e;
 }
 
 .calligraphy {
   writing-mode: vertical-rl;
-  font-size: 32px;
+  font-size: 32vpx;
   color: #1a1a1a;
   font-weight: bold;
-  letter-spacing: 12px;
+  letter-spacing: 12vpx;
 }
 
 /* --- 信纸相关样式 --- */
 .letter-paper {
   position: absolute;
-  width: 190px;
-  height: 360px;
+  width: 190vpx;
+  height: 360vpx;
   background-color: #fdf5e6;
   z-index: 5;
-  padding: 15px;
+  padding: 15vpx;
   box-sizing: border-box;
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(30vpx);
   transition: all 1s cubic-bezier(0.34, 1, 0.64, 1);
 }
 
 .is-rising {
   opacity: 1;
-  transform: translateY(-180px);
+  transform: translateY(-180vpx);
 }
 
 /* 最终居中形态：采用 fixed 定位确保不被父容器裁切 */
@@ -426,23 +427,23 @@ onUnmounted(() => {
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 90vw;
+  width: 350vpx;
   height: 82vh;
-  max-width: 420px;
+  max-width: 420vpx;
   transform: translate(-50%, -50%);
   z-index: 100;
 }
 
 .paper-border-outer {
   height: 100%;
-  border: 2px solid #a32e2e;
-  padding: 2px;
+  border: 2vpx solid #a32e2e;
+  padding: 2vpx;
 }
 
 .paper-border-inner {
   position: relative;
   height: 100%;
-  border: 1px solid #a32e2e;
+  border: 1vpx solid #a32e2e;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -459,12 +460,12 @@ onUnmounted(() => {
   text-orientation: upright;
   height: 100%;
   min-width: 100%;
-  line-height: 40px;
-  font-size: 24px;
+  line-height: 40vpx;
+  font-size: 24vpx;
   color: #1a1a1a;
   /* 背景格线 */
-  background-image: linear-gradient(to left, rgba(163, 46, 46, 0.2) 1px, transparent 1px);
-  background-size: 40px 100%;
+  background-image: linear-gradient(to left, rgba(163, 46, 46, 0.2) 1vpx, transparent 1vpx);
+  background-size: 40vpx 100%;
   background-position: right top;
   background-repeat: repeat-x;
 }
@@ -488,7 +489,7 @@ onUnmounted(() => {
   /* 使用 inline-block 替代 inline，iOS Safari 对 inline-block 的重绘更可靠 */
   display: inline-block;
   /* iOS Safari 竖排文字颜色渲染修复 */
-  -webkit-text-stroke: 0.01px #1a1a1a;
+  -webkit-text-stroke: 0.01vpx #1a1a1a;
   /* 强制 GPU 加速渲染 */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
@@ -515,7 +516,7 @@ onUnmounted(() => {
   color: #a32e2e;
   font-weight: bold;
   animation: blink 0.8s infinite;
-  transform: translateY(-4px);
+  transform: translateY(-4vpx);
 }
 
 @keyframes blink {

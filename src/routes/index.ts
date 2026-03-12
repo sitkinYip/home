@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 
 const Home = () => import("@/page/Home.vue");
-const Letter = () => import("@/page/Letter.vue");
+const Letter = () => import("@/page/Letter/index.vue");
 
 const Questions = () => import("@/page/Questions/index.vue");
 const ClearCache = () => import("@/page/ClearCache/index.vue");
