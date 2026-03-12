@@ -457,7 +457,8 @@ canvas {
 
 .final-content {
   position: absolute;
-  bottom: 8%;
+  top: 55%;
+  bottom: 5%;
   width: 100%;
   text-align: center;
   z-index: 10;

@@ -35,24 +35,24 @@
 }
 
 .void-star {
-  font-size: 40px;
+  font-size: 40vpx;
   background: linear-gradient(to bottom, #fff, #546e7a);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 20px;
+  margin-bottom: 20vpx;
   animation: float 3s ease-in-out infinite;
 }
 
 .error-content h2 {
-  font-size: 18px;
-  letter-spacing: 6px;
+  font-size: 18vpx;
+  letter-spacing: 6vpx;
   font-weight: 300;
-  margin-bottom: 15px;
+  margin-bottom: 15vpx;
 }
 
 .error-content p {
-  font-size: 13px;
+  font-size: 13vpx;
   line-height: 1.8;
   font-weight: 200;
   opacity: 0.8;
@@ -64,7 +64,7 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-10vpx);
   }
 }
 </style>

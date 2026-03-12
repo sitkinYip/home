@@ -38,24 +38,24 @@
 }
 
 .loading-text {
-  margin-top: 20px;
+  margin-top: 20vpx;
   color: rgba(255, 255, 255, 0.7);
   font-family: "Cinzel", serif;
-  font-size: 14px;
-  letter-spacing: 6px;
+  font-size: 14vpx;
+  letter-spacing: 6vpx;
   animation: pulse 2s infinite ease-in-out;
   text-transform: uppercase;
 }
 
 .star-dust {
-  width: 50px;
-  height: 50px;
+  width: 50vpx;
+  height: 50vpx;
   margin: 0 auto;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1vpx solid rgba(255, 255, 255, 0.1);
   border-top-color: #fff;
   animation: spin 2s linear infinite;
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30vpx rgba(255, 255, 255, 0.1);
 }
 
 @keyframes spin {
@@ -68,11 +68,11 @@
   0%,
   100% {
     opacity: 0.4;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 10vpx rgba(255, 255, 255, 0.1);
   }
   50% {
     opacity: 0.9;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    text-shadow: 0 0 20vpx rgba(255, 255, 255, 0.4);
   }
 }
 </style>
