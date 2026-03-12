@@ -296,7 +296,7 @@ const startNarrative = async () => {
     }
     bgmAudio = new Audio(mainAudioUrl.value);
     bgmAudio.loop = true;
-    bgmAudio.volume = 0.3; // BGM 音量降低
+    bgmAudio.volume = 0.15; // BGM 音量降低
     bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
   }
 
