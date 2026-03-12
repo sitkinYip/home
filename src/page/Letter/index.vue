@@ -29,17 +29,30 @@
       class="letter-content-layer"
       @open="handleOpenLetter"
     />
+
+    <!-- BGM 浮动控制按钮 -->
+    <div
+      v-if="!isError && currentLetter?.mainAudio"
+      class="bgm-fab"
+      :class="{ 'bgm-playing': bgmPlaying }"
+      @click="toggleBgm"
+      title="背景音乐"
+    >
+      <div class="bgm-wave" v-if="bgmPlaying"><span></span><span></span><span></span></div>
+      <div class="bgm-icon" v-else>♪</div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineAsyncComponent } from "vue";
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from "vue";
 import { useRoute } from "vue-router";
 import { Compass } from "@element-plus/icons-vue";
 import { fetchLetter } from "@/server/qa";
 import type { TLetterecord } from "@/types/qa";
 
 let bgmAudio: HTMLAudioElement | null = null;
+const bgmPlaying = ref(false); // BGM 是否正在播放
 
 const AncientEnvelope = defineAsyncComponent(
   () => import("../../components/AncientEnvelope/AncientEnvelope.vue"),
@@ -184,13 +197,28 @@ const handleOpenLetter = () => {
 
   bgmAudio = new Audio(letter.mainAudio);
   bgmAudio.loop = true;
-  bgmAudio.volume = 0.3; // BGM 音量降低
+  bgmAudio.volume = 0.15; // BGM 音量大幅降低，让段落语音更清晰
   bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
+  bgmPlaying.value = true;
 };
 
 onMounted(() => {
   initData();
 });
+
+/**
+ * 切换 BGM 播放/暂停
+ */
+const toggleBgm = () => {
+  if (!bgmAudio) return;
+  if (bgmPlaying.value) {
+    bgmAudio.pause();
+    bgmPlaying.value = false;
+  } else {
+    bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
+    bgmPlaying.value = true;
+  }
+};
 
 onUnmounted(() => {
   if (bgmAudio) {
@@ -345,6 +373,85 @@ $magic-gold: #ffd700;
   }
   to {
     transform: translateY(-500px);
+  }
+}
+/* BGM 浮动控制按钮 */
+.bgm-fab {
+  position: fixed;
+  bottom: 24vpx;
+  right: 20vpx;
+  z-index: 9999;
+  width: 36vpx;
+  height: 36vpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1vpx solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.3s ease,
+    transform 0.2s ease;
+  user-select: none;
+}
+
+.bgm-fab:hover {
+  background: rgba(0, 0, 0, 0.45);
+  transform: scale(1.08);
+}
+
+.bgm-fab:active {
+  transform: scale(0.94);
+}
+
+/* 暂停状态图标 */
+.bgm-icon {
+  font-size: 15vpx;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1;
+}
+
+/* 播放中：波形动画 */
+.bgm-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 2vpx;
+  height: 14vpx;
+}
+
+.bgm-wave span {
+  display: inline-block;
+  width: 3vpx;
+  border-radius: 2vpx;
+  background: rgba(255, 255, 255, 0.55);
+  animation: bgm-bar 1s ease-in-out infinite;
+}
+
+.bgm-wave span:nth-child(1) {
+  height: 6vpx;
+  animation-delay: 0s;
+}
+.bgm-wave span:nth-child(2) {
+  height: 14vpx;
+  animation-delay: 0.2s;
+}
+.bgm-wave span:nth-child(3) {
+  height: 8vpx;
+  animation-delay: 0.4s;
+}
+
+@keyframes bgm-bar {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
   }
 }
 </style>
