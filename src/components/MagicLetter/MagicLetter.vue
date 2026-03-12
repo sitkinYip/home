@@ -383,6 +383,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@import "@/assets/fonts/LongCang/font.css";
 /* =============================================
    哈利波特魔法信件 - 连贯开信动画版
    ============================================= */
@@ -582,8 +583,8 @@ onUnmounted(() => {
 
 .recipient-info {
   text-align: center;
-  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti", "华文楷体", "KaiTi", "楷体",
-    Georgia, serif;
+  font-family: "Long Cang", "cursive", "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti",
+    "华文楷体", "KaiTi", "楷体", Georgia, serif;
   color: var(--ink);
   margin-top: 10vpx;
 }
@@ -653,7 +654,7 @@ onUnmounted(() => {
 }
 
 .seal-text {
-  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  font-family: "Long Cang", "cursive", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
   font-size: 22vpx;
   font-weight: 600;
   color: rgba(255, 215, 0, 0.9);
