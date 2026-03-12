@@ -54,7 +54,7 @@
           <div class="wax-seal" :class="{ 'seal-pop': isSealPopping }">
             <div class="seal-glow"></div>
             <div class="seal-body">
-              <span class="seal-h">H</span>
+              <span class="seal-text">{{ sealText }}</span>
             </div>
           </div>
         </div>
@@ -169,6 +169,7 @@ interface Props {
   hintText?: string;
   title?: string;
   desc?: string;
+  sealText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -179,6 +180,7 @@ const props = withDefaults(defineProps<Props>(), {
   hintText: "轻触封蜡开启信件",
   title: "Mr./Ms. Recipient",
   desc: "The Magical World",
+  sealText: "✦",
 });
 
 const emit = defineEmits(["open"]);
@@ -625,13 +627,13 @@ onUnmounted(() => {
   border: 2vpx solid #500000;
 }
 
-.seal-h {
+.seal-text {
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
   font-size: 22vpx;
   font-weight: 600;
-  color: var(--gold);
+  color: rgba(255, 215, 0, 0.9);
   text-shadow:
-    0 0 8vpx var(--gold),
+    0 0 8vpx rgba(255, 215, 0, 0.8),
     1vpx 1vpx 2vpx rgba(0, 0, 0, 0.6);
 }
 

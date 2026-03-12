@@ -237,6 +237,11 @@ const startTypewriting = async (): Promise<void> => {
       // 等待设置的打字速度间隔
       await wait(props.speed);
     }
+
+    // 当前段落打字完毕后，若有配音则等待音频自然播放结束，再继续下一段
+    if (p.audio && audioPlayer.value) {
+      await waitForAudioEnd(audioPlayer.value);
+    }
   }
   isTyping.value = false;
 };
@@ -302,6 +307,26 @@ const handleTouchStart = (): void => {
  * 工具：基于 Promise 的延迟函数
  */
 const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * 工具：等待音频元素播放结束
+ * 监听 ended / error / emptied 事件，任一触发即 resolve，防止无限阻塞
+ */
+const waitForAudioEnd = (audio: HTMLAudioElement): Promise<void> =>
+  new Promise((resolve) => {
+    // 若音频已经结束或根本没在播放，直接放行
+    if (audio.paused || audio.ended) {
+      resolve();
+      return;
+    }
+    const onEnd = () => {
+      audio.removeEventListener("ended", onEnd);
+      audio.removeEventListener("error", onEnd);
+      resolve();
+    };
+    audio.addEventListener("ended", onEnd, { once: true });
+    audio.addEventListener("error", onEnd, { once: true });
+  });
 
 /**
  * 生命周期：资源清理

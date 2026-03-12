@@ -7,6 +7,20 @@
         <!-- 信封口袋 -->
         <div class="pocket"></div>
 
+        <!-- 封面信息与封蜡 -->
+        <div class="envelope-front-content" :class="{ 'fade-out': isOpen }">
+          <div class="wax-seal">
+            <div class="seal-glow"></div>
+            <div class="seal-body">
+              <span class="seal-text">{{ sealText }}</span>
+            </div>
+          </div>
+          <div class="recipient-info">
+            <p class="recipient-name" v-if="title">{{ title }}</p>
+            <p class="recipient-addr" v-if="desc">{{ desc }}</p>
+          </div>
+        </div>
+
         <div class="letter-paper" @click.stop>
           <!-- 背景轮播图 -->
           <div class="bg-carousel" v-if="images && images.length > 0">
@@ -103,6 +117,12 @@ interface Props {
   customTextColor?: string;
   /** 未开启时的提示文字 */
   hintText?: string;
+  /** 收信人称呼 */
+  title?: string;
+  /** 寄信描述 */
+  desc?: string;
+  /** 火漆印章文字/符号 */
+  sealText?: string;
 }
 
 // 定义 props 并设置默认值
@@ -114,6 +134,9 @@ const props = withDefaults(defineProps<Props>(), {
   carouselInterval: 5000,
   customTextColor: "",
   hintText: "点击开启信件",
+  title: "",
+  desc: "",
+  sealText: "✦",
 });
 
 const emit = defineEmits(["open"]);
@@ -502,5 +525,103 @@ onUnmounted(() => {
   text-align: center;
   color: #666;
   font-size: 14vpx;
+}
+
+/* 封面信息与封蜡 */
+.envelope-front-content {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s ease;
+}
+
+.envelope-front-content.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.recipient-info {
+  position: absolute;
+  top: 140vpx;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, "STKaiti", "华文楷体", "KaiTi", "楷体",
+    Georgia, serif;
+  color: #f3e5c3;
+  text-shadow: 0 1vpx 3vpx rgba(0, 0, 0, 0.4);
+}
+
+.recipient-name {
+  font-size: 16vpx;
+  font-weight: 700;
+  margin: 0 0 4vpx;
+}
+
+.recipient-addr {
+  font-size: 12vpx;
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* 封蜡印章 */
+.wax-seal {
+  position: absolute;
+  top: 108vpx;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 46vpx;
+  height: 46vpx;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.seal-glow {
+  position: absolute;
+  inset: -8vpx;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.35) 0%, transparent 60%);
+  border-radius: 50%;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.seal-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 35% 30%, #c41e3a 0%, #8b0000 50%, #4a0000 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 3vpx 8vpx rgba(0, 0, 0, 0.5),
+    inset 0 2vpx 4vpx rgba(255, 180, 120, 0.2),
+    inset 0 -2vpx 5vpx rgba(0, 0, 0, 0.4);
+  border: 1.5vpx solid #500000;
+}
+
+.seal-text {
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  font-size: 20vpx;
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.9);
+  text-shadow:
+    0 0 6vpx rgba(255, 215, 0, 0.8),
+    1vpx 1vpx 2vpx rgba(0, 0, 0, 0.6);
 }
 </style>

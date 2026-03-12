@@ -101,6 +101,7 @@ const componentProps = computed<any>(() => {
     hintText: letter.hintText || (letter.type === "classical" ? "亲启" : "点击开启"),
     title: letter.title,
     desc: letter.desc,
+    sealText: (letter.title && letter.title[0]) || (letter.hintText && letter.hintText[0]) || "✦",
     // Modern 组件特有
     styleType: letter.type === "modern" ? "modern" : undefined,
   };
