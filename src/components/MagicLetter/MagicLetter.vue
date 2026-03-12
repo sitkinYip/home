@@ -813,6 +813,21 @@ onUnmounted(() => {
   z-index: 2;
   padding: 50px 24px 60px;
   box-sizing: border-box;
+  /* 顶部和底部渐变遮罩，防止文字滚动时超出"装订线"边界 */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    black 48px,
+    black calc(100% - 48px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    black 48px,
+    black calc(100% - 48px),
+    transparent 100%
+  );
 }
 
 .letter-scroll::-webkit-scrollbar {
