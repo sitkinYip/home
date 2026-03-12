@@ -365,6 +365,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@import "@/assets/fonts/LongCang/font.css";
 /* 容器：锁定全屏，背景保持深色 */
 .ancient-envelope-final {
   position: relative;
@@ -375,8 +376,8 @@ onUnmounted(() => {
   align-items: center;
   overflow: hidden;
   /* 优先使用苹果/安卓/Windows自带的古风字体（行楷、魏碑、隶书、楷体等） */
-  font-family: "STXingkai", "华文行楷", "Xingkai SC", "Weibei SC", "魏碑", "LiSu", "隶书", "STKaiti",
-    "华文楷体", "KaiTi", "楷体", "FangSong", "仿宋", serif;
+  font-family: "Long Cang", "cursive", "STXingkai", "华文行楷", "Xingkai SC", "Weibei SC", "魏碑",
+    "LiSu", "隶书", "STKaiti", "华文楷体", "KaiTi", "楷体", "FangSong", "仿宋", serif;
 }
 
 /* 舞台：控制信封和初始动画范围 */
