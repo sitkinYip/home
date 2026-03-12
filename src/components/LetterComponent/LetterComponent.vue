@@ -186,6 +186,20 @@ const playAudioSync = (url: string): Promise<void> => {
 };
 
 /**
+ * 预加载音频并返回其时长（秒）
+ * 用临时 Audio 元素读取 metadata，不影响主播放器
+ * @returns 音频时长（秒），加载失败时返回 0
+ */
+const getAudioDuration = (url: string): Promise<number> =>
+  new Promise((resolve) => {
+    const tmp = new Audio();
+    tmp.preload = "metadata";
+    tmp.onloadedmetadata = () => resolve(tmp.duration || 0);
+    tmp.onerror = () => resolve(0);
+    tmp.src = url;
+  });
+
+/**
  * 监听内容变化，实现自动滚动到底部
  */
 watch(
@@ -256,16 +270,26 @@ const typeText = async (): Promise<void> => {
 
     const text = config.content || "";
 
-    // 1. 播放音频（不阻塞打字）
+    // 1. 计算实际打字速度：若有音频则根据时长/字数动态计算，否则使用 props.speed
+    let charSpeed = props.speed;
+    if (config.audio && text.length > 0) {
+      const audioDuration = await getAudioDuration(config.audio);
+      if (audioDuration > 0) {
+        // 音频时长（ms）均分到每个字符，留出 200ms 收尾余量
+        charSpeed = Math.max(20, (audioDuration * 1000 - 200) / text.length);
+      }
+    }
+
+    // 2. 播放音频（不阻塞打字）
     let audioPromise: Promise<void> | null = null;
     if (config.audio) {
       audioPromise = playAudioSync(config.audio);
     }
 
-    // 2. 执行打字效果
+    // 3. 执行打字效果
     for (const char of text) {
       displayedParagraphs.value[i].currentText += char;
-      await new Promise((resolve) => setTimeout(resolve, props.speed));
+      await new Promise((resolve) => setTimeout(resolve, charSpeed));
     }
 
     // 3. 等待音频播放完成（如果音频长于打字时长）

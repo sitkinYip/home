@@ -222,6 +222,20 @@ const playAudioSync = (url: string): Promise<void> => {
   });
 };
 
+/**
+ * 预加载音频并返回其时长（秒）
+ * 用临时 Audio 元素读取 metadata，不影响主播放器
+ * @returns 音频时长（秒），加载失败时返回 0
+ */
+const getAudioDuration = (url: string): Promise<number> =>
+  new Promise((resolve) => {
+    const tmp = new Audio();
+    tmp.preload = "metadata";
+    tmp.onloadedmetadata = () => resolve(tmp.duration || 0);
+    tmp.onerror = () => resolve(0);
+    tmp.src = url;
+  });
+
 watch(
   displayedParagraphs,
   () => {
@@ -276,6 +290,17 @@ const typeText = async () => {
     }
 
     const text = config.content || "";
+
+    // 计算实际打字速度：若有音频则根据时长/字数动态计算，否则使用 props.speed
+    let charSpeed = props.speed;
+    if (config.audio && text.length > 0) {
+      const audioDuration = await getAudioDuration(config.audio);
+      if (audioDuration > 0) {
+        // 音频时长（ms）均分到每个字符，留出 200ms 收尾余量
+        charSpeed = Math.max(20, (audioDuration * 1000 - 200) / text.length);
+      }
+    }
+
     let audioPromise: Promise<void> | null = null;
     if (config.audio) {
       audioPromise = playAudioSync(config.audio);
@@ -284,7 +309,7 @@ const typeText = async () => {
     for (const char of text) {
       // 将普通空格替换为不间断空格，防止 HTML 折叠连续空格
       displayedParagraphs.value[i].currentText += char === " " ? "\u00a0" : char;
-      await new Promise((r) => setTimeout(r, props.speed));
+      await new Promise((r) => setTimeout(r, charSpeed));
     }
 
     if (audioPromise) await audioPromise;

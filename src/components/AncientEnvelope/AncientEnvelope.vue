@@ -221,8 +221,18 @@ const startTypewriting = async (): Promise<void> => {
       audioPlayer.value.play().catch((e) => console.log("Audio skip:", e));
     }
 
-    // 逐字拆分并累加输出（将普通空格替换为不间断空格，防止 HTML 折叠）
+    // 计算实际打字速度：若有音频则用音频时长/字数动态计算，否则使用 props.speed
     const chars: string[] = Array.from(p.content);
+    let charSpeed = props.speed;
+    if (p.audio && chars.length > 0) {
+      const audioDuration = await getAudioDuration(p.audio);
+      if (audioDuration > 0) {
+        // 音频时长（ms）均分到每个字符，留出 200ms 收尾余量
+        charSpeed = Math.max(20, (audioDuration * 1000 - 200) / chars.length);
+      }
+    }
+
+    // 逐字拆分并累加输出（将普通空格替换为不间断空格，防止 HTML 折叠）
     for (const char of chars) {
       if (currentP.displayed !== undefined) {
         currentP.displayed += char === " " ? "\u00a0" : char;
@@ -234,8 +244,8 @@ const startTypewriting = async (): Promise<void> => {
       forceRepaint();
       // 渲染后执行滚动定位
       autoScroll();
-      // 等待设置的打字速度间隔
-      await wait(props.speed);
+      // 等待打字速度间隔（动态或固定）
+      await wait(charSpeed);
     }
 
     // 当前段落打字完毕后，若有配音则等待音频自然播放结束，再继续下一段
@@ -326,6 +336,20 @@ const waitForAudioEnd = (audio: HTMLAudioElement): Promise<void> =>
     };
     audio.addEventListener("ended", onEnd, { once: true });
     audio.addEventListener("error", onEnd, { once: true });
+  });
+
+/**
+ * 工具：预加载音频并返回其时长（秒）
+ * 利用临时 Audio 元素读取 duration，不影响主播放器状态
+ * @returns 音频时长（秒），加载失败时返回 0
+ */
+const getAudioDuration = (url: string): Promise<number> =>
+  new Promise((resolve) => {
+    const tmp = new Audio();
+    tmp.preload = "metadata";
+    tmp.onloadedmetadata = () => resolve(tmp.duration || 0);
+    tmp.onerror = () => resolve(0);
+    tmp.src = url;
   });
 
 /**
