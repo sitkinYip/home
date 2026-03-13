@@ -116,7 +116,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from "vue";
+import gsap from "gsap";
 import ClueArtifact from "./ClueArtifact/index.vue";
 import { ThreadItemList } from "@/types/qa";
 
@@ -133,6 +134,9 @@ const clueCardRef = ref<HTMLElement | null>(null);
 const isLongThread = computed(() => props.thread?.length > 3);
 let visibilityObserver: IntersectionObserver | null = null;
 let visibilityDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+// GSAP 动画时间线
+let fullscreenTimeline: gsap.core.Timeline | null = null;
 
 /**
  * 全局注册表：跟踪所有处于全屏模式的 QuestClues 实例的可视状态
@@ -197,11 +201,152 @@ const setScrollLock = (lock: boolean) => {
 };
 
 const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value;
-  setScrollLock(isFullscreen.value);
+  if (isFullscreen.value) {
+    // 关闭全屏
+    closeFullscreenWithAnimation();
+  } else {
+    // 打开全屏
+    openFullscreenWithAnimation();
+  }
 };
 
+/**
+ * 打开全屏模式（带动画）
+ */
+const openFullscreenWithAnimation = () => {
+  isFullscreen.value = true;
+  setScrollLock(true);
+
+  nextTick(() => {
+    const portal = document.querySelector(".fullscreen-portal") as HTMLElement;
+    const contentWrapper = document.querySelector(".fullscreen-content-wrapper") as HTMLElement;
+    const header = document.querySelector(".fullscreen-portal .clue-header") as HTMLElement;
+
+    if (!portal || !contentWrapper) return;
+
+    // 创建 GSAP 时间线
+    fullscreenTimeline = gsap.timeline();
+
+    // 初始状态设置
+    gsap.set(portal, { opacity: 0 });
+    gsap.set(contentWrapper, { scale: 0.8, y: 100 });
+    gsap.set(header, { y: -50, opacity: 0 });
+
+    // 背景遮罩淡入
+    fullscreenTimeline.to(portal, {
+      opacity: 1,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+
+    // 内容容器缩放 + 上移动画
+    fullscreenTimeline.to(
+      contentWrapper,
+      {
+        scale: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "power3.out",
+      },
+      "-=0.2",
+    );
+
+    // 头部下滑淡入
+    fullscreenTimeline.to(
+      header,
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      },
+      "-=0.3",
+    );
+
+    // 粒子效果淡入
+    fullscreenTimeline.to(
+      ".magic-particles",
+      {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power1.out",
+      },
+      "-=0.2",
+    );
+  });
+};
+
+/**
+ * 关闭全屏模式（带动画）
+ */
+const closeFullscreenWithAnimation = () => {
+  if (!fullscreenTimeline) {
+    exitFullscreen();
+    return;
+  }
+
+  // 创建反向动画时间线
+  const closeTimeline = gsap.timeline({
+    onComplete: () => {
+      exitFullscreen();
+    },
+  });
+
+  const contentWrapper = document.querySelector(".fullscreen-content-wrapper") as HTMLElement;
+  const header = document.querySelector(".fullscreen-portal .clue-header") as HTMLElement;
+  const portal = document.querySelector(".fullscreen-portal") as HTMLElement;
+
+  if (contentWrapper && header && portal) {
+    // 头部上滑淡出
+    closeTimeline.to(
+      header,
+      {
+        y: -50,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      },
+      0,
+    );
+
+    // 内容容器缩小 + 下移
+    closeTimeline.to(
+      contentWrapper,
+      {
+        scale: 0.8,
+        y: 100,
+        duration: 0.4,
+        ease: "power3.in",
+      },
+      "-=0.2",
+    );
+
+    // 背景遮罩淡出
+    closeTimeline.to(
+      portal,
+      {
+        opacity: 0,
+        duration: 0.25,
+        ease: "power2.in",
+      },
+      "-=0.15",
+    );
+  } else {
+    // 如果找不到元素，直接退出
+    exitFullscreen();
+  }
+};
+
+/**
+ * 直接退出全屏（不带动画，用于点击遮罩等场景）
+ */
 const exitFullscreen = () => {
+  // 清理之前的动画时间线
+  if (fullscreenTimeline) {
+    fullscreenTimeline.kill();
+    fullscreenTimeline = null;
+  }
+
   isFullscreen.value = false;
   setScrollLock(false);
 };
@@ -250,6 +395,12 @@ const cleanupVisibilityObserver = () => {
   // 组件卸载时从注册表移除并同步
   FULLSCREEN_VISIBLE_REGISTRY.delete(instanceId);
   syncBadgeVisibility();
+
+  // 清理 GSAP 动画
+  if (fullscreenTimeline) {
+    fullscreenTimeline.kill();
+    fullscreenTimeline = null;
+  }
 };
 
 onMounted(() => {
@@ -332,6 +483,8 @@ const getParticleStyle = (_index: number) => {
   // iOS 安全区域适配
   padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
     env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  // 初始状态为透明，由 GSAP 控制淡入
+  opacity: 0;
 
   // 全屏背景遮罩
   .fullscreen-backdrop {
@@ -375,6 +528,8 @@ const getParticleStyle = (_index: number) => {
     pointer-events: none;
     overflow: hidden;
     z-index: 1;
+    // 初始状态为透明，由 GSAP 控制淡入
+    opacity: 0;
 
     .particle {
       position: absolute;
@@ -401,6 +556,8 @@ const getParticleStyle = (_index: number) => {
     background: rgba(10, 14, 20, 0.98);
     backdrop-filter: blur(30vpx) saturate(1.3);
     -webkit-backdrop-filter: blur(30vpx) saturate(1.3);
+    // 初始状态由 GSAP 设置
+    transform-origin: center bottom;
 
     // 多题模式适配：占满整个容器
     &.is-multi-mode {
