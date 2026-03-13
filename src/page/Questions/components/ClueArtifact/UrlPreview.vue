@@ -246,6 +246,8 @@ watch(
     background: #fff;
     border-radius: 4vpx;
     overflow: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 
   .preview-iframe {
@@ -253,6 +255,9 @@ watch(
     height: 100%;
     border: none;
     background: #fff;
+    // iOS 微信浏览器兼容
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 
   .loading-overlay,

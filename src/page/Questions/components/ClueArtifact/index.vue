@@ -5,7 +5,8 @@
     <!-- 卡片式展示（展开时隐藏） -->
     <transition name="card-fade">
       <ArtifactCard
-        v-show="!isExpanded && !(isFullscreen && type === 'img')"
+        v-if="!isExpanded && (!isFullscreen || type !== 'img')"
+        v-show="!isFullscreen || type === 'img'"
         :type="type"
         :content="content"
         :path="path"

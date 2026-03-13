@@ -152,6 +152,8 @@ const handleEnded = () => {
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 
   .player-close {
     position: absolute;
@@ -181,6 +183,8 @@ const handleEnded = () => {
     height: 100%;
     object-fit: contain;
     background: #000;
+    // iOS 微信浏览器兼容
+    -webkit-object-fit: contain;
   }
 
   .player-magic-border {
