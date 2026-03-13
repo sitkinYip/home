@@ -75,7 +75,7 @@ defineEmits(["action", "preview"]);
 
 const isFullscreen = ref(false);
 const clueCardRef = ref<HTMLElement | null>(null);
-const isLongThread = computed(() => props.thread?.length > 5);
+const isLongThread = computed(() => props.thread?.length > 3);
 let visibilityObserver: IntersectionObserver | null = null;
 let visibilityDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -266,6 +266,16 @@ const getParticleStyle = (_index: number) => {
   padding: 20vpx;
   margin-bottom: 12vpx;
   border: 1vpx solid rgba($magic-green, 0.4);
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  &.fullscreen-mode {
+    // 全屏模式下确保内容可以正常展开
+    overflow: visible;
+    position: relative;
+    z-index: 100;
+  }
 
   .clue-header {
     position: relative;
@@ -681,9 +691,15 @@ const getParticleStyle = (_index: number) => {
 
 .as_content {
   // container for items
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 .as_item_wrapper {
   // wrapper
+  margin-bottom: 16vpx;
+  // 确保每个项目都能正确渲染
+  position: relative;
 }
 .direct-img-view {
   margin-top: 10vpx;
