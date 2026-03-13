@@ -75,7 +75,7 @@ defineEmits(["action", "preview"]);
 
 const isFullscreen = ref(false);
 const clueCardRef = ref<HTMLElement | null>(null);
-const isLongThread = computed(() => props.thread?.length > 2);
+const isLongThread = computed(() => props.thread?.length > 5);
 let visibilityObserver: IntersectionObserver | null = null;
 let visibilityDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
