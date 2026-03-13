@@ -62,6 +62,7 @@
             v-if="isBinGo"
             :thread="activeQaInfo.thread"
             :title="activeQaInfo.answerTitle"
+            :is-multi-mode="compact"
             @action="handleArtifactAction"
             @preview="previewImage"
           />
@@ -489,7 +490,7 @@ const initData = async () => {
     const startTime = questionsStore.qaInfo?.startTime;
     const endTime = questionsStore.qaInfo?.endTime;
     let shouldReport = true;
-    
+
     if (!isDebug) {
       if (startTime && !isTimeReached(startTime)) {
         // 未开始，不上报
