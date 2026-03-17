@@ -30,39 +30,89 @@
         @click.stop
       >
         <div class="paper-border-outer">
-          <!-- 核心滚动容器：paper-border-inner -->
-          <div class="paper-border-inner" ref="scrollContainer" @touchstart="handleTouchStart">
-            <!-- paper-content-area: 承载竖排文字流和动态生成的背景格线 -->
-            <div class="paper-content-area">
-              <!-- 遍历渲染每一段内容 -->
-              <div
-                v-for="(p, index) in renderedParagraphs"
-                :key="index"
-                class="para-column-group"
-                :style="getParaStyle(p.align)"
-              >
-                <!-- 遍历渲染已打出的字，v-char 负责垂直堆叠 -->
-                <!-- iOS 移动端需要额外的 ios-fix 类来应用强制重绘动画 -->
-                <span
-                  v-for="(char, cIdx) in p.displayed"
-                  :key="cIdx"
-                  class="v-char"
-                  :class="{ 'ios-fix': isIOSMobile }"
-                  >{{ char }}</span
-                >
-                <!-- 打字机光标：仅在当前正在录入的段落末尾闪烁 -->
-                <span v-if="isTyping && index === renderedParagraphs.length - 1" class="v-cursor"
-                  >|</span
-                >
+          <!-- 翻页容器 -->
+          <div class="page-flip-container" ref="pageFlipContainer">
+            <div
+              v-for="(page, pageIdx) in pages"
+              :key="pageIdx"
+              class="page-sheet"
+              :class="{
+                'page-active': pageIdx === currentPage,
+                'page-prev': pageIdx < currentPage,
+                'page-next': pageIdx > currentPage,
+                'page-flip-forward': isFlipping && flipDirection === 'forward' && pageIdx === currentPage - 1,
+                'page-flip-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage,
+                'page-enter-forward': isFlipping && flipDirection === 'forward' && pageIdx === currentPage,
+                'page-enter-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage - 1,
+              }"
+            >
+              <div class="paper-border-inner">
+                <div class="paper-content-area">
+                  <div
+                    v-for="(p, pIdx) in page.paragraphs"
+                    :key="pIdx"
+                    class="para-column-group"
+                    :style="getParaStyle(p.align)"
+                  >
+                    <span
+                      v-for="(char, cIdx) in p.displayed"
+                      :key="cIdx"
+                      class="v-char"
+                      :class="{ 'ios-fix': isIOSMobile }"
+                    >{{ char }}</span>
+                    <span
+                      v-if="isTyping && pageIdx === currentPage && pIdx === page.paragraphs.length - 1"
+                      class="v-cursor"
+                    >|</span>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <!-- 隐藏的溢出检测容器（竖排模式检测水平溢出） -->
+            <div class="overflow-measure" ref="overflowMeasure">
+              <div class="paper-border-inner">
+                <div class="paper-content-area">
+                  <div
+                    v-for="(p, pIdx) in currentPageParagraphs"
+                    :key="'m-' + pIdx"
+                    class="para-column-group"
+                    :style="getParaStyle(p.align)"
+                  >
+                    <span
+                      v-for="(char, cIdx) in p.displayed"
+                      :key="'mc-' + cIdx"
+                      class="v-char"
+                    >{{ char }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 页码指示器 -->
+          <div class="page-indicator" v-if="isFullyCentered && pages.length > 1">
+            <span class="page-num">{{ currentPage + 1 }} / {{ pages.length }}</span>
+          </div>
+
+          <!-- 翻页按钮 -->
+          <div class="page-nav" v-if="isFinished && isFullyCentered && pages.length > 1" @click.stop>
+            <button
+              class="page-btn page-btn-prev"
+              :class="{ 'page-btn-disabled': currentPage === 0 }"
+              @click="flipToPrev"
+            >‹</button>
+            <button
+              class="page-btn page-btn-next"
+              :class="{ 'page-btn-disabled': currentPage === pages.length - 1 }"
+              @click="flipToNext"
+            >›</button>
           </div>
         </div>
 
         <!-- 3. 背景插图轮播层 -->
         <div class="paper-bg-img" v-if="images.length">
           <transition name="bg-slideshow">
-            <!-- 使用 :key 绑定索引，实现图片切换时的淡入淡出 -->
             <div
               :key="currentImgIndex"
               class="img-fill"
@@ -86,32 +136,29 @@
  * 核心逻辑：原生竖排文字流 + 动态格线增长 + 自动负坐标滚动追踪
  */
 import { ref, reactive, computed, nextTick, onUnmounted } from "vue";
+import { usePageFlip } from "@/hooks/usePageFlip";
 
 // --- 类型定义 (Interfaces) ---
 
-/**
- * 段落数据结构
- */
 interface Paragraph {
-  content: string; // 文本内容
-  align?: "top" | "center" | "bottom"; // 对齐方向
-  delay?: number; // 该段落开始前的停顿延迟 (ms)
-  audio?: string; // 该段落对应的配音 URL
-  displayed?: string; // [内部字段] 已经打出来的文字
+  content: string;
+  align?: "top" | "center" | "bottom";
+  delay?: number;
+  audio?: string;
+  displayed?: string;
 }
 
-/**
- * 组件 Props 定义
- */
+interface PageData {
+  paragraphs: Paragraph[];
+}
+
 interface Props {
-  paragraphs?: Paragraph[]; // 信件段落数组
-  speed?: number; // 打字速度 (ms/字)
-  images?: string[]; // 背景插图数组
-  /** 未开启时的提示文字 */
+  paragraphs?: Paragraph[];
+  speed?: number;
+  images?: string[];
   hintText?: string;
 }
 
-// 应用默认值
 const props = withDefaults(defineProps<Props>(), {
   paragraphs: () => [],
   speed: 100,
@@ -120,60 +167,93 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["open", "finish", "close"]);
 
-// --- 响应式状态 (State) ---
+// --- 翻页状态 ---
+const {
+  currentPage,
+  totalPages,
+  isFlipping,
+  flipDirection,
+  flipForward,
+  flipBackward,
+  resetPages,
+  enableSwipe,
+  setSwipeEnabled,
+} = usePageFlip();
 
-const isOpened = ref<boolean>(false); // 是否触发开启信封
-const isLetterUp = ref<boolean>(false); // 信纸是否开始升起
-const isFullyCentered = ref<boolean>(false); // 信纸是否完成居中放大
-const isTyping = ref<boolean>(false); // 打字机是否正在工作中
-const isFinished = ref<boolean>(false); // 所有内容是否全部播放完毕
-const isClosing = ref<boolean>(false); // 是否正在执行收起动画
-const currentImgIndex = ref<number>(0); // 当前显示的图片轮播索引
-const renderedParagraphs = reactive<Paragraph[]>([]); // 实际在页面渲染的段落数组
+// --- 响应式状态 ---
+const isOpened = ref<boolean>(false);
+const isLetterUp = ref<boolean>(false);
+const isFullyCentered = ref<boolean>(false);
+const isTyping = ref<boolean>(false);
+const isFinished = ref<boolean>(false);
+const isClosing = ref<boolean>(false);
+const currentImgIndex = ref<number>(0);
 
-// 模版引用类型标注
+// 分页数据
+const pages = reactive<PageData[]>([{ paragraphs: [] }]);
+
 const audioPlayer = ref<HTMLAudioElement | null>(null);
-const scrollContainer = ref<HTMLElement | null>(null);
+const overflowMeasure = ref<HTMLElement | null>(null);
+const pageFlipContainer = ref<HTMLElement | null>(null);
 
-// 定时器与交互状态
 let slideshowTimer: ReturnType<typeof setInterval> | null = null;
-let isUserInteracting: boolean = false; // 用户是否正在手动滑动（此时禁用自动滚动定位）
 
 /**
  * 检测是否为 iOS 移动端设备
- * 用于针对性地应用 iOS Safari 渲染 bug 的修复措施
  */
 const isIOSMobile = (() => {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  // 检测 iOS 设备（iPhone, iPad, iPod）且非桌面模式
   const isIOS =
     /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPad with iPadOS
-  // 排除桌面 Safari（桌面 Safari 没有这个问题）
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const isMobile = /Mobile|Android/.test(ua) || navigator.maxTouchPoints > 1;
   return isIOS && isMobile;
 })();
 
-/**
- * 计算属性：将速度转换为 CSS 变量，供样式动画参考
- */
 const containerVars = computed(() => ({
   "--speed": `${props.speed}ms`,
 }));
 
-/**
- * 处理垂直对齐的映射逻辑
- * 原理：在 writing-mode: vertical-rl 模式下，文字流向反转
- * 我们通过反转 textAlign 的物理属性（left/right）来符合用户 top/bottom 的直觉
- */
 const getParaStyle = (align?: string): Record<string, string> => {
   let ta: "left" | "center" | "right" = "center";
   if (align === "center") ta = "center";
-  else if (align === "top")
-    ta = "left"; // 映射为物理顶部
-  else if (align === "bottom") ta = "right"; // 映射为物理底部
+  else if (align === "top") ta = "left";
+  else if (align === "bottom") ta = "right";
   return { textAlign: ta };
+};
+
+/**
+ * 获取当前页的段落数据（用于溢出检测容器渲染）
+ */
+const currentPageParagraphs = computed(() => {
+  if (pages.length === 0) return [];
+  return pages[currentPage.value]?.paragraphs || [];
+});
+
+/**
+ * 检测当前页内容是否溢出（竖排模式检测水平溢出）
+ */
+const checkOverflow = async (): Promise<boolean> => {
+  await nextTick();
+  const measure = overflowMeasure.value;
+  if (!measure) return false;
+  const inner = measure.querySelector(".paper-border-inner") as HTMLElement;
+  if (!inner) return false;
+  return inner.scrollWidth > inner.clientWidth + 2;
+};
+
+/**
+ * 手动翻页
+ */
+const flipToNext = () => {
+  if (isFlipping.value || currentPage.value >= pages.length - 1) return;
+  flipForward();
+};
+
+const flipToPrev = () => {
+  if (isFlipping.value || currentPage.value <= 0) return;
+  flipBackward();
 };
 
 /**
@@ -184,8 +264,6 @@ const handleOpen = async (): Promise<void> => {
   isOpened.value = true;
   emit("open");
 
-  // 解锁移动端音频限制：必须在用户点击的同步线程中调用一次 play()
-  // 用第一个有 audio 的段落 URL（或静默 blob）正确解锁，空 src 的 play() 会直接报错
   if (audioPlayer.value) {
     const firstAudioUrl =
       props.paragraphs?.find((p) => p.audio)?.audio ||
@@ -195,38 +273,45 @@ const handleOpen = async (): Promise<void> => {
     audioPlayer.value
       .play()
       .then(() => {
-        audioPlayer.value?.pause(); // 解锁后立即暂停，等待打字机触发
-        audioPlayer.value!.currentTime = 0; // 重置播放进度
+        audioPlayer.value?.pause();
+        audioPlayer.value!.currentTime = 0;
       })
       .catch(() => {});
   }
 
-  // 阶梯式动画执行序列
   setTimeout(() => {
     isLetterUp.value = true;
-  }, 50); // 1. 信纸微升
+  }, 50);
   setTimeout(() => {
     isFullyCentered.value = true;
-  }, 1200); // 2. 居中并放大，信封消失
+  }, 1200);
+  // 注册手势（初始禁用，打字完成后启用）
+  nextTick(() => {
+    if (pageFlipContainer.value) {
+      enableSwipe(pageFlipContainer.value);
+      setSwipeEnabled(false);
+    }
+  });
+
   setTimeout(() => {
-    startTypewriting(); // 3. 开启打字机
-    startSlideshow(); // 4. 开启插图轮播
+    startTypewriting();
+    startSlideshow();
   }, 2500);
 };
 
 /**
- * 核心：打字机引擎实现
+ * 核心：打字机引擎实现（带自动翻页）
  */
 const startTypewriting = async (): Promise<void> => {
   isTyping.value = true;
 
   for (const p of props.paragraphs) {
-    // 阶段性延迟
     if (p.delay) await wait(p.delay);
 
-    // 初始化当前待显示的段落容器
+    // 在当前页添加新段落
+    const currentPageData = pages[currentPage.value];
     const currentP: Paragraph = reactive({ ...p, displayed: "" });
-    renderedParagraphs.push(currentP);
+    currentPageData.paragraphs.push(currentP);
 
     // 段落同步配音播放
     if (p.audio && audioPlayer.value) {
@@ -234,98 +319,89 @@ const startTypewriting = async (): Promise<void> => {
       audioPlayer.value.play().catch((e) => console.log("Audio skip:", e));
     }
 
-    // 计算实际打字速度：若有音频则用音频时长/字数动态计算，否则使用 props.speed
     const chars: string[] = Array.from(p.content);
     let charSpeed = props.speed;
     if (p.audio && chars.length > 0) {
       const audioDuration = await getAudioDuration(p.audio);
       if (audioDuration > 0) {
-        // 音频时长（ms）均分到每个字符，留出 200ms 收尾余量
         charSpeed = Math.max(20, (audioDuration * 1000 - 200) / chars.length);
       }
     }
 
-    // 逐字拆分并累加输出（将普通空格替换为不间断空格，防止 HTML 折叠）
     for (const char of chars) {
-      if (currentP.displayed !== undefined) {
-        currentP.displayed += char === " " ? "\u00a0" : char;
+      const activePage = pages[currentPage.value];
+      const activeParaIdx = activePage.paragraphs.length - 1;
+      const activePara = activePage.paragraphs[activeParaIdx];
+
+      if (activePara.displayed !== undefined) {
+        activePara.displayed += char === " " ? "\u00a0" : char;
       }
 
-      // 关键步骤：等待 Vue 将新字符渲染到 DOM
       await nextTick();
-      // iOS Safari 移动端强制重绘修复：解决竖排文字动态追加不显示的问题
       forceRepaint();
-      // 渲染后执行滚动定位
-      autoScroll();
-      // 等待打字速度间隔（动态或固定）
+
+      // 检测溢出
+      const overflowed = await checkOverflow();
+      if (overflowed) {
+        // 移除当前字符
+        if (activePara.displayed !== undefined) {
+          activePara.displayed = activePara.displayed.slice(0, -1);
+        }
+
+        if (activePara.displayed === "") {
+          activePage.paragraphs.pop();
+        }
+
+        // 创建新页并翻页
+        totalPages.value++;
+        pages.push({ paragraphs: [] });
+        await flipForward();
+
+        // 在新页添加段落（续接）
+        const newPage = pages[currentPage.value];
+        const newPara: Paragraph = reactive({ ...p, displayed: char === " " ? "\u00a0" : char });
+        newPage.paragraphs.push(newPara);
+      }
+
       await wait(charSpeed);
     }
 
-    // 当前段落打字完毕后，若有配音则等待音频自然播放结束，再继续下一段
     if (p.audio && audioPlayer.value) {
       await waitForAudioEnd(audioPlayer.value);
     }
   }
   isTyping.value = false;
   isFinished.value = true;
+  setSwipeEnabled(true);
   emit("finish");
 };
 
-/**
- * 逻辑：背景图片自动切换
- */
 const startSlideshow = (): void => {
   if (props.images.length > 1) {
     slideshowTimer = setInterval(() => {
       currentImgIndex.value = (currentImgIndex.value + 1) % props.images.length;
-    }, 5000); // 默认 5 秒一切换
+    }, 5000);
   }
 };
 
 /**
- * 核心：滚动位置动态同步
- * 原理：在竖排模式 (vertical-rl) 下，内容是从右边缘向左增长的。
- * 此时 scrollLeft 的有效值范围是 [-scrollWidth + clientWidth, 0]。
- * 我们将 scrollLeft 设为极大的负值，能确保视口始终粘着在最左侧（即最新文字产生的地方）。
- */
-const autoScroll = (): void => {
-  if (isUserInteracting || !scrollContainer.value) return;
-  scrollContainer.value.scrollLeft = -scrollContainer.value.scrollWidth;
-};
-
-/**
  * iOS Safari 移动端强制重绘修复
- * 原理：在竖排模式下动态追加内容时，iOS Safari 可能不会立即触发重绘
- * 通过读取 offsetHeight 强制浏览器执行同步回流(reflow)，从而触发文字渲染
- * 这是一个已知的 WebKit 渲染 bug 的 workaround
  */
 const forceRepaint = (): void => {
-  // 仅在 iOS 移动端执行强制重绘，其他平台无需此操作
-  if (!isIOSMobile || !scrollContainer.value) return;
-
-  const container = scrollContainer.value;
-  // 策略1：强制同步回流
+  if (!isIOSMobile) return;
+  const container = overflowMeasure.value;
+  if (!container) return;
   void container.offsetHeight;
-  // 策略2：切换 visibility 强制重绘整个层
-  container.style.visibility = "hidden";
-  void container.offsetHeight; // 再次触发回流
-  container.style.visibility = "visible";
-  // 策略3：强制整个文档重绘（最后手段）
   document.body.style.zoom = "1.0001";
   requestAnimationFrame(() => {
     document.body.style.zoom = "1";
   });
 };
 
-/**
- * 交互：点击信件外空白收起信件
- * 只有打字机完毕后才能触发
- */
 const handleClose = (): void => {
   if (!isFinished.value || isClosing.value) return;
   isClosing.value = true;
 
-  // 停止音频和轮播
   if (slideshowTimer) {
     clearInterval(slideshowTimer);
     slideshowTimer = null;
@@ -334,14 +410,15 @@ const handleClose = (): void => {
     audioPlayer.value.pause();
   }
 
-  // 逐步逆北：在 is-closing 的 opacity:0 过渡完成后重置状态
   setTimeout(() => {
     isFullyCentered.value = false;
     isLetterUp.value = false;
     isTyping.value = false;
     isFinished.value = false;
-    renderedParagraphs.splice(0, renderedParagraphs.length);
+    pages.splice(0, pages.length, { paragraphs: [] });
     currentImgIndex.value = 0;
+    resetPages();
+    setSwipeEnabled(false);
 
     setTimeout(() => {
       isOpened.value = false;
@@ -349,16 +426,6 @@ const handleClose = (): void => {
       emit("close");
     }, 300);
   }, 350);
-};
-/**
- * 交互：处理用户手动触摸
- * 当用户滑动查看历史文字时，暂停自动滚动 3 秒，避免“抢夺”视口
- */
-const handleTouchStart = (): void => {
-  isUserInteracting = true;
-  setTimeout(() => {
-    isUserInteracting = false;
-  }, 3000);
 };
 
 /**
@@ -368,11 +435,9 @@ const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms)
 
 /**
  * 工具：等待音频元素播放结束
- * 监听 ended / error / emptied 事件，任一触发即 resolve，防止无限阻塞
  */
 const waitForAudioEnd = (audio: HTMLAudioElement): Promise<void> =>
   new Promise((resolve) => {
-    // 若音频已经结束或根本没在播放，直接放行
     if (audio.paused || audio.ended) {
       resolve();
       return;
@@ -388,8 +453,6 @@ const waitForAudioEnd = (audio: HTMLAudioElement): Promise<void> =>
 
 /**
  * 工具：预加载音频并返回其时长（秒）
- * 利用临时 Audio 元素读取 duration，不影响主播放器状态
- * @returns 音频时长（秒），加载失败时返回 0
  */
 const getAudioDuration = (url: string): Promise<number> =>
   new Promise((resolve) => {
@@ -403,7 +466,6 @@ const getAudioDuration = (url: string): Promise<number> =>
       tmp.onerror = null;
       resolve(value);
     };
-    // iOS Safari 可能不触发 loadedmetadata，3 秒超时兜底防止 Promise 永久 pending
     const timer = setTimeout(() => settle(0), 3000);
     tmp.onloadedmetadata = () => {
       clearTimeout(timer);
@@ -554,18 +616,173 @@ onUnmounted(() => {
   padding: 2vpx;
 }
 
+/* ========== 翻页容器（整张纸翻页） ========== */
+.page-flip-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  perspective: 1800px;
+  perspective-origin: center center;
+}
+
+.page-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  background: linear-gradient(180deg, #f5efe0 0%, #ede4d0 100%);
+  border-radius: 2vpx;
+  box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.page-active {
+  transform: rotateY(0deg);
+  z-index: 10;
+}
+
+.page-prev {
+  transform: rotateY(-180deg);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.page-next {
+  transform: rotateY(0deg);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.page-flip-forward {
+  animation: page-turn-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 15;
+}
+
+.page-enter-forward {
+  animation: page-turn-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 10;
+  opacity: 1;
+}
+
+.page-flip-backward {
+  animation: page-turn-back-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 15;
+}
+
+.page-enter-backward {
+  animation: page-turn-back-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 10;
+  opacity: 1;
+}
+
+@keyframes page-turn-out {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+    opacity: 1;
+  }
+  30% {
+    transform: rotateY(-45deg) scale(1.02);
+    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+    opacity: 1;
+  }
+  60% {
+    transform: rotateY(-110deg) scale(1.01);
+    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotateY(-180deg) scale(1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes page-turn-in {
+  0% {
+    transform: rotateY(15deg) scale(0.98);
+    opacity: 0;
+    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+  }
+  40% {
+    opacity: 0.6;
+  }
+  70% {
+    transform: rotateY(3deg) scale(1);
+    opacity: 0.9;
+    box-shadow: 3vpx 2vpx 10vpx rgba(0, 0, 0, 0.1);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes page-turn-back-out {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+    opacity: 1;
+  }
+  30% {
+    transform: rotateY(30deg) scale(1.01);
+    box-shadow: -10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(15deg) scale(0.98);
+    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+    opacity: 0;
+  }
+}
+
+@keyframes page-turn-back-in {
+  0% {
+    transform: rotateY(-180deg) scale(1);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  30% {
+    transform: rotateY(-120deg) scale(1.01);
+    opacity: 0.5;
+    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+  }
+  60% {
+    transform: rotateY(-50deg) scale(1.02);
+    opacity: 0.85;
+    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* 隐藏的溢出检测容器 */
+.overflow-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
 .paper-border-inner {
   position: relative;
   height: 100%;
   border: 1vpx solid #a32e2e;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.paper-border-inner::-webkit-scrollbar {
-  display: none;
+  overflow: hidden;
 }
 
 /* 核心排版：原生竖排流实现 */
@@ -668,6 +885,63 @@ onUnmounted(() => {
 .bg-slideshow-leave-to {
   opacity: 0;
 }
+/* 页码指示器 */
+.page-indicator {
+  position: absolute;
+  bottom: 4vpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.page-num {
+  font-size: 11vpx;
+  color: rgba(163, 46, 46, 0.4);
+  letter-spacing: 2vpx;
+  font-weight: 400;
+}
+
+/* 翻页按钮 */
+.page-nav {
+  position: absolute;
+  bottom: 2vpx;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4vpx;
+  pointer-events: none;
+}
+
+.page-btn {
+  width: 24vpx;
+  height: 24vpx;
+  border-radius: 50%;
+  border: none;
+  background: rgba(163, 46, 46, 0.08);
+  color: #a32e2e;
+  font-size: 16vpx;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page-btn:active {
+  transform: scale(0.9);
+}
+
+.page-btn-disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
 /* 完成提示：底部轻量提示 */
 .dismiss-hint {
   position: fixed;

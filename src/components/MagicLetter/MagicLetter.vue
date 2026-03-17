@@ -104,33 +104,82 @@
           </transition-group>
         </div>
 
-        <!-- 内容滚动区 -->
-        <div class="letter-scroll" ref="scrollContainer" @touchstart="onUserTouch">
-          <div class="letter-content">
-            <!-- 装饰头部 -->
-            <div class="content-header">
-              <span class="header-deco">✦ ✦ ✦</span>
+        <!-- 翻页内容区 -->
+        <div class="page-flip-container" ref="pageFlipContainer">
+          <div
+            v-for="(page, pageIdx) in pages"
+            :key="pageIdx"
+            class="page-sheet"
+            :class="{
+              'page-active': pageIdx === currentPage,
+              'page-prev': pageIdx < currentPage,
+              'page-next': pageIdx > currentPage,
+              'page-flip-forward': isFlipping && flipDirection === 'forward' && pageIdx === currentPage - 1,
+              'page-flip-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage,
+              'page-enter-forward': isFlipping && flipDirection === 'forward' && pageIdx === currentPage,
+              'page-enter-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage - 1,
+            }"
+          >
+            <div class="letter-scroll-page">
+              <div class="letter-content">
+                <div class="content-header" v-if="pageIdx === 0">
+                  <span class="header-deco">✦ ✦ ✦</span>
+                </div>
+                <div
+                  v-for="(p, pIdx) in page.paragraphs"
+                  :key="pIdx"
+                  class="para"
+                  :style="{ textAlign: p.align }"
+                >
+                  <p class="para-text">
+                    {{ p.currentText }}
+                    <span class="quill" v-if="isTyping && pageIdx === currentPage && pIdx === page.paragraphs.length - 1">✒</span>
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <!-- 段落 -->
-            <div
-              v-for="(p, index) in displayedParagraphs"
-              :key="index"
-              class="para"
-              :style="{ textAlign: p.align }"
-            >
-              <p class="para-text">
-                {{ p.currentText }}
-                <span class="quill" v-if="isTyping && activeParagraphIndex === index">✒</span>
-              </p>
+          <!-- 隐藏的溢出检测容器 -->
+          <div class="overflow-measure" ref="overflowMeasure">
+            <div class="letter-scroll-page">
+              <div class="letter-content">
+                <div class="content-header" v-if="currentPage === 0">
+                  <span class="header-deco">✦ ✦ ✦</span>
+                </div>
+                <div
+                  v-for="(p, pIdx) in currentPageParagraphs"
+                  :key="'m-' + pIdx"
+                  class="para"
+                  :style="{ textAlign: p.align }"
+                >
+                  <p class="para-text">{{ p.currentText }}</p>
+                </div>
+              </div>
             </div>
-
-            <!-- 底部 -->
-            <div class="content-footer"></div>
           </div>
         </div>
 
-        <!-- 顶部遮罩：防止文字滚动时超出装订线（不依赖 mask-image）-->
+        <!-- 页码指示器 -->
+        <div class="page-indicator" v-if="isLetterArrived && pages.length > 1">
+          <span class="page-num">{{ currentPage + 1 }} / {{ pages.length }}</span>
+        </div>
+
+        <!-- 翻页按钮 -->
+        <div class="page-nav" v-if="isFinished && isLetterArrived && pages.length > 1" @click.stop>
+          <button
+            class="page-btn page-btn-prev"
+            :class="{ 'page-btn-disabled': currentPage === 0 }"
+            @click="flipToPrev"
+          >‹</button>
+          <button
+            class="page-btn page-btn-next"
+            :class="{ 'page-btn-disabled': currentPage === pages.length - 1 }"
+            @click="flipToNext"
+          >›</button>
+        </div>
+
+        <!-- 顶部遮罩 -->
         <div class="scroll-fade-top" aria-hidden="true"></div>
         <!-- 底部遮罩 -->
         <div class="scroll-fade-bottom" aria-hidden="true"></div>
@@ -153,7 +202,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onUnmounted } from "vue";
+import { ref, reactive, computed, nextTick, onUnmounted } from "vue";
+import { usePageFlip } from "@/hooks/usePageFlip";
+import { toVpx } from "@/utils/toVpx";
 
 interface ParagraphConfig {
   content: string;
@@ -165,6 +216,10 @@ interface ParagraphConfig {
 interface DisplayedParagraph {
   currentText: string;
   align: "left" | "center" | "right";
+}
+
+interface PageData {
+  paragraphs: DisplayedParagraph[];
 }
 
 interface Props {
@@ -191,38 +246,43 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["open", "finish", "close"]);
 
+// --- 翻页状态 ---
+const {
+  currentPage,
+  totalPages,
+  isFlipping,
+  flipDirection,
+  flipForward,
+  flipBackward,
+  resetPages,
+  enableSwipe,
+  setSwipeEnabled,
+} = usePageFlip();
+
 // 动画阶段状态
-const isEnvelopeOpening = ref(false); // 信封正在打开
-const isEnvelopeOpened = ref(false); // 信封已完全打开并消失
-const isSealPopping = ref(false); // 封蜡弹开
-const isLetterFlying = ref(false); // 信纸正在飞出
-const isLetterArrived = ref(false); // 信纸到达最终位置
-const showSparks = ref(false); // 显示魔法火花
+const isEnvelopeOpening = ref(false);
+const isEnvelopeOpened = ref(false);
+const isSealPopping = ref(false);
+const isLetterFlying = ref(false);
+const isLetterArrived = ref(false);
+const showSparks = ref(false);
 
-const isFinished = ref(false); // 所有内容是否全部播放完毕
-const isClosing = ref(false); // 是否正在执行收起动画
+const isFinished = ref(false);
+const isClosing = ref(false);
 
-// 内容状态
-const displayedParagraphs = ref<DisplayedParagraph[]>([]);
+// 分页数据
+const pages = reactive<PageData[]>([{ paragraphs: [] }]);
 const isTyping = ref(false);
-const activeParagraphIndex = ref(0);
 const currentImgIndex = ref(0);
-const scrollContainer = ref<HTMLDivElement | null>(null);
+const overflowMeasure = ref<HTMLDivElement | null>(null);
+const pageFlipContainer = ref<HTMLDivElement | null>(null);
 
 let carouselTimer: ReturnType<typeof setInterval> | null = null;
-let isUserInteracting = false;
-
-declare global {
-  interface Window {
-    scrollResetTimer?: ReturnType<typeof setTimeout>;
-  }
-}
 
 const audioPlayer = new Audio();
 
 const playAudioSync = (url: string): Promise<void> => {
   return new Promise((resolve) => {
-    // 先注册事件，再触发播放，防止短音频在注册前就结束
     audioPlayer.onended = () => resolve();
     audioPlayer.onerror = () => resolve();
     audioPlayer.src = url;
@@ -231,11 +291,6 @@ const playAudioSync = (url: string): Promise<void> => {
   });
 };
 
-/**
- * 预加载音频并返回其时长（秒）
- * 用临时 Audio 元素读取 metadata，不影响主播放器
- * @returns 音频时长（秒），加载失败时返回 0
- */
 const getAudioDuration = (url: string): Promise<number> =>
   new Promise((resolve) => {
     const tmp = new Audio();
@@ -248,7 +303,6 @@ const getAudioDuration = (url: string): Promise<number> =>
       tmp.onerror = null;
       resolve(value);
     };
-    // iOS Safari 可能不触发 loadedmetadata，3 秒超时兜底防止 Promise 永久 pending
     const timer = setTimeout(() => settle(0), 3000);
     tmp.onloadedmetadata = () => {
       clearTimeout(timer);
@@ -261,31 +315,18 @@ const getAudioDuration = (url: string): Promise<number> =>
     tmp.src = url;
   });
 
-watch(
-  displayedParagraphs,
-  () => {
-    if (!isTyping.value || isUserInteracting) return;
-    nextTick(() => {
-      const el = scrollContainer.value;
-      if (el) {
-        const atBottom = el.scrollHeight - el.scrollTop <= el.clientHeight + 80;
-        if (atBottom) {
-          el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-        }
-      }
-    });
-  },
-  { deep: true },
-);
+const currentPageParagraphs = computed(() => {
+  if (pages.length === 0) return [];
+  return pages[currentPage.value]?.paragraphs || [];
+});
 
-const onUserTouch = () => {
-  if (isTyping.value) {
-    isUserInteracting = true;
-    if (window?.scrollResetTimer) clearTimeout(window.scrollResetTimer);
-    window.scrollResetTimer = setTimeout(() => {
-      isUserInteracting = false;
-    }, 3000);
-  }
+const checkOverflow = async (): Promise<boolean> => {
+  await nextTick();
+  const measure = overflowMeasure.value;
+  if (!measure) return false;
+  const scrollPage = measure.querySelector(".letter-scroll-page") as HTMLElement;
+  if (!scrollPage) return false;
+  return scrollPage.scrollHeight > scrollPage.clientHeight + 2;
 };
 
 const lockBodyScroll = () => {
@@ -298,17 +339,28 @@ const unlockBodyScroll = () => {
   document.body.style.touchAction = "";
 };
 
+const flipToNext = () => {
+  if (isFlipping.value || currentPage.value >= pages.length - 1) return;
+  flipForward();
+};
+
+const flipToPrev = () => {
+  if (isFlipping.value || currentPage.value <= 0) return;
+  flipBackward();
+};
+
 const typeText = async () => {
   isTyping.value = true;
 
   for (let i = 0; i < (props.paragraphs?.length || 0); i++) {
-    activeParagraphIndex.value = i;
     const config = props.paragraphs![i];
 
-    displayedParagraphs.value.push({
+    const currentPageData = pages[currentPage.value];
+    const newParagraph: DisplayedParagraph = {
       currentText: "",
       align: config.align || "left",
-    });
+    };
+    currentPageData.paragraphs.push(newParagraph);
 
     if (config.delay) {
       await new Promise((r) => setTimeout(r, config.delay));
@@ -316,12 +368,10 @@ const typeText = async () => {
 
     const text = config.content || "";
 
-    // 计算实际打字速度：若有音频则根据时长/字数动态计算，否则使用 props.speed
     let charSpeed = props.speed;
     if (config.audio && text.length > 0) {
       const audioDuration = await getAudioDuration(config.audio);
       if (audioDuration > 0) {
-        // 音频时长（ms）均分到每个字符，留出 200ms 收尾余量
         charSpeed = Math.max(20, (audioDuration * 1000 - 200) / text.length);
       }
     }
@@ -332,8 +382,31 @@ const typeText = async () => {
     }
 
     for (const char of text) {
-      // 将普通空格替换为不间断空格，防止 HTML 折叠连续空格
-      displayedParagraphs.value[i].currentText += char === " " ? "\u00a0" : char;
+      const activePage = pages[currentPage.value];
+      const activeParaIdx = activePage.paragraphs.length - 1;
+      const activePara = activePage.paragraphs[activeParaIdx];
+
+      activePara.currentText += char === " " ? "\u00a0" : char;
+
+      const overflowed = await checkOverflow();
+      if (overflowed) {
+        activePara.currentText = activePara.currentText.slice(0, -1);
+
+        if (activePara.currentText === "") {
+          activePage.paragraphs.pop();
+        }
+
+        totalPages.value++;
+        pages.push({ paragraphs: [] });
+        await flipForward();
+
+        const newPage = pages[currentPage.value];
+        newPage.paragraphs.push({
+          currentText: char === " " ? "\u00a0" : char,
+          align: config.align || "left",
+        });
+      }
+
       await new Promise((r) => setTimeout(r, charSpeed));
     }
 
@@ -343,6 +416,7 @@ const typeText = async () => {
 
   isTyping.value = false;
   isFinished.value = true;
+  setSwipeEnabled(true);
   emit("finish");
 };
 
@@ -390,6 +464,14 @@ const startOpen = () => {
     isLetterArrived.value = true;
   }, 1400);
 
+  // 注册手势（初始禁用，打字完成后启用）
+  nextTick(() => {
+    if (pageFlipContainer.value) {
+      enableSwipe(pageFlipContainer.value);
+      setSwipeEnabled(false);
+    }
+  });
+
   // 阶段5：开始打字
   setTimeout(() => {
     typeText();
@@ -418,8 +500,10 @@ const handleClose = () => {
   setTimeout(() => {
     isTyping.value = false;
     isFinished.value = false;
-    displayedParagraphs.value = [];
+    pages.splice(0, pages.length, { paragraphs: [] });
     currentImgIndex.value = 0;
+    resetPages();
+    setSwipeEnabled(false);
 
     // 重置所有动画阶段状态
     isEnvelopeOpening.value = false;
@@ -433,7 +517,7 @@ const handleClose = () => {
       isClosing.value = false;
       emit("close");
     }, 300);
-  }, 400); // 留出 fade-out 动画的时间
+  }, 400);
 };
 
 onUnmounted(() => {
@@ -898,14 +982,175 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* 内容滚动区 */
-.letter-scroll {
+/* ========== 翻页容器（整张纸翻页） ========== */
+.page-flip-container {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
+  perspective: 1800px;
+  perspective-origin: center center;
   z-index: 2;
+}
+
+.page-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  background: linear-gradient(135deg, #f5ecd7 0%, #f0e4c8 40%, #e8dbb8 100%);
+  border-radius: 3vpx;
+  box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.page-active {
+  transform: rotateY(0deg);
+  z-index: 10;
+}
+
+.page-prev {
+  transform: rotateY(-180deg);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.page-next {
+  transform: rotateY(0deg);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.page-flip-forward {
+  animation: page-turn-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 15;
+}
+
+.page-enter-forward {
+  animation: page-turn-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 10;
+  opacity: 1;
+}
+
+.page-flip-backward {
+  animation: page-turn-back-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 15;
+}
+
+.page-enter-backward {
+  animation: page-turn-back-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  z-index: 10;
+  opacity: 1;
+}
+
+@keyframes page-turn-out {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+    opacity: 1;
+  }
+  30% {
+    transform: rotateY(-45deg) scale(1.02);
+    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+    opacity: 1;
+  }
+  60% {
+    transform: rotateY(-110deg) scale(1.01);
+    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotateY(-180deg) scale(1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes page-turn-in {
+  0% {
+    transform: rotateY(15deg) scale(0.98);
+    opacity: 0;
+    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+  }
+  40% {
+    opacity: 0.6;
+  }
+  70% {
+    transform: rotateY(3deg) scale(1);
+    opacity: 0.9;
+    box-shadow: 3vpx 2vpx 10vpx rgba(0, 0, 0, 0.1);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes page-turn-back-out {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+    opacity: 1;
+  }
+  30% {
+    transform: rotateY(30deg) scale(1.01);
+    box-shadow: -10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(15deg) scale(0.98);
+    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+    opacity: 0;
+  }
+}
+
+@keyframes page-turn-back-in {
+  0% {
+    transform: rotateY(-180deg) scale(1);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  30% {
+    transform: rotateY(-120deg) scale(1.01);
+    opacity: 0.5;
+    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+  }
+  60% {
+    transform: rotateY(-50deg) scale(1.02);
+    opacity: 0.85;
+    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* 隐藏的溢出检测容器 */
+.overflow-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+/* 每页内容区 */
+.letter-scroll-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   padding: 50vpx 24vpx 60vpx;
   box-sizing: border-box;
 }
@@ -931,14 +1176,6 @@ onUnmounted(() => {
   background: linear-gradient(to top, #ddd0a8 0%, rgba(221, 208, 168, 0) 100%);
 }
 
-.letter-scroll::-webkit-scrollbar {
-  width: 4vpx;
-}
-
-.letter-scroll::-webkit-scrollbar-thumb {
-  background: rgba(139, 105, 20, 0.25);
-  border-radius: 2vpx;
-}
 
 .letter-content {
   max-width: 100%;
@@ -1086,10 +1323,68 @@ onUnmounted(() => {
 
 /* iOS 安全区 */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .letter-scroll {
+  .letter-scroll-page {
     padding-bottom: calc(60vpx + env(safe-area-inset-bottom));
   }
 }
+
+/* 页码指示器 */
+.page-indicator {
+  position: absolute;
+  bottom: 6vpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.page-num {
+  font-size: 11vpx;
+  color: rgba(255, 215, 0, 0.35);
+  letter-spacing: 2vpx;
+  font-weight: 400;
+}
+
+/* 翻页按钮 */
+.page-nav {
+  position: absolute;
+  bottom: 4vpx;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8vpx;
+  pointer-events: none;
+}
+
+.page-btn {
+  width: 28vpx;
+  height: 28vpx;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--gold-dim);
+  font-size: 18vpx;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page-btn:active {
+  transform: scale(0.9);
+}
+
+.page-btn-disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
 /* 完成提示：底部轻量提示 */
 .dismiss-hint {
   position: fixed;
