@@ -62,6 +62,7 @@
             v-if="isBinGo"
             :thread="activeQaInfo.thread"
             :title="activeQaInfo.answerTitle"
+            :is-multi-mode="compact"
             @action="handleArtifactAction"
             @preview="previewImage"
           />
@@ -484,12 +485,30 @@ const initData = async () => {
     checkPersistentProgress();
     loadPenaltyState();
 
+    // 检查时间是否允许上报（未开始或已结束都不上报）
+    // 安全获取时间字段，避免 qaInfo 为 null/undefined 的情况
+    const startTime = questionsStore.qaInfo?.startTime;
+    const endTime = questionsStore.qaInfo?.endTime;
+    let shouldReport = true;
+
+    if (!isDebug) {
+      if (startTime && !isTimeReached(startTime)) {
+        // 未开始，不上报
+        shouldReport = false;
+      }
+      if (endTime && isTimeReached(endTime)) {
+        // 已结束，不上报
+        shouldReport = false;
+      }
+    }
+
     // 上报题目访问
     tracker.trackQuestionVisit(
       currentStep,
       questionsStore.qaInfo.title || "未知题目",
       false,
       userName.value,
+      shouldReport,
     );
 
     // 初始化背景音乐

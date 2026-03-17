@@ -2,10 +2,10 @@
 <!-- ClueArtifact 主入口组件：根据模式和类型渲染不同子组件 -->
 <template>
   <div class="clue-artifact-wrapper" :class="{ 'is-fullscreen': isFullscreen }">
-    <!-- 卡片式展示（展开时隐藏） -->
+    <!-- 卡片式展示（仅在 text/video 展开时隐藏） -->
     <transition name="card-fade">
       <ArtifactCard
-        v-show="!isExpanded && !(isFullscreen && type === 'img')"
+        v-if="!isExpanded"
         :type="type"
         :content="content"
         :path="path"
@@ -92,10 +92,18 @@ const handleAction = () => {
 <style lang="scss" scoped>
 .clue-artifact-wrapper {
   width: 100%;
+  // iOS 微信浏览器兼容：强制开启硬件加速
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 
   &.is-fullscreen {
     // 全屏模式下增加更多间距
     margin-bottom: 20vpx;
+    // 确保全屏模式下的布局正确
+    position: relative;
+    z-index: 1;
   }
 }
 

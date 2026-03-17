@@ -1,83 +1,142 @@
 <template>
   <div ref="clueCardRef" class="magic-panel clue-card" :class="{ 'fullscreen-mode': isFullscreen }">
-    <!-- 全屏遮罩层（仅在全屏时渲染） -->
-    <transition name="fullscreen-backdrop">
-      <div v-if="isFullscreen" class="fullscreen-backdrop" @click="exitFullscreen"></div>
-    </transition>
+    <!-- 全屏模式：使用 Teleport 传送到 #Questions 容器内 -->
+    <teleport v-if="isFullscreen" to="#Questions" :disabled="!isFullscreen">
+      <div class="fullscreen-portal" @click.self="exitFullscreen">
+        <!-- 全屏遮罩层 -->
+        <div class="fullscreen-backdrop"></div>
 
-    <!-- 魔法粒子效果 -->
-    <transition name="particles-fade">
-      <div v-if="isFullscreen" class="magic-particles">
-        <span v-for="n in 25" :key="n" class="particle" :style="getParticleStyle(n)"></span>
-      </div>
-    </transition>
+        <!-- 魔法粒子效果 -->
+        <div class="magic-particles">
+          <span v-for="n in 25" :key="n" class="particle" :style="getParticleStyle(n)"></span>
+        </div>
 
-    <div class="clue-header">
-      <span class="header-ornament"></span>
-      {{ title || "获得线索" }}
-      <span class="header-ornament"></span>
+        <!-- 全屏内容容器 -->
+        <div class="fullscreen-content-wrapper" :class="{ 'is-multi-mode': isMultiMode }">
+          <div class="clue-header">
+            <span class="header-ornament"></span>
+            {{ title || "获得线索" }}
+            <span class="header-ornament"></span>
 
-      <!-- 全屏切换按钮 -->
-      <div v-if="isLongThread" class="fullscreen-toggle" @click="toggleFullscreen">
-        <div class="toggle-crystal">
-          <div class="crystal-inner">
-            <span class="toggle-rune">{{ isFullscreen ? "✕" : "⛶" }}</span>
+            <!-- 全屏切换按钮 -->
+            <div v-if="isLongThread" class="fullscreen-toggle" @click="toggleFullscreen">
+              <div class="toggle-crystal">
+                <div class="crystal-inner">
+                  <span class="toggle-rune">✕</span>
+                </div>
+                <div class="crystal-glow"></div>
+              </div>
+              <div class="toggle-orbits">
+                <span class="orbit orbit-1"></span>
+                <span class="orbit orbit-2"></span>
+              </div>
+            </div>
           </div>
-          <div class="crystal-glow"></div>
-        </div>
-        <div class="toggle-orbits">
-          <span class="orbit orbit-1"></span>
-          <span class="orbit orbit-2"></span>
+
+          <div class="as_content">
+            <div v-for="(item, index) in thread" :key="index" class="as_item_wrapper">
+              <!-- 使用新组件 ClueArtifact -->
+              <ClueArtifact
+                :type="item.type"
+                :content="item.content"
+                :url="item.url"
+                :imgList="item.imgList"
+                :isFullscreen="isFullscreen"
+                @action="$emit('action', item)"
+                :path="item.path"
+                :query="item.query"
+                :nextIndex="item.nextIndex"
+                :title="item.title"
+              />
+
+              <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->
+              <div class="direct-img-view" v-if="item.type === 'img' && !item.content">
+                <el-image
+                  :src="item.url"
+                  class="clue-img"
+                  @click="$emit('preview', item.imgList || [item.url!])"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </teleport>
 
-    <div class="as_content">
-      <div v-for="(item, index) in thread" :key="index" class="as_item_wrapper">
-        <!-- 使用新组件 ClueArtifact -->
-        <ClueArtifact
-          :type="item.type"
-          :content="item.content"
-          :url="item.url"
-          :imgList="item.imgList"
-          :isFullscreen="isFullscreen"
-          @action="$emit('action', item)"
-          :path="item.path"
-          :query="item.query"
-          :nextIndex="item.nextIndex"
-          :title="item.title"
-        />
+    <!-- 非全屏模式：正常渲染在卡片内 -->
+    <template v-else>
+      <div class="clue-header">
+        <span class="header-ornament"></span>
+        {{ title || "获得线索" }}
+        <span class="header-ornament"></span>
 
-        <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->
-        <div class="direct-img-view" v-if="item.type === 'img' && !item.content">
-          <el-image
-            :src="item.url"
-            class="clue-img"
-            @click="$emit('preview', item.imgList || [item.url!])"
+        <!-- 全屏切换按钮 -->
+        <div v-if="isLongThread" class="fullscreen-toggle" @click="toggleFullscreen">
+          <div class="toggle-crystal">
+            <div class="crystal-inner">
+              <span class="toggle-rune">⛶</span>
+            </div>
+            <div class="crystal-glow"></div>
+          </div>
+          <div class="toggle-orbits">
+            <span class="orbit orbit-1"></span>
+            <span class="orbit orbit-2"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="as_content">
+        <div v-for="(item, index) in thread" :key="index" class="as_item_wrapper">
+          <!-- 使用新组件 ClueArtifact -->
+          <ClueArtifact
+            :type="item.type"
+            :content="item.content"
+            :url="item.url"
+            :imgList="item.imgList"
+            :isFullscreen="isFullscreen"
+            @action="$emit('action', item)"
+            :path="item.path"
+            :query="item.query"
+            :nextIndex="item.nextIndex"
+            :title="item.title"
           />
+
+          <!-- 如果是图片类型且不需要点击文字预览，直接显示图片预览 -->
+          <div class="direct-img-view" v-if="item.type === 'img' && !item.content">
+            <el-image
+              :src="item.url"
+              class="clue-img"
+              @click="$emit('preview', item.imgList || [item.url!])"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from "vue";
+import gsap from "gsap";
 import ClueArtifact from "./ClueArtifact/index.vue";
 import { ThreadItemList } from "@/types/qa";
 
 const props = defineProps<{
   thread: ThreadItemList;
   title?: string;
+  isMultiMode?: boolean; // 是否为多题模式
 }>();
 
 defineEmits(["action", "preview"]);
 
 const isFullscreen = ref(false);
 const clueCardRef = ref<HTMLElement | null>(null);
-const isLongThread = computed(() => props.thread?.length > 2);
+const isLongThread = computed(() => props.thread?.length > 3);
 let visibilityObserver: IntersectionObserver | null = null;
 let visibilityDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+// GSAP 动画时间线
+let fullscreenTimeline: gsap.core.Timeline | null = null;
 
 /**
  * 全局注册表：跟踪所有处于全屏模式的 QuestClues 实例的可视状态
@@ -129,21 +188,165 @@ const updateRegistryAndSync = (isVisible: boolean) => {
 // 控制滚动条显示 & 隐藏可能遮挡全屏关闭按钮的外部元素
 const setScrollLock = (lock: boolean) => {
   document.body.style.overflow = lock ? "hidden" : "";
-  // 同时处理 .adventure-container 滚动容器
-  const container = document.querySelector(".adventure-container") as HTMLElement;
-  if (container) {
-    container.style.overflow = lock ? "hidden" : "";
+  // 多题模式下不处理 .adventure-container，因为它高度为 100vh 且 overflow: hidden
+  // 单题模式才需要处理
+  if (!props.isMultiMode) {
+    const container = document.querySelector(".adventure-container") as HTMLElement;
+    if (container) {
+      container.style.overflow = lock ? "hidden" : "";
+    }
   }
   // 通过全局注册表同步徽章显隐
   updateRegistryAndSync(lock);
 };
 
 const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value;
-  setScrollLock(isFullscreen.value);
+  if (isFullscreen.value) {
+    // 关闭全屏
+    closeFullscreenWithAnimation();
+  } else {
+    // 打开全屏
+    openFullscreenWithAnimation();
+  }
 };
 
+/**
+ * 打开全屏模式（带动画）
+ */
+const openFullscreenWithAnimation = () => {
+  isFullscreen.value = true;
+  setScrollLock(true);
+
+  nextTick(() => {
+    const portal = document.querySelector(".fullscreen-portal") as HTMLElement;
+    const contentWrapper = document.querySelector(".fullscreen-content-wrapper") as HTMLElement;
+    const header = document.querySelector(".fullscreen-portal .clue-header") as HTMLElement;
+
+    if (!portal || !contentWrapper) return;
+
+    // 创建 GSAP 时间线
+    fullscreenTimeline = gsap.timeline();
+
+    // 初始状态设置
+    gsap.set(portal, { opacity: 0 });
+    gsap.set(contentWrapper, { scale: 0.8, y: 100 });
+    gsap.set(header, { y: -50, opacity: 0 });
+
+    // 背景遮罩淡入
+    fullscreenTimeline.to(portal, {
+      opacity: 1,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+
+    // 内容容器缩放 + 上移动画
+    fullscreenTimeline.to(
+      contentWrapper,
+      {
+        scale: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "power3.out",
+      },
+      "-=0.2",
+    );
+
+    // 头部下滑淡入
+    fullscreenTimeline.to(
+      header,
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.4,
+        ease: "power2.out",
+      },
+      "-=0.3",
+    );
+
+    // 粒子效果淡入
+    fullscreenTimeline.to(
+      ".magic-particles",
+      {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power1.out",
+      },
+      "-=0.2",
+    );
+  });
+};
+
+/**
+ * 关闭全屏模式（带动画）
+ */
+const closeFullscreenWithAnimation = () => {
+  if (!fullscreenTimeline) {
+    exitFullscreen();
+    return;
+  }
+
+  // 创建反向动画时间线
+  const closeTimeline = gsap.timeline({
+    onComplete: () => {
+      exitFullscreen();
+    },
+  });
+
+  const contentWrapper = document.querySelector(".fullscreen-content-wrapper") as HTMLElement;
+  const header = document.querySelector(".fullscreen-portal .clue-header") as HTMLElement;
+  const portal = document.querySelector(".fullscreen-portal") as HTMLElement;
+
+  if (contentWrapper && header && portal) {
+    // 头部上滑淡出
+    closeTimeline.to(
+      header,
+      {
+        y: -50,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      },
+      0,
+    );
+
+    // 内容容器缩小 + 下移
+    closeTimeline.to(
+      contentWrapper,
+      {
+        scale: 0.8,
+        y: 100,
+        duration: 0.4,
+        ease: "power3.in",
+      },
+      "-=0.2",
+    );
+
+    // 背景遮罩淡出
+    closeTimeline.to(
+      portal,
+      {
+        opacity: 0,
+        duration: 0.25,
+        ease: "power2.in",
+      },
+      "-=0.15",
+    );
+  } else {
+    // 如果找不到元素，直接退出
+    exitFullscreen();
+  }
+};
+
+/**
+ * 直接退出全屏（不带动画，用于点击遮罩等场景）
+ */
 const exitFullscreen = () => {
+  // 清理之前的动画时间线
+  if (fullscreenTimeline) {
+    fullscreenTimeline.kill();
+    fullscreenTimeline = null;
+  }
+
   isFullscreen.value = false;
   setScrollLock(false);
 };
@@ -192,6 +395,12 @@ const cleanupVisibilityObserver = () => {
   // 组件卸载时从注册表移除并同步
   FULLSCREEN_VISIBLE_REGISTRY.delete(instanceId);
   syncBadgeVisibility();
+
+  // 清理 GSAP 动画
+  if (fullscreenTimeline) {
+    fullscreenTimeline.kill();
+    fullscreenTimeline = null;
+  }
 };
 
 onMounted(() => {
@@ -261,11 +470,183 @@ const getParticleStyle = (_index: number) => {
   }
 }
 
-// 线索卡片
+// ===== 全屏模式样式（Teleport 后） =====
+.fullscreen-portal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // iOS 安全区域适配
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  // 初始状态为透明，由 GSAP 控制淡入
+  opacity: 0;
+
+  // 全屏背景遮罩
+  .fullscreen-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      ellipse at center,
+      rgba($magic-green, 0.08) 0%,
+      rgba(10, 14, 20, 0.98) 70%
+    );
+
+    // 梦幻光晕
+    &::before {
+      content: "";
+      position: absolute;
+      top: 20%;
+      left: 10%;
+      width: 300vpx;
+      height: 300vpx;
+      background: radial-gradient(circle, rgba($magic-gold, 0.12) 0%, transparent 60%);
+      animation: glow-float 8s ease-in-out infinite alternate;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 20%;
+      right: 10%;
+      width: 250vpx;
+      height: 250vpx;
+      background: radial-gradient(circle, rgba($magic-purple, 0.1) 0%, transparent 60%);
+      animation: glow-float 10s ease-in-out infinite alternate-reverse;
+    }
+  }
+
+  // 魔法粒子
+  .magic-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+    // 初始状态为透明，由 GSAP 控制淡入
+    opacity: 0;
+
+    .particle {
+      position: absolute;
+      bottom: -10%;
+      border-radius: 50%;
+      box-shadow:
+        0 0 6px currentColor,
+        0 0 12px currentColor;
+      animation: float-up 6s ease-in-out infinite;
+      opacity: 0;
+    }
+  }
+
+  // 全屏内容容器
+  .fullscreen-content-wrapper {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: rgba(10, 14, 20, 0.98);
+    backdrop-filter: blur(30vpx) saturate(1.3);
+    -webkit-backdrop-filter: blur(30vpx) saturate(1.3);
+    // 初始状态由 GSAP 设置
+    transform-origin: center bottom;
+
+    // 多题模式适配：占满整个容器
+    &.is-multi-mode {
+      height: 100%;
+      max-height: 100%;
+    }
+
+    .clue-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 16vpx 24vpx;
+      background: rgba(10, 14, 20, 0.95);
+      backdrop-filter: blur(20vpx);
+      -webkit-backdrop-filter: blur(20vpx);
+      border-bottom: 1vpx solid rgba($magic-green, 0.3);
+      flex-shrink: 0;
+
+      // 全屏切换按钮
+      .fullscreen-toggle {
+        position: absolute;
+        right: 16vpx;
+        top: 50%;
+        transform: translateY(-50%);
+
+        .toggle-crystal .crystal-inner {
+          background: linear-gradient(
+            135deg,
+            rgba(180, 130, 70, 0.9) 0%,
+            rgba(139, 90, 43, 0.95) 50%,
+            rgba(100, 60, 20, 0.9) 100%
+          );
+          border-color: rgba($magic-gold, 0.6);
+          box-shadow:
+            0 0 12vpx rgba($magic-gold, 0.4),
+            0 0 24vpx rgba($magic-gold, 0.2),
+            inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
+            inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
+        }
+
+        .crystal-glow {
+          background: radial-gradient(circle, rgba($magic-gold, 0.3) 0%, transparent 70%);
+        }
+
+        .orbit {
+          border-top-color: rgba($magic-gold, 0.4) !important;
+        }
+      }
+    }
+
+    .as_content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 8vpx 24vpx 24vpx;
+
+      // 自定义滚动条 - 更细且半透明
+      &::-webkit-scrollbar {
+        width: 4vpx;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba($magic-green, 0.3);
+        border-radius: 2vpx;
+        &:hover {
+          background: rgba($magic-green, 0.5);
+        }
+      }
+    }
+  }
+}
+
+// 非全屏模式下的 clue-card 基础样式
 .clue-card {
   padding: 20vpx;
   margin-bottom: 12vpx;
   border: 1vpx solid rgba($magic-green, 0.4);
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  &.fullscreen-mode {
+    // 全屏模式下确保内容可以正常展开
+    overflow: visible;
+    position: relative;
+    z-index: 100;
+  }
 
   .clue-header {
     position: relative;
@@ -402,172 +783,7 @@ const getParticleStyle = (_index: number) => {
   }
 }
 
-// ===== 全屏模式样式 =====
-.fullscreen-mode {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  margin: 0 !important;
-  // 顶部 padding 加上安全区域（刘海屏/灵动岛）
-  padding: calc(60vpx + env(safe-area-inset-top, 0px)) 24vpx 24vpx !important;
-  border-radius: 0 !important;
-  z-index: 9000 !important;
-  overflow: hidden !important; // 外层不滚动
-  background: rgba(10, 14, 20, 0.98) !important;
-  border: none !important;
-  display: flex !important;
-  flex-direction: column !important;
-  box-sizing: border-box !important;
-
-  // 自定义滚动条 - 更细且半透明
-  &::-webkit-scrollbar {
-    width: 4vpx;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba($magic-green, 0.3);
-    border-radius: 2vpx;
-    &:hover {
-      background: rgba($magic-green, 0.5);
-    }
-  }
-
-  // 增强的毛玻璃效果
-  backdrop-filter: blur(30vpx) saturate(1.3) !important;
-  -webkit-backdrop-filter: blur(30vpx) saturate(1.3) !important;
-
-  // 魔法边框光效
-  box-shadow:
-    inset 0 0 100vpx rgba($magic-green, 0.08),
-    inset 0 0 200vpx rgba($magic-gold, 0.05) !important;
-
-  .clue-header {
-    position: fixed;
-    // 顶部偏移加上安全区域
-    top: env(safe-area-inset-top, 0px);
-    left: 0;
-    right: 0;
-    padding: 16vpx 24vpx;
-    background: rgba(10, 14, 20, 0.95);
-    backdrop-filter: blur(20vpx);
-    -webkit-backdrop-filter: blur(20vpx);
-    z-index: 10;
-    border-bottom: 1vpx solid rgba($magic-green, 0.3);
-    margin-bottom: 0;
-  }
-
-  .fullscreen-toggle {
-    right: 16vpx;
-
-    .toggle-crystal .crystal-inner {
-      background: linear-gradient(
-        135deg,
-        rgba(180, 130, 70, 0.9) 0%,
-        rgba(139, 90, 43, 0.95) 50%,
-        rgba(100, 60, 20, 0.9) 100%
-      );
-      border-color: rgba($magic-gold, 0.6);
-      box-shadow:
-        0 0 12vpx rgba($magic-gold, 0.4),
-        0 0 24vpx rgba($magic-gold, 0.2),
-        inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
-        inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
-    }
-
-    .crystal-glow {
-      background: radial-gradient(circle, rgba($magic-gold, 0.3) 0%, transparent 70%);
-    }
-
-    .orbit {
-      border-top-color: rgba($magic-gold, 0.4) !important;
-    }
-  }
-
-  .as_content {
-    flex: 1;
-    padding-top: 8vpx;
-    overflow-y: auto; // 内容区域滚动
-    overflow-x: hidden;
-
-    // 自定义滚动条 - 更细且半透明
-    &::-webkit-scrollbar {
-      width: 4vpx;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: rgba($magic-green, 0.3);
-      border-radius: 2vpx;
-      &:hover {
-        background: rgba($magic-green, 0.5);
-      }
-    }
-  }
-}
-
-// ===== 全屏背景遮罩 =====
-.fullscreen-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(
-    ellipse at center,
-    rgba($magic-green, 0.08) 0%,
-    rgba(10, 14, 20, 0.98) 70%
-  );
-
-  // 梦幻光晕
-  &::before {
-    content: "";
-    position: absolute;
-    top: 20%;
-    left: 10%;
-    width: 300vpx;
-    height: 300vpx;
-    background: radial-gradient(circle, rgba($magic-gold, 0.12) 0%, transparent 60%);
-    animation: glow-float 8s ease-in-out infinite alternate;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 20%;
-    right: 10%;
-    width: 250vpx;
-    height: 250vpx;
-    background: radial-gradient(circle, rgba($magic-purple, 0.1) 0%, transparent 60%);
-    animation: glow-float 10s ease-in-out infinite alternate-reverse;
-  }
-}
-
-// ===== 魔法粒子 =====
-.magic-particles {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1;
-
-  .particle {
-    position: absolute;
-    bottom: -10%;
-    border-radius: 50%;
-    box-shadow:
-      0 0 6px currentColor,
-      0 0 12px currentColor;
-    animation: float-up 6s ease-in-out infinite;
-    opacity: 0;
-  }
-}
-
-// ===== 动画 =====
+// 动画 keyframes 复用（已在 style.scss 中定义，此处保留以防缺失）
 @keyframes sweep-light {
   0% {
     transform: translateX(-100%) rotate(-45deg);
@@ -626,64 +842,17 @@ const getParticleStyle = (_index: number) => {
   }
 }
 
-// ===== 过渡动画 =====
-.fullscreen-backdrop-enter-active {
-  animation: backdrop-in 0.5s ease-out;
-}
-.fullscreen-backdrop-leave-active {
-  animation: backdrop-out 0.4s ease-in;
-}
-
-@keyframes backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes backdrop-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-.particles-fade-enter-active {
-  animation: particles-in 0.6s ease-out;
-}
-.particles-fade-leave-active {
-  animation: particles-out 0.3s ease-in;
-}
-
-@keyframes particles-in {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes particles-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
 .as_content {
   // container for items
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 .as_item_wrapper {
   // wrapper
+  margin-bottom: 16vpx;
+  // 确保每个项目都能正确渲染
+  position: relative;
 }
 .direct-img-view {
   margin-top: 10vpx;

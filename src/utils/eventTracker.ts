@@ -270,8 +270,17 @@ class EventTracker {
 
   /**
    * 快捷方法：页面访问
+   * @param pageName 页面名称
+   * @param extra 额外参数
+   * @param userName 用户名
+   * @param shouldReport 是否应该上报（用于时间控制等场景）
    */
-  trackPageVisit(pageName: string, extra?: Record<string, any>, userName?: string): void {
+  trackPageVisit(pageName: string, extra?: Record<string, any>, userName?: string, shouldReport: boolean = true): void {
+    // 如果明确标记为不上报，则直接跳过
+    if (!shouldReport) {
+      return;
+    }
+    
     this.track(
       {
         type: EventType.PAGE_VISIT,
@@ -284,13 +293,24 @@ class EventTracker {
 
   /**
    * 快捷方法：题目访问
+   * @param step 题目步骤
+   * @param questionTitle 题目标题
+   * @param isMultiMode 是否多题模式
+   * @param userName 用户名
+   * @param shouldReport 是否应该上报（用于时间控制等场景）
    */
   trackQuestionVisit(
     step: number,
     questionTitle: string,
     isMultiMode: boolean = false,
     userName?: string,
+    shouldReport: boolean = true,
   ): void {
+    // 如果明确标记为不上报，则直接跳过
+    if (!shouldReport) {
+      return;
+    }
+    
     this.track(
       {
         type: isMultiMode ? EventType.MULTI_QUESTION_VISIT : EventType.SINGLE_QUESTION_VISIT,

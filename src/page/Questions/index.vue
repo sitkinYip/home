@@ -141,6 +141,7 @@ import type { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import { Select } from "@element-plus/icons-vue";
 import { showNotify } from "vant";
+import dayjs from "dayjs";
 
 import { useQuestionsStore } from "@/store/questions";
 import { getQueryParam } from "@/utils/qa/questions";
@@ -204,10 +205,31 @@ const isMultiMode = multiSteps.length > 1;
 // 页面加载时上报访问事件
 const trackPageVisit = () => {
   if (isMultiMode) {
+    // 多题模式：检查第一个题目的时间
+    const firstLevel = questionsStore.multiLevels?.[0];
+    let shouldReport = true;
+    
+    // 安全获取时间字段，避免 undefined 访问
+    const startTime = firstLevel?.startTime;
+    const endTime = firstLevel?.endTime;
+    
+    if (startTime || endTime) {
+      const now = dayjs();
+      // 未开始：不上报
+      if (startTime && now.isBefore(dayjs(startTime))) {
+        shouldReport = false;
+      }
+      // 已结束：不上报
+      if (endTime && now.isAfter(dayjs(endTime))) {
+        shouldReport = false;
+      }
+    }
+    
     tracker.trackPageVisit(
       "多题模式",
       { steps: multiSteps.join(","), count: multiSteps.length },
       "旅行者",
+      shouldReport,
     );
   }
   // 单题模式的具体访问上报（包含题目名称等详细信息）统一在 QuestPage.vue 的 initData 中处理，此处不重复上报

@@ -162,6 +162,9 @@ const toggleExpand = () => {
 
 .expander-content {
   padding: 0 16vpx 16vpx;
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .content-paper {
@@ -174,6 +177,9 @@ const toggleExpand = () => {
   box-shadow:
     0 4vpx 16vpx rgba(0, 0, 0, 0.3),
     inset 0 1vpx 0 rgba(255, 255, 255, 0.3);
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 
   .paper-decoration {
     position: absolute;

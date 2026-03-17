@@ -70,10 +70,15 @@ const handlePreview = () => {
   overflow: hidden;
   cursor: pointer;
   background: rgba(0, 0, 0, 0.3);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 
   .thumbnail-img {
     width: 100%;
     height: 100%;
+    // iOS 微信浏览器兼容
+    object-fit: cover;
+    -webkit-object-fit: cover;
   }
 
   .loading-placeholder,

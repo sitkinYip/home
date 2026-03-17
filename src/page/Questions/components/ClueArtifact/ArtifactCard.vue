@@ -161,6 +161,9 @@ $magic-cyan: #00f2ff;
   overflow: hidden;
   backdrop-filter: blur(10vpx);
   -webkit-backdrop-filter: blur(10vpx);
+  // iOS 微信浏览器兼容
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 
   .artifact-inner {
     display: flex;
