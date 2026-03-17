@@ -1,5 +1,15 @@
 <template>
   <div class="letter">
+    <!-- 预加载 Loading 遮罩 -->
+    <transition name="preload-fade">
+      <div v-if="isPreloading && !isError" class="preload-overlay">
+        <div class="preload-spinner">
+          <div class="preload-ring"></div>
+          <p class="preload-text">正在准备信件...</p>
+        </div>
+      </div>
+    </transition>
+
     <!-- 背景层：模糊处理 -->
     <div class="letter-bg" v-if="currentBg" :style="{ backgroundImage: `url(${currentBg})` }"></div>
     <!-- 遮罩层：降低亮度，增加质感 -->
@@ -21,9 +31,9 @@
       <div class="void-dust"></div>
     </div>
 
-    <!-- 正常信件展示 -->
+    <!-- 正常信件展示（预加载完成后才渲染） -->
     <component
-      v-else-if="currentLetter"
+      v-else-if="currentLetter && !isPreloading"
       :is="currentComponent"
       v-bind="componentProps"
       class="letter-content-layer"
@@ -59,16 +69,18 @@ import type { TLetterecord } from "@/types/qa";
 
 let bgmAudio: HTMLAudioElement | null = null;
 const bgmPlaying = ref(false); // BGM 是否正在播放
+const isPreloading = ref(true); // 资源预加载状态
 
-const AncientEnvelope = defineAsyncComponent(
-  () => import("../../components/AncientEnvelope/AncientEnvelope.vue"),
-);
-const LetterComponent = defineAsyncComponent(
-  () => import("../../components/LetterComponent/LetterComponent.vue"),
-);
-const MagicLetter = defineAsyncComponent(
-  () => import("../../components/MagicLetter/MagicLetter.vue"),
-);
+/**
+ * 组件动态导入函数（保留引用以便预加载时直接调用）
+ */
+const importAncientEnvelope = () => import("../../components/AncientEnvelope/AncientEnvelope.vue");
+const importLetterComponent = () => import("../../components/LetterComponent/LetterComponent.vue");
+const importMagicLetter = () => import("../../components/MagicLetter/MagicLetter.vue");
+
+const AncientEnvelope = defineAsyncComponent(importAncientEnvelope);
+const LetterComponent = defineAsyncComponent(importLetterComponent);
+const MagicLetter = defineAsyncComponent(importMagicLetter);
 
 const route = useRoute();
 const router = useRouter();
@@ -151,15 +163,103 @@ const componentProps = computed<any>(() => {
 });
 
 /**
- * 初始化数据：缓存优先策略
+ * 预加载单张图片，返回 Promise
+ * 加载失败时静默 resolve，不阻塞整体流程
+ */
+const preloadImage = (url: string): Promise<void> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = url;
+  });
+
+/**
+ * 预加载单个音频的 metadata，返回 Promise
+ * 带 5 秒超时保护（iOS Safari 可能不触发 loadedmetadata）
+ */
+const preloadAudioMetadata = (url: string): Promise<void> =>
+  new Promise((resolve) => {
+    const audio = new Audio();
+    audio.preload = "metadata";
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      audio.onloadedmetadata = null;
+      audio.onerror = null;
+      resolve();
+    };
+    const timer = setTimeout(settle, 5000);
+    audio.onloadedmetadata = () => {
+      clearTimeout(timer);
+      settle();
+    };
+    audio.onerror = () => {
+      clearTimeout(timer);
+      settle();
+    };
+    audio.src = url;
+  });
+
+/**
+ * 预加载当前信件所需的所有资源：
+ * 阶段 1：先并行预加载所有媒体资源（图片 + 音频 metadata），让浏览器缓存就绪
+ * 阶段 2：再加载对应的异步组件 JS chunk
+ * 这样组件渲染时内部的 getAudioDuration / Image 都能直接命中缓存，
+ * 大幅减少 iOS Safari 因资源未就绪导致打字机卡住的概率
+ */
+const preloadLetterAssets = async (letter: TLetterecord): Promise<void> => {
+  // ── 阶段 1：并行预加载所有媒体资源 ──
+  const mediaTasks: Promise<unknown>[] = [];
+
+  // 收集所有图片 URL（去重）
+  const imageUrls = new Set<string>();
+  if (letter.bgImg) imageUrls.add(letter.bgImg);
+  if (letter.bgImages) {
+    letter.bgImages.forEach((url) => imageUrls.add(url));
+  }
+  imageUrls.forEach((url) => mediaTasks.push(preloadImage(url)));
+
+  // 收集所有音频 URL（去重）
+  const audioUrls = new Set<string>();
+  if (letter.mainAudio) audioUrls.add(letter.mainAudio);
+  if (letter.paragraphConfigList) {
+    letter.paragraphConfigList.forEach((p) => {
+      if (p.audio) audioUrls.add(p.audio);
+    });
+  }
+  audioUrls.forEach((url) => mediaTasks.push(preloadAudioMetadata(url)));
+
+  // 等待所有媒体资源加载完毕（allSettled 确保单个失败不阻塞）
+  await Promise.allSettled(mediaTasks);
+
+  // ── 阶段 2：媒体就绪后再加载异步组件 chunk ──
+  switch (letter.type) {
+    case "classical":
+      await importAncientEnvelope();
+      break;
+    case "magic":
+      await importMagicLetter();
+      break;
+    default:
+      await importLetterComponent();
+      break;
+  }
+};
+
+/**
+ * 初始化数据：缓存优先策略 + 资源预加载
  */
 const initData = async () => {
+  isPreloading.value = true;
+
   // 1. 尝试读取缓存
   try {
     const cachedData = localStorage.getItem(CACHE_KEY);
     if (cachedData) {
       allLetters.value = JSON.parse(cachedData);
-      checkErrorState(); // 有缓存先展示
+      checkErrorState();
     }
   } catch (e) {
     console.error("读取缓存失败", e);
@@ -169,28 +269,32 @@ const initData = async () => {
   try {
     const remoteItems = await fetchLetter();
     if (remoteItems && remoteItems.length > 0) {
-      // 简单的深比较或直接覆盖，这里选择直接覆盖并更新缓存，只要有数据
-      // 实际生产中如果数据量大可以做 diff，但这里量小
       const isChanged = JSON.stringify(remoteItems) !== JSON.stringify(allLetters.value);
 
       if (isChanged) {
         allLetters.value = remoteItems;
         localStorage.setItem(CACHE_KEY, JSON.stringify(remoteItems));
-        checkErrorState(); // 数据更新后再次检查状态
+        checkErrorState();
       }
     } else {
-      // 如果接口挂了或者返回空，且本地也没有数据，那才算真正的 Error
       if (allLetters.value.length === 0) {
         isError.value = true;
       }
     }
   } catch (err) {
     console.error("Fetch letter failed", err);
-    // 网络错误时，如果本地无缓存，显示错误页
     if (allLetters.value.length === 0) {
       isError.value = true;
     }
   }
+
+  // 3. 预加载当前信件的所有资源
+  if (currentLetter.value && !isError.value) {
+    await preloadLetterAssets(currentLetter.value);
+  }
+
+  // 4. 预加载完成，关闭 loading
+  isPreloading.value = false;
 };
 
 /**
@@ -536,5 +640,54 @@ $magic-gold: #ffd700;
   color: rgba(255, 255, 255, 0.55);
   margin-right: 2vpx;
   font-weight: 300;
+}
+
+/* 预加载遮罩 */
+.preload-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preload-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24vpx;
+}
+
+.preload-ring {
+  width: 48vpx;
+  height: 48vpx;
+  border: 2vpx solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: preload-spin 1s linear infinite;
+}
+
+.preload-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14vpx;
+  letter-spacing: 4vpx;
+  margin: 0;
+}
+
+@keyframes preload-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 预加载遮罩淡出过渡 */
+.preload-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+
+.preload-fade-leave-to {
+  opacity: 0;
 }
 </style>

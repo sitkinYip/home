@@ -395,8 +395,24 @@ const getAudioDuration = (url: string): Promise<number> =>
   new Promise((resolve) => {
     const tmp = new Audio();
     tmp.preload = "metadata";
-    tmp.onloadedmetadata = () => resolve(tmp.duration || 0);
-    tmp.onerror = () => resolve(0);
+    let settled = false;
+    const settle = (value: number) => {
+      if (settled) return;
+      settled = true;
+      tmp.onloadedmetadata = null;
+      tmp.onerror = null;
+      resolve(value);
+    };
+    // iOS Safari 可能不触发 loadedmetadata，3 秒超时兜底防止 Promise 永久 pending
+    const timer = setTimeout(() => settle(0), 3000);
+    tmp.onloadedmetadata = () => {
+      clearTimeout(timer);
+      settle(tmp.duration || 0);
+    };
+    tmp.onerror = () => {
+      clearTimeout(timer);
+      settle(0);
+    };
     tmp.src = url;
   });
 
