@@ -234,7 +234,7 @@ const copyText = async () => {
   height: 100vh;
   overflow-y: auto;
   background-color: #f7f8fa;
-  padding-bottom: 24px;
+  padding-bottom: 44px;
 }
 
 .switch-wrapper {
