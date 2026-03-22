@@ -6,6 +6,7 @@ const Letter = () => import("@/page/Letter/index.vue");
 const Questions = () => import("@/page/Questions/index.vue");
 const ClearCache = () => import("@/page/ClearCache/index.vue");
 const Bless = () => import("@/page/Bless/index.vue");
+const BookingGenerator = () => import("@/page/BookingGenerator/index.vue");
 
 const routes: RouteRecordRaw[] = [
   { path: "/", component: Home },
@@ -13,6 +14,7 @@ const routes: RouteRecordRaw[] = [
   { path: "/questions", component: Questions, meta: { title: "向着星辰的冒险" } },
   { path: "/questions/clearCache", component: ClearCache, meta: { title: "清除记忆体" } },
   { path: "/bless", component: Bless, meta: { title: "专属星空" } },
+  { path: "/booking", component: BookingGenerator, meta: { title: "婚宴定金确认" } },
   {
     path: "/:pathMatch(.*)*",
     redirect: "/",
