@@ -231,7 +231,8 @@ const copyText = async () => {
 
 <style scoped>
 .banquet-order-generator {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   background-color: #f7f8fa;
   padding-bottom: 24px;
 }
