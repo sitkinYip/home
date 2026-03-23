@@ -292,10 +292,9 @@ const checkOverflow = async (): Promise<boolean> => {
   const wrapper = measure.querySelector(".content-wrapper") as HTMLElement;
   const contentEl = measure.querySelector(".text-content") as HTMLElement;
   if (!wrapper || !contentEl) return false;
-  // 预留底部安全区域：页码指示器 + 导航按钮约占 50px，用实际行高计算
-  // 取 wrapper 本身的 lineHeight（已由 CSS var 控制），保留至少一行的安全区间
+  // 预留半行安全区间，防止最后一行刚好被页码区裁掉
   const lineHeight = parseFloat(getComputedStyle(wrapper).lineHeight) || 36;
-  const safeBottom = lineHeight * 1.2;
+  const safeBottom = lineHeight * 0.5;
   return contentEl.scrollHeight > wrapper.clientHeight - safeBottom;
 };
 
@@ -764,7 +763,8 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   /* 减去底部页码区域高度（约 42vpx），确保翻页在内容被遮挡前发生 */
-  height: calc(100% - 42vpx);
+  /* 预留底部页码区域高度（约 30vpx），防止最后一行被遮挡 */
+  height: calc(100% - 30vpx);
   visibility: hidden;
   pointer-events: none;
   z-index: -1;
