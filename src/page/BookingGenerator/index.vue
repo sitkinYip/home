@@ -66,19 +66,27 @@
         <van-field
           v-model="basePrice"
           type="digit"
-          :label="floor === 1 && enableExtraRule ? '20桌内费用' : '全包费用'"
+          :label="enableExtraRule ? `${freeTableCount}桌内费用` : '全包费用'"
           placeholder="请输入基础费用"
         >
           <template #extra>元</template>
         </van-field>
 
-        <van-cell v-if="floor === 1" center title="启用加收规则 (超桌/音响)">
+        <van-cell center title="启用加收规则 (超桌/音响)">
           <template #right-icon>
             <van-switch v-model="enableExtraRule" size="20px" />
           </template>
         </van-cell>
 
-        <template v-if="floor === 1 && enableExtraRule">
+        <template v-if="enableExtraRule">
+          <van-field
+            v-model="freeTableCount"
+            type="digit"
+            label="免收桌数"
+            placeholder="超出此桌数后加收"
+          >
+            <template #extra>桌</template>
+          </van-field>
           <van-field
             v-model="extraPerTable"
             type="digit"
@@ -87,10 +95,16 @@
           >
             <template #extra>元/桌</template>
           </van-field>
+          <van-cell center title="布场音响加收">
+            <template #right-icon>
+              <van-switch v-model="enableAudioExtra" size="20px" />
+            </template>
+          </van-cell>
           <van-field
+            v-if="enableAudioExtra"
             v-model="extraAudio"
             type="digit"
-            label="音响加收"
+            label="音响金额"
             placeholder="布场音响加收金额"
           >
             <template #extra>元</template>
@@ -137,6 +151,7 @@ const onConfirmFloor = ({ selectedOptions }: any) => {
   floor.value = option.value;
   floorName.value = option.text;
   basePrice.value = option.defaultPrice.toString();
+  // 一楼默认开启加收规则，其他楼层默认关闭
   enableExtraRule.value = option.value === 1;
   showFloorPicker.value = false;
 };
@@ -164,7 +179,9 @@ const onConfirmDate = ({ selectedValues }: any) => {
 const deposit = ref("1000");
 const basePrice = ref("4800");
 const enableExtraRule = ref(true);
+const freeTableCount = ref("20"); // 免收桌数，默认20桌
 const extraPerTable = ref("200");
+const enableAudioExtra = ref(true); // 音响加收开关
 const extraAudio = ref("1800");
 
 // --- 核心计算属性：生成最终文案 ---
@@ -184,10 +201,15 @@ const generatedText = computed(() => {
   const datePart = `国历${month}月${day}日（农历${lunarStr}）${timeOfDay.value}`;
 
   let pricePart = "";
-  if (floor.value === 1 && enableExtraRule.value) {
-    pricePart = `此厅20桌内${basePrice.value || 0}超过每桌加收${extraPerTable.value || 0}。布场音响加收${extraAudio.value || 0}，`;
+  if (enableExtraRule.value) {
+    // 超桌部分
+    const tablePart = `此厅${freeTableCount.value || 20}桌内${basePrice.value || 0}，超过每桌加收${extraPerTable.value || 0}。`;
+    // 音响部分（独立开关控制）
+    const audioPart = enableAudioExtra.value
+      ? `布场音响加收${extraAudio.value || 0}，`
+      : "";
+    pricePart = tablePart + audioPart;
   } else {
-    // 变更 2：在非一楼或一口价规则后面加上中文逗号
     pricePart = `此厅全包费用${basePrice.value || 0}，`;
   }
 
