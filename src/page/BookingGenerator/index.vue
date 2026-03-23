@@ -291,6 +291,9 @@ const copyText = async () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   min-height: 80px;
   word-break: break-all;
+  /* 覆盖全局 user-select: none，允许长按复制文案 */
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .action-btn {
