@@ -256,15 +256,15 @@ const checkOverflow = async (): Promise<boolean> => {
   // 使用 BoundingClientRect 在屏幕绝对坐标的精准测量来替代不可靠的 scrollWidth
   const cols = measure.querySelectorAll(".para-column-group");
   if (!cols || cols.length === 0) return false;
-  
+
   const lastCol = cols[cols.length - 1] as HTMLElement;
   const innerRect = inner.getBoundingClientRect();
   const lastColRect = lastCol.getBoundingClientRect();
-  
+
   // vertical-rl 是向左不断延伸的。
-  // 如果最后一个段落的最左侧边缘触碰到可视内容最左侧边界，即为溢出
-  // 为了不让它刚好逼到边缘不好看，我们可以留出大概 15px 的安全边距（让最后一列右对齐）
-  return lastColRect.left < innerRect.left + 15;
+  // 在重设了容器宽度刚好能够被完整列数（40vpx）整除后
+  // 只要列的最左边缘触碰到了容器最左边缘（留有极小2px抗锯齿容错），即认为已经绝无余地而触发翻页
+  return lastColRect.left < innerRect.left + 2;
 };
 
 /**
@@ -625,7 +625,7 @@ onUnmounted(() => {
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 350vpx;
+  width: 362vpx;
   height: 82vh;
   max-width: 420vpx;
   transform: translate(-50%, -50%);
