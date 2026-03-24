@@ -42,11 +42,11 @@
               'page-flip-forward':
                 isFlipping && flipDirection === 'forward' && pageIdx === currentPage - 1,
               'page-flip-backward':
-                isFlipping && flipDirection === 'backward' && pageIdx === currentPage,
+                isFlipping && flipDirection === 'backward' && pageIdx === currentPage + 1,
               'page-enter-forward':
                 isFlipping && flipDirection === 'forward' && pageIdx === currentPage,
               'page-enter-backward':
-                isFlipping && flipDirection === 'backward' && pageIdx === currentPage - 1,
+                isFlipping && flipDirection === 'backward' && pageIdx === currentPage,
             }"
           >
             <!-- 移动进来的背景层 -->
