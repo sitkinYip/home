@@ -29,23 +29,38 @@
         :class="{ 'is-rising': isLetterUp, 'is-zoom-center': isFullyCentered }"
         @click.stop
       >
-        <div class="paper-border-outer">
-          <!-- 翻页容器 -->
-          <div class="page-flip-container" ref="pageFlipContainer">
-            <div
-              v-for="(page, pageIdx) in pages"
-              :key="pageIdx"
-              class="page-sheet"
-              :class="{
-                'page-active': pageIdx === currentPage,
-                'page-prev': pageIdx < currentPage,
-                'page-next': pageIdx > currentPage,
-                'page-flip-forward': isFlipping && flipDirection === 'forward' && pageIdx === currentPage - 1,
-                'page-flip-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage,
-                'page-enter-forward': isFlipping && flipDirection === 'forward' && pageIdx === currentPage,
-                'page-enter-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage - 1,
-              }"
-            >
+        <!-- 翻页容器 -->
+        <div class="page-flip-container" ref="pageFlipContainer">
+          <div
+            v-for="(page, pageIdx) in pages"
+            :key="pageIdx"
+            class="page-sheet"
+            :class="{
+              'page-active': pageIdx === currentPage,
+              'page-prev': pageIdx < currentPage,
+              'page-next': pageIdx > currentPage,
+              'page-flip-forward':
+                isFlipping && flipDirection === 'forward' && pageIdx === currentPage - 1,
+              'page-flip-backward':
+                isFlipping && flipDirection === 'backward' && pageIdx === currentPage,
+              'page-enter-forward':
+                isFlipping && flipDirection === 'forward' && pageIdx === currentPage,
+              'page-enter-backward':
+                isFlipping && flipDirection === 'backward' && pageIdx === currentPage - 1,
+            }"
+          >
+            <!-- 移动进来的背景层 -->
+            <div class="paper-bg-img" v-if="images.length">
+              <transition name="bg-slideshow">
+                <div
+                  :key="currentImgIndex"
+                  class="img-fill"
+                  :style="{ backgroundImage: `url(${images[currentImgIndex]})` }"
+                ></div>
+              </transition>
+            </div>
+
+            <div class="paper-border-outer">
               <div class="paper-border-inner">
                 <div class="paper-content-area">
                   <div
@@ -59,18 +74,24 @@
                       :key="cIdx"
                       class="v-char"
                       :class="{ 'ios-fix': isIOSMobile }"
-                    >{{ char }}</span>
+                      >{{ char }}</span
+                    >
                     <span
-                      v-if="isTyping && pageIdx === currentPage && pIdx === page.paragraphs.length - 1"
+                      v-if="
+                        isTyping && pageIdx === currentPage && pIdx === page.paragraphs.length - 1
+                      "
                       class="v-cursor"
-                    >|</span>
+                      >|</span
+                    >
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 隐藏的溢出检测容器（竖排模式检测水平溢出） -->
-            <div class="overflow-measure" ref="overflowMeasure">
+          <!-- 隐藏的溢出检测容器（竖排模式检测水平溢出） -->
+          <div class="overflow-measure" ref="overflowMeasure">
+            <div class="paper-border-outer">
               <div class="paper-border-inner">
                 <div class="paper-content-area">
                   <div
@@ -79,46 +100,37 @@
                     class="para-column-group"
                     :style="getParaStyle(p.align)"
                   >
-                    <span
-                      v-for="(char, cIdx) in p.displayed"
-                      :key="'mc-' + cIdx"
-                      class="v-char"
-                    >{{ char }}</span>
+                    <span v-for="(char, cIdx) in p.displayed" :key="'mc-' + cIdx" class="v-char">{{
+                      char
+                    }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- 页码指示器 -->
-          <div class="page-indicator" v-if="isFullyCentered && pages.length > 1">
-            <span class="page-num">{{ currentPage + 1 }} / {{ pages.length }}</span>
-          </div>
-
-          <!-- 翻页按钮 -->
-          <div class="page-nav" v-if="isFinished && isFullyCentered && pages.length > 1" @click.stop>
-            <button
-              class="page-btn page-btn-prev"
-              :class="{ 'page-btn-disabled': currentPage === 0 }"
-              @click="flipToPrev"
-            >‹</button>
-            <button
-              class="page-btn page-btn-next"
-              :class="{ 'page-btn-disabled': currentPage === pages.length - 1 }"
-              @click="flipToNext"
-            >›</button>
-          </div>
         </div>
 
-        <!-- 3. 背景插图轮播层 -->
-        <div class="paper-bg-img" v-if="images.length">
-          <transition name="bg-slideshow">
-            <div
-              :key="currentImgIndex"
-              class="img-fill"
-              :style="{ backgroundImage: `url(${images[currentImgIndex]})` }"
-            ></div>
-          </transition>
+        <!-- 页码指示器 -->
+        <div class="page-indicator" v-if="isFullyCentered && pages.length > 1">
+          <span class="page-num">{{ currentPage + 1 }} / {{ pages.length }}</span>
+        </div>
+
+        <!-- 翻页按钮 -->
+        <div class="page-nav" v-if="isFinished && isFullyCentered && pages.length > 1" @click.stop>
+          <button
+            class="page-btn page-btn-prev"
+            :class="{ 'page-btn-disabled': currentPage === 0 }"
+            @click="flipToPrev"
+          >
+            ‹
+          </button>
+          <button
+            class="page-btn page-btn-next"
+            :class="{ 'page-btn-disabled': currentPage === pages.length - 1 }"
+            @click="flipToNext"
+          >
+            ›
+          </button>
         </div>
       </div>
     </div>
@@ -240,6 +252,8 @@ const checkOverflow = async (): Promise<boolean> => {
   if (!measure) return false;
   const inner = measure.querySelector(".paper-border-inner") as HTMLElement;
   if (!inner) return false;
+  // 通过 CSS 调整了 overflow-measure 的宽度比真实容器少 30vpx
+  // 因此这里的 +2 判定即可代表它到达距离真实左边缘还有 30vpx 处提前触发溢出
   return inner.scrollWidth > inner.clientWidth + 2;
 };
 
@@ -584,10 +598,8 @@ onUnmounted(() => {
   position: absolute;
   width: 190vpx;
   height: 360vpx;
-  background-color: #fdf5e6;
+  background-color: transparent;
   z-index: 5;
-  padding: 15vpx;
-  box-sizing: border-box;
   opacity: 0;
   transform: translateY(30vpx);
   transition: all 1s cubic-bezier(0.34, 1, 0.64, 1);
@@ -633,133 +645,115 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transform-origin: left center;
+  transform-origin: center center;
   background: linear-gradient(180deg, #f5efe0 0%, #ede4d0 100%);
   border-radius: 2vpx;
   box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.3s ease;
+  will-change: transform, opacity;
+  padding: 15vpx;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .page-active {
-  transform: rotateY(0deg);
+  transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
   z-index: 10;
+  opacity: 1;
 }
 
 .page-prev {
-  transform: rotateY(-180deg);
+  transform: translate3d(0, -60vpx, 0) scale(0.9);
+  opacity: 0;
   z-index: 1;
   pointer-events: none;
 }
 
 .page-next {
-  transform: rotateY(0deg);
+  transform: translate3d(0, 60vpx, 0) scale(0.9);
+  opacity: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0;
 }
 
 .page-flip-forward {
-  animation: page-turn-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: paper-draw-out 0.8s cubic-bezier(0.7, 0, 0.2, 1) forwards;
   z-index: 15;
 }
 
 .page-enter-forward {
-  animation: page-turn-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: paper-reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   z-index: 10;
   opacity: 1;
 }
 
 .page-flip-backward {
-  animation: page-turn-back-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  z-index: 15;
+  animation: paper-sink 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 5;
 }
 
 .page-enter-backward {
-  animation: page-turn-back-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  z-index: 10;
+  animation: paper-stack-in 0.8s cubic-bezier(0.3, 1.2, 0.3, 1) forwards;
+  z-index: 15;
   opacity: 1;
 }
 
-@keyframes page-turn-out {
+@keyframes paper-draw-out {
   0% {
-    transform: rotateY(0deg) scale(1);
-    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     opacity: 1;
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   }
   30% {
-    transform: rotateY(-45deg) scale(1.02);
-    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+    transform: translate3d(-15vpx, -30vpx, 50px) rotate(-4deg) scale(1.03);
     opacity: 1;
-  }
-  60% {
-    transform: rotateY(-110deg) scale(1.01);
-    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
-    opacity: 0.7;
+    box-shadow: 15vpx 20vpx 30vpx rgba(0, 0, 0, 0.25);
   }
   100% {
-    transform: rotateY(-180deg) scale(1);
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    transform: translate3d(120vpx, -200vpx, 100px) rotate(20deg) scale(0.85);
     opacity: 0;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 
-@keyframes page-turn-in {
+@keyframes paper-reveal {
   0% {
-    transform: rotateY(15deg) scale(0.98);
+    transform: translate3d(0, 40vpx, -50px) scale(0.95);
     opacity: 0;
-    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
   40% {
-    opacity: 0.6;
-  }
-  70% {
-    transform: rotateY(3deg) scale(1);
-    opacity: 0.9;
-    box-shadow: 3vpx 2vpx 10vpx rgba(0, 0, 0, 0.1);
+    opacity: 1;
   }
   100% {
-    transform: rotateY(0deg) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
     box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   }
 }
 
-@keyframes page-turn-back-out {
+@keyframes paper-sink {
   0% {
-    transform: rotateY(0deg) scale(1);
-    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
-    opacity: 1;
-  }
-  30% {
-    transform: rotateY(30deg) scale(1.01);
-    box-shadow: -10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
   100% {
-    transform: rotateY(15deg) scale(0.98);
-    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+    transform: translate3d(0, 40vpx, -50px) scale(0.95);
     opacity: 0;
   }
 }
 
-@keyframes page-turn-back-in {
+@keyframes paper-stack-in {
   0% {
-    transform: rotateY(-180deg) scale(1);
+    transform: translate3d(-40vpx, -150vpx, 100px) rotate(-12deg) scale(1.1);
     opacity: 0;
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    box-shadow: 20vpx 30vpx 40vpx rgba(0, 0, 0, 0.3);
   }
-  30% {
-    transform: rotateY(-120deg) scale(1.01);
-    opacity: 0.5;
-    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
-  }
-  60% {
-    transform: rotateY(-50deg) scale(1.02);
-    opacity: 0.85;
-    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+  40% {
+    opacity: 1;
   }
   100% {
-    transform: rotateY(0deg) scale(1);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     opacity: 1;
     box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   }
@@ -772,9 +766,12 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
+  /* 左侧比原版多出 10vpx，用来给左侧流出版面安全区，以防光标等造成挤压 */
+  padding: 15vpx 15vpx 15vpx 25vpx;
+  box-sizing: border-box;
   visibility: hidden;
+  z-index: -10;
   pointer-events: none;
-  z-index: -1;
   overflow: hidden;
 }
 
@@ -928,7 +925,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }

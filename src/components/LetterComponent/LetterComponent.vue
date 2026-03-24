@@ -25,19 +25,6 @@
         </div>
 
         <div class="letter-paper" @click.stop>
-          <!-- 背景轮播图 -->
-          <div class="bg-carousel" v-if="images && images.length > 0">
-            <transition-group name="fade">
-              <div
-                v-for="(img, index) in images"
-                :key="img"
-                v-show="currentImgIndex === index"
-                class="bg-img"
-                :style="{ backgroundImage: `url(${img})` }"
-              ></div>
-            </transition-group>
-          </div>
-
           <!-- 翻页内容区 -->
           <div class="page-flip-container" ref="pageFlipContainer">
             <div
@@ -54,6 +41,19 @@
                 'page-enter-backward': isFlipping && flipDirection === 'backward' && pageIdx === currentPage - 1,
               }"
             >
+              <!-- 背景轮播图移至每页内部 -->
+              <div class="bg-carousel" v-if="images && images.length > 0">
+                <transition-group name="fade">
+                  <div
+                    v-for="(img, index) in images"
+                    :key="img"
+                    v-show="currentImgIndex === index"
+                    class="bg-img"
+                    :style="{ backgroundImage: `url(${img})` }"
+                  ></div>
+                </transition-group>
+              </div>
+
               <div class="content-wrapper">
                 <div class="text-content">
                   <div
@@ -587,10 +587,10 @@ onUnmounted(() => {
   width: 94%;
   bottom: 10vpx;
   height: 80%;
-  background-color: var(--paper-bg);
+  background-color: transparent;
   z-index: 1;
   transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .is-open .letter-paper {
@@ -618,138 +618,113 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transform-origin: left center;
+  transform-origin: center center;
   background-color: var(--paper-bg);
   border-radius: 2vpx;
   box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.3s ease;
+  will-change: transform, opacity;
+  overflow: hidden;
 }
 
 .page-active {
-  transform: rotateY(0deg);
+  transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
   z-index: 10;
+  opacity: 1;
 }
 
 .page-prev {
-  transform: rotateY(-180deg);
+  transform: translate3d(0, -60vpx, 0) scale(0.9);
+  opacity: 0;
   z-index: 1;
   pointer-events: none;
 }
 
 .page-next {
-  transform: rotateY(0deg);
+  transform: translate3d(0, 60vpx, 0) scale(0.9);
+  opacity: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0;
 }
 
-/* 向前翻页：当前页从右向左翻转离开 */
 .page-flip-forward {
-  animation: page-turn-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: paper-draw-out 0.8s cubic-bezier(0.7, 0, 0.2, 1) forwards;
   z-index: 15;
 }
 
-/* 向前翻页：新页从右侧进入 */
 .page-enter-forward {
-  animation: page-turn-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: paper-reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   z-index: 10;
   opacity: 1;
 }
 
-/* 向后翻页：当前页向右翻转离开 */
 .page-flip-backward {
-  animation: page-turn-back-out 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  z-index: 15;
+  animation: paper-sink 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 5;
 }
 
-/* 向后翻页：前一页从左侧翻回 */
 .page-enter-backward {
-  animation: page-turn-back-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  z-index: 10;
+  animation: paper-stack-in 0.8s cubic-bezier(0.3, 1.2, 0.3, 1) forwards;
+  z-index: 15;
   opacity: 1;
 }
 
-/* 翻页动画：模拟真实纸张弯曲 */
-@keyframes page-turn-out {
+@keyframes paper-draw-out {
   0% {
-    transform: rotateY(0deg) scale(1);
-    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     opacity: 1;
+    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   }
   30% {
-    transform: rotateY(-45deg) scale(1.02);
-    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+    transform: translate3d(-15vpx, -30vpx, 50px) rotate(-4deg) scale(1.03);
     opacity: 1;
-  }
-  60% {
-    transform: rotateY(-110deg) scale(1.01);
-    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
-    opacity: 0.7;
+    box-shadow: 15vpx 20vpx 30vpx rgba(0, 0, 0, 0.25);
   }
   100% {
-    transform: rotateY(-180deg) scale(1);
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    transform: translate3d(120vpx, -200vpx, 100px) rotate(20deg) scale(0.85);
     opacity: 0;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 
-@keyframes page-turn-in {
+@keyframes paper-reveal {
   0% {
-    transform: rotateY(15deg) scale(0.98);
+    transform: translate3d(0, 40vpx, -50px) scale(0.95);
     opacity: 0;
-    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
   40% {
-    opacity: 0.6;
-  }
-  70% {
-    transform: rotateY(3deg) scale(1);
-    opacity: 0.9;
-    box-shadow: 3vpx 2vpx 10vpx rgba(0, 0, 0, 0.1);
+    opacity: 1;
   }
   100% {
-    transform: rotateY(0deg) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
     box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   }
 }
 
-@keyframes page-turn-back-out {
+@keyframes paper-sink {
   0% {
-    transform: rotateY(0deg) scale(1);
-    box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
-    opacity: 1;
-  }
-  30% {
-    transform: rotateY(30deg) scale(1.01);
-    box-shadow: -10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
   100% {
-    transform: rotateY(15deg) scale(0.98);
-    box-shadow: -5vpx 2vpx 15vpx rgba(0, 0, 0, 0.1);
+    transform: translate3d(0, 40vpx, -50px) scale(0.95);
     opacity: 0;
   }
 }
 
-@keyframes page-turn-back-in {
+@keyframes paper-stack-in {
   0% {
-    transform: rotateY(-180deg) scale(1);
+    transform: translate3d(-40vpx, -150vpx, 100px) rotate(-12deg) scale(1.1);
     opacity: 0;
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    box-shadow: 20vpx 30vpx 40vpx rgba(0, 0, 0, 0.3);
   }
-  30% {
-    transform: rotateY(-120deg) scale(1.01);
-    opacity: 0.5;
-    box-shadow: 10vpx 3vpx 20vpx rgba(0, 0, 0, 0.15);
-  }
-  60% {
-    transform: rotateY(-50deg) scale(1.02);
-    opacity: 0.85;
-    box-shadow: 15vpx 5vpx 25vpx rgba(0, 0, 0, 0.2);
+  40% {
+    opacity: 1;
   }
   100% {
-    transform: rotateY(0deg) scale(1);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     opacity: 1;
     box-shadow: 2vpx 2vpx 8vpx rgba(0, 0, 0, 0.08);
   }
