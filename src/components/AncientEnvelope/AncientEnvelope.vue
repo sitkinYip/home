@@ -252,9 +252,19 @@ const checkOverflow = async (): Promise<boolean> => {
   if (!measure) return false;
   const inner = measure.querySelector(".paper-border-inner") as HTMLElement;
   if (!inner) return false;
-  // 通过 CSS 调整了 overflow-measure 的宽度比真实容器少 30vpx
-  // 因此这里的 +2 判定即可代表它到达距离真实左边缘还有 30vpx 处提前触发溢出
-  return inner.scrollWidth > inner.clientWidth + 2;
+
+  // 使用 BoundingClientRect 在屏幕绝对坐标的精准测量来替代不可靠的 scrollWidth
+  const cols = measure.querySelectorAll(".para-column-group");
+  if (!cols || cols.length === 0) return false;
+  
+  const lastCol = cols[cols.length - 1] as HTMLElement;
+  const innerRect = inner.getBoundingClientRect();
+  const lastColRect = lastCol.getBoundingClientRect();
+  
+  // vertical-rl 是向左不断延伸的。
+  // 如果最后一个段落的最左侧边缘触碰到可视内容最左侧边界，即为溢出
+  // 为了不让它刚好逼到边缘不好看，我们可以留出大概 15px 的安全边距（让最后一列右对齐）
+  return lastColRect.left < innerRect.left + 15;
 };
 
 /**
@@ -766,8 +776,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  /* 左侧比原版多出 10vpx，用来给左侧流出版面安全区，以防光标等造成挤压 */
-  padding: 15vpx 15vpx 15vpx 25vpx;
+  padding: 15vpx;
   box-sizing: border-box;
   visibility: hidden;
   z-index: -10;
@@ -845,6 +854,7 @@ onUnmounted(() => {
   font-weight: bold;
   animation: blink 0.8s infinite;
   transform: translateY(-4vpx);
+  position: absolute;
 }
 
 @keyframes blink {
