@@ -203,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick, onUnmounted } from "vue";
+import { ref, reactive, computed, nextTick, onUnmounted, inject } from "vue";
 import { usePageFlip } from "@/hooks/usePageFlip";
 import { toVpx } from "@/utils/toVpx";
 
@@ -281,6 +281,11 @@ const pageFlipContainer = ref<HTMLDivElement | null>(null);
 let carouselTimer: ReturnType<typeof setInterval> | null = null;
 
 const audioPlayer = new Audio();
+
+// 注入父组件（Letter 页面）提供的 BGM 压制 / 恢复接口
+// 段落音频播放时压制 BGM，播放完毕后恢复，解决 iOS/微信双人声互相掩盖问题
+const suppressBgm = inject<() => void>("suppressBgm", () => {});
+const restoreBgm = inject<() => void>("restoreBgm", () => {});
 
 const playAudioSync = (url: string): Promise<void> => {
   return new Promise((resolve) => {
@@ -377,9 +382,13 @@ const typeText = async () => {
       }
     }
 
+    // 播放音频前先压制 BGM（不阻塞打字），音频结束后恢复 BGM
     let audioPromise: Promise<void> | null = null;
     if (config.audio) {
-      audioPromise = playAudioSync(config.audio);
+      suppressBgm();
+      audioPromise = playAudioSync(config.audio).then(() => {
+        restoreBgm();
+      });
     }
 
     for (const char of text) {

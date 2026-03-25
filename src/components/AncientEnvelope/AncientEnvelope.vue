@@ -147,7 +147,7 @@
  * AncientEnvelope Component - TypeScript Version
  * 核心逻辑：原生竖排文字流 + 动态格线增长 + 自动负坐标滚动追踪
  */
-import { ref, reactive, computed, nextTick, onUnmounted } from "vue";
+import { ref, reactive, computed, nextTick, onUnmounted, inject } from "vue";
 import { usePageFlip } from "@/hooks/usePageFlip";
 
 // --- 类型定义 (Interfaces) ---
@@ -209,6 +209,11 @@ const overflowMeasure = ref<HTMLElement | null>(null);
 const pageFlipContainer = ref<HTMLElement | null>(null);
 
 let slideshowTimer: ReturnType<typeof setInterval> | null = null;
+
+// 注入父组件（Letter 页面）提供的 BGM 压制 / 恢复接口
+// 段落音频播放时压制 BGM，播放完毕后恢复，解决 iOS/微信双人声互相掩盖问题
+const suppressBgm = inject<() => void>("suppressBgm", () => {});
+const restoreBgm = inject<() => void>("restoreBgm", () => {});
 
 /**
  * 检测是否为 iOS 移动端设备
@@ -337,8 +342,9 @@ const startTypewriting = async (): Promise<void> => {
     const currentP: Paragraph = reactive({ ...p, displayed: "" });
     currentPageData.paragraphs.push(currentP);
 
-    // 段落同步配音播放
+    // 段落同步配音播放（播放前先压制 BGM）
     if (p.audio && audioPlayer.value) {
+      suppressBgm();
       audioPlayer.value.src = p.audio;
       audioPlayer.value.play().catch((e) => console.log("Audio skip:", e));
     }
@@ -392,6 +398,7 @@ const startTypewriting = async (): Promise<void> => {
 
     if (p.audio && audioPlayer.value) {
       await waitForAudioEnd(audioPlayer.value);
+      restoreBgm(); // 音频结束后恢复 BGM
     }
   }
   isTyping.value = false;

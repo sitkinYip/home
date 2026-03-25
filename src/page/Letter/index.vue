@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from "vue";
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent, provide } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Compass } from "@element-plus/icons-vue";
 import { fetchLetter } from "@/server/qa";
@@ -333,7 +333,7 @@ const handleOpenLetter = () => {
 
   bgmAudio = new Audio(letter.mainAudio);
   bgmAudio.loop = true;
-  bgmAudio.volume = 0.15; // BGM 音量大幅降低，让段落语音更清晰
+  bgmAudio.volume = 0.15; // BGM 正常音量（段落音频播放时会被动态压制）
   bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
   bgmPlaying.value = true;
 };
@@ -367,6 +367,28 @@ const toggleBgm = () => {
     bgmPlaying.value = true;
   }
 };
+
+/**
+ * 向子组件提供 BGM 动态压制 / 恢复接口
+ * 段落音频开始时调用 suppressBgm()，结束后调用 restoreBgm()
+ * 用于解决 iOS / 微信双音轨人声互相掩盖的问题
+ */
+const BGM_DUCK_VOLUME = 0.02; // 压制时的音量（几乎静音）
+const BGM_NORMAL_VOLUME = 0.5; // 正常音量
+
+const suppressBgm = () => {
+  if (bgmAudio && bgmPlaying.value) {
+    bgmAudio.volume = BGM_DUCK_VOLUME;
+  }
+};
+const restoreBgm = () => {
+  if (bgmAudio) {
+    bgmAudio.volume = BGM_NORMAL_VOLUME;
+  }
+};
+
+provide("suppressBgm", suppressBgm);
+provide("restoreBgm", restoreBgm);
 
 onUnmounted(() => {
   if (bgmAudio) {
