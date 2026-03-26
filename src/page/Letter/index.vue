@@ -333,7 +333,7 @@ const handleOpenLetter = () => {
 
   bgmAudio = new Audio(letter.mainAudio);
   bgmAudio.loop = true;
-  bgmAudio.volume = 0.15; // BGM 正常音量（段落音频播放时会被动态压制）
+  bgmAudio.volume = 0.5; // BGM 正常音量（段落音频播放时会被动态压制）
   bgmAudio.play().catch((e) => console.warn("BGM播放被拦截:", e));
   bgmPlaying.value = true;
 };
@@ -373,7 +373,7 @@ const toggleBgm = () => {
  * 段落音频开始时调用 suppressBgm()，结束后调用 restoreBgm()
  * 用于解决 iOS / 微信双音轨人声互相掩盖的问题
  */
-const BGM_DUCK_VOLUME = 0.02; // 压制时的音量（几乎静音）
+const BGM_DUCK_VOLUME = 0.25; // 压制时的音量（几乎静音）
 const BGM_NORMAL_VOLUME = 0.5; // 正常音量
 
 const suppressBgm = () => {
