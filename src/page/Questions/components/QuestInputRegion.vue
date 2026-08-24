@@ -206,9 +206,9 @@ const handleFocus = (val: boolean) => {
   position: relative;
   .input-wrapper {
     position: relative;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(20, 17, 13, 0.5);
     border: 1vpx solid $glass-border;
-    border-radius: 12vpx;
+    border-radius: $radius-md;
     transition: all 0.3s ease;
     margin-bottom: 16vpx;
     .magic-progress {
@@ -216,18 +216,19 @@ const handleFocus = (val: boolean) => {
       bottom: -1vpx;
       left: 0;
       height: 2vpx;
-      background: linear-gradient(to right, transparent, $magic-gold, transparent);
+      background: linear-gradient(to right, transparent, $ember, transparent);
       transition: width 0.3s ease;
       opacity: 0.6;
     }
 
     &.is-focus {
-      background: rgba(0, 0, 0, 0.6);
-      box-shadow: 0 0 15vpx rgba($magic-gold, 0.2);
+      background: rgba(20, 17, 13, 0.7);
+      border-color: $glass-border-strong;
+      box-shadow: 0 0 15vpx rgba($ember, 0.16);
     }
     &.is-error {
-      border-color: $magic-red !important;
-      box-shadow: 0 0 15vpx rgba($magic-red, 0.3);
+      border-color: $rust !important;
+      box-shadow: 0 0 15vpx rgba($rust, 0.28);
     }
 
     .magic-input {
@@ -235,67 +236,81 @@ const handleFocus = (val: boolean) => {
       background: transparent;
       border: none;
       padding: 16vpx;
-      color: #fff;
+      color: $text;
       font-size: 16vpx;
       outline: none;
       box-sizing: border-box;
       &::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: $text-ghost;
       }
     }
   }
 
+  // 确认按钮：单色 ember 实心 + 按压反馈（去掉永续扫光）
   .magic-btn {
     width: 100%;
     padding: 16vpx;
-    border-radius: 12vpx;
+    border-radius: $radius-md;
     border: none;
-    background: linear-gradient(135deg, $magic-purple 0%, #4834d4 100%);
-    color: #fff;
-    font-weight: bold;
+    background: $ember;
+    color: $ink-900;
+    font-weight: 700;
     font-size: 18vpx;
+    letter-spacing: 1vpx;
     position: relative;
     overflow: hidden;
     transition:
-      background 0.4s ease,
-      box-shadow 0.4s ease;
+      background 0.25s ease,
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+    box-shadow: 0 4vpx 16vpx rgba($ember, 0.25);
 
     &:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
+      background: $ember-bright;
     }
 
     &.btn-success {
-      background: linear-gradient(135deg, $magic-green 0%, #27ae60 100%) !important;
+      background: $jade !important;
+      color: $ink-900;
+      box-shadow: 0 4vpx 16vpx rgba($jade, 0.25);
     }
 
     &.btn-error {
-      background: linear-gradient(135deg, $magic-red 0%, #c0392b 100%) !important;
-      box-shadow: 0 0 20vpx rgba($magic-red, 0.4);
+      background: $rust !important;
+      color: $text;
+      box-shadow: 0 4vpx 16vpx rgba($rust, 0.3);
       transform: scale(0.98);
     }
 
     &.btn-sealed {
-      background: linear-gradient(135deg, #3d3d3d 0%, #1a1a1a 100%) !important;
-      color: rgba(255, 255, 255, 0.6);
+      background: $ink-600 !important;
+      color: $text-mute;
       cursor: not-allowed;
-      opacity: 0.8;
+      opacity: 0.85;
       box-shadow: inset 0 0 20vpx rgba(0, 0, 0, 0.4);
-      border: 1vpx solid rgba(255, 255, 255, 0.1);
+      border: 1vpx solid $glass-border;
 
       &:active {
         transform: none;
       }
     }
 
+    // btn-flare 节点保留，但不再永续扫光（仅按压瞬间一次）
     .btn-flare {
       position: absolute;
       top: 0;
       left: -100%;
       width: 40%;
       height: 100%;
-      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3), transparent);
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.18), transparent);
       transform: skewX(-25deg);
-      animation: flare 4s infinite;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    &:active .btn-flare {
+      animation: flare-once 0.6s ease-out;
     }
   }
 }
@@ -323,15 +338,18 @@ const handleFocus = (val: boolean) => {
   transform: translateY(8vpx) scale(0.98);
 }
 
-@keyframes flare {
+// 按压瞬间单次扫光（替代永续动画）
+@keyframes flare-once {
   0% {
     left: -100%;
+    opacity: 0;
   }
-  20% {
-    left: 150%;
+  30% {
+    opacity: 1;
   }
   100% {
     left: 150%;
+    opacity: 0;
   }
 }
 </style>

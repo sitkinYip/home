@@ -153,15 +153,15 @@ watch(
 
 .url-preview {
   margin-top: 12vpx;
-  border-radius: 12vpx;
+  border-radius: $radius-md;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1vpx solid rgba(#00d2ff, 0.3);
+  background: rgba(20, 17, 13, 0.4);
+  border: 1vpx solid rgba($cyan-deep, 0.3);
   transition: all 0.3s ease;
 
   &.preview-active {
-    background: rgba(0, 0, 0, 0.8);
-    border-color: rgba(#00d2ff, 0.5);
+    background: rgba(20, 17, 13, 0.8);
+    border-color: rgba($cyan-deep, 0.5);
   }
 }
 
@@ -179,13 +179,13 @@ watch(
     align-items: center;
     justify-content: center;
     gap: 10vpx;
-    color: #00d2ff;
+    color: $cyan-deep;
     font-size: 14vpx;
     font-weight: 500;
     margin-bottom: 10vpx;
 
     .el-icon {
-      animation: pulse-icon 2s ease-in-out infinite;
+      animation: pulse-icon 2.4s ease-in-out infinite;
     }
   }
 
@@ -198,15 +198,15 @@ watch(
     .deco-line {
       width: 40vpx;
       height: 1vpx;
-      background: linear-gradient(to right, transparent, rgba(#00d2ff, 0.5), transparent);
+      background: linear-gradient(to right, transparent, rgba($cyan-deep, 0.5), transparent);
     }
 
     .deco-dot {
       width: 6vpx;
       height: 6vpx;
       border-radius: 50%;
-      background: #00d2ff;
-      animation: dot-pulse 1.5s ease-in-out infinite;
+      background: $cyan-deep;
+      animation: dot-pulse 1.8s ease-in-out infinite;
     }
   }
 }
@@ -214,7 +214,7 @@ watch(
 .preview-container {
   position: relative;
   width: 100%;
-  background: #000;
+  background: $ink-900;
 
   .preview-close {
     position: absolute;
@@ -224,18 +224,18 @@ watch(
     width: 28vpx;
     height: 28vpx;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1vpx solid rgba(255, 255, 255, 0.2);
+    background: rgba(20, 17, 13, 0.6);
+    border: 1vpx solid rgba(236, 230, 216, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: $text;
     cursor: pointer;
     transition: all 0.3s ease;
 
     &:active {
       transform: scale(0.9);
-      background: rgba(#00d2ff, 0.6);
+      background: rgba($cyan-deep, 0.6);
     }
   }
 
@@ -255,7 +255,6 @@ watch(
     height: 100%;
     border: none;
     background: #fff;
-    // iOS 微信浏览器兼容
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
   }
@@ -269,8 +268,8 @@ watch(
     align-items: center;
     justify-content: center;
     gap: 12vpx;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
+    background: rgba(20, 17, 13, 0.85);
+    color: $text;
 
     .loading-icon {
       animation: spin 1s linear infinite;
@@ -283,7 +282,7 @@ watch(
 
     .error-hint {
       font-size: 12vpx;
-      color: #00d2ff;
+      color: $cyan-deep;
       text-decoration: underline;
       cursor: pointer;
     }
@@ -293,29 +292,30 @@ watch(
     display: flex;
     justify-content: center;
     padding: 10vpx;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(20, 17, 13, 0.6);
 
     .action-btn {
       display: flex;
       align-items: center;
       gap: 6vpx;
-      color: rgba(255, 255, 255, 0.7);
+      color: $text-mute;
       font-size: 12vpx;
       cursor: pointer;
       transition: color 0.3s ease;
 
       &:active {
-        color: #00d2ff;
+        color: $cyan-deep;
       }
     }
   }
 
+  // 单色 ember 边框
   .preview-magic-border {
     position: absolute;
     inset: 0;
-    border: 2vpx solid transparent;
+    border: 1.5vpx solid transparent;
     border-radius: 4vpx;
-    background: linear-gradient(135deg, rgba(#00d2ff, 0.4), rgba($magic-gold, 0.3)) border-box;
+    background: linear-gradient(135deg, rgba($ember, 0.4), rgba($ember, 0.2)) border-box;
     -webkit-mask:
       linear-gradient(#fff 0 0) padding-box,
       linear-gradient(#fff 0 0);
@@ -325,10 +325,10 @@ watch(
       linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
+    opacity: 0.7;
   }
 }
 
-// 动画
 @keyframes pulse-icon {
   0%,
   100% {
@@ -336,7 +336,7 @@ watch(
     opacity: 1;
   }
   50% {
-    transform: scale(1.15);
+    transform: scale(1.12);
     opacity: 0.8;
   }
 }

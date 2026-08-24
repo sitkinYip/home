@@ -125,25 +125,24 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
-$gold: #ffd700;
-$gray: #7f8c8d;
+@use "../_variables.scss" as *;
+
 $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Ccircle cx='256' cy='256' r='250' stroke-opacity='0.2'/%3E%3Ccircle cx='256' cy='256' r='200' stroke-dasharray='10 5'/%3E%3Cpath d='M256 40 L440 350 L72 350 Z' stroke-opacity='0.4'/%3E%3Ccircle cx='256' cy='256' r='100'/%3E%3C/g%3E%3C/svg%3E";
 
 .portal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: $z-modal;
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(20vpx);
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(20, 17, 13, 0.85);
   &::before {
     content: "";
     position: absolute;
     inset: 0;
-    box-shadow: inset 0 0 100vpx rgba($magic-gold, 0.1);
+    box-shadow: inset 0 0 100vpx rgba($ember, 0.08);
     animation: portal-pulse 4s ease-in-out infinite;
   }
 
@@ -153,37 +152,37 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
       opacity: 0.2;
     }
     50% {
-      opacity: 0.5;
+      opacity: 0.45;
     }
   }
 
-  // 未开始状态：金光闪烁
+  // 未开始状态：余烬琥珀
   &.pre_start {
     .gate-layer {
-      filter: drop-shadow(0 0 10vpx $gold);
-      stroke: $gold;
+      filter: drop-shadow(0 0 10vpx $ember);
+      stroke: $ember;
     }
     .status-title {
-      color: $gold;
+      color: $ember;
     }
     .gate-center {
-      color: $gold;
-      animation: breathe 2s infinite;
+      color: $ember;
+      animation: breathe 2.4s infinite;
     }
   }
 
-  // 已结束状态：灰暗沉寂
+  // 已结束状态：沉寂灰
   &.post_end {
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(20, 17, 13, 0.95);
     .gate-layer {
       filter: grayscale(1) opacity(0.3);
       animation-play-state: paused !important;
     }
     .status-title {
-      color: $gray;
+      color: $text-faint;
     }
     .gate-center {
-      color: $gray;
+      color: $text-faint;
     }
     .magic-gate {
       transform: scale(0.9);
@@ -235,24 +234,25 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
   padding: 0 30vpx;
 
   .status-title {
-    font-size: 28vpx;
-    font-weight: 900;
+    font-family: $font-display;
+    font-size: 26vpx;
+    font-weight: 700;
     letter-spacing: 4vpx;
     margin-bottom: 12vpx;
   }
 
   .status-desc {
     font-size: 14vpx;
-    color: rgba(255, 255, 255, 0.5);
+    color: $text-mute;
     line-height: 1.6;
   }
 }
 
 .countdown-box {
   margin-top: 30vpx;
-  background: rgba(255, 215, 0, 0.05);
-  border: 1vpx solid rgba(255, 215, 0, 0.2);
-  border-radius: 12vpx;
+  background: $ember-faint;
+  border: 1vpx solid rgba($ember, 0.22);
+  border-radius: $radius-md;
   padding: 15vpx 25vpx;
   display: flex;
   flex-direction: column;
@@ -260,14 +260,14 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
 
   .label {
     font-size: 11vpx;
-    color: rgba(255, 215, 0, 0.6);
+    color: $text-faint;
   }
   .time {
+    font-family: $font-num;
+    font-variant-numeric: tabular-nums;
     font-size: 20vpx;
-    color: $gold;
-    font-family: "Courier New", Courier, monospace; // 使用等宽字体
-    font-variant-numeric: tabular-nums; // 确保数字宽度一致，防止倒计时跳动
-    font-weight: bold;
+    color: $ember;
+    font-weight: 700;
   }
 }
 
@@ -291,10 +291,10 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.8;
+    opacity: 0.75;
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.08);
     opacity: 1;
   }
 }

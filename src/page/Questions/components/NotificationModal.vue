@@ -164,7 +164,7 @@ defineExpose({ show });
   position: fixed;
   inset: 0;
   z-index: 101; // 高于 MagicScroll
-  background: rgba(10, 5, 20, 0.85);
+  background: rgba(20, 17, 13, 0.85);
   backdrop-filter: blur(20vpx);
   -webkit-backdrop-filter: blur(20vpx);
   display: flex;
@@ -174,23 +174,24 @@ defineExpose({ show });
   perspective: 1000vpx;
 }
 
+// 单一暖光晕（去掉紫色）
 .notif-bg-glow {
   position: absolute;
   width: 500vpx;
   height: 500vpx;
-  background: radial-gradient(circle, rgba($magic-purple, 0.25) 0%, transparent 70%);
-  animation: glow-pulse 4s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba($ember, 0.16) 0%, transparent 70%);
+  animation: glow-pulse 5s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
 @keyframes glow-pulse {
   from {
     transform: scale(0.8);
-    opacity: 0.4;
+    opacity: 0.35;
   }
   to {
     transform: scale(1.2);
-    opacity: 0.8;
+    opacity: 0.65;
   }
 }
 
@@ -198,11 +199,11 @@ defineExpose({ show });
   width: 100%;
   max-width: 320vpx;
   min-height: 200vpx;
-  background: rgba(25, 15, 45, 0.7) !important;
-  border: 1vpx solid rgba($magic-gold, 0.4) !important;
+  background: rgba(39, 31, 23, 0.72) !important;
+  border: 1vpx solid $glass-border-strong !important;
   box-shadow:
     0 0 40vpx rgba(0, 0, 0, 0.6),
-    inset 0 0 20vpx rgba($magic-purple, 0.3) !important;
+    inset 0 0 20vpx rgba($ember, 0.08) !important;
   position: relative;
   overflow: visible;
 
@@ -216,109 +217,72 @@ defineExpose({ show });
   }
 }
 
-// 四角装饰
+// 四角装饰：收敛为单色细角（去掉金色发光圆点）
 .corner-ornament {
   position: absolute;
-  width: 30vpx;
-  height: 30vpx;
-  border: 2vpx solid transparent;
+  width: 28vpx;
+  height: 28vpx;
+  border: 1.5vpx solid transparent;
   pointer-events: none;
   z-index: 3;
-
-  &::before {
-    content: "";
-    position: absolute;
-    width: 6vpx;
-    height: 6vpx;
-    background: $magic-gold;
-    border-radius: 50%;
-    box-shadow: 0 0 10vpx $magic-gold;
-  }
 
   &.corner-tl {
     top: -5vpx;
     left: -5vpx;
-    border-top-color: $magic-gold;
-    border-left-color: $magic-gold;
-    &::before {
-      top: -3vpx;
-      left: -3vpx;
-    }
+    border-top-color: $ember;
+    border-left-color: $ember;
   }
   &.corner-tr {
     top: -5vpx;
     right: -5vpx;
-    border-top-color: $magic-gold;
-    border-right-color: $magic-gold;
-    &::before {
-      top: -3vpx;
-      right: -3vpx;
-    }
+    border-top-color: $ember;
+    border-right-color: $ember;
   }
   &.corner-bl {
     bottom: -5vpx;
     left: -5vpx;
-    border-bottom-color: $magic-gold;
-    border-left-color: $magic-gold;
-    &::before {
-      bottom: -3vpx;
-      left: -3vpx;
-    }
+    border-bottom-color: $ember;
+    border-left-color: $ember;
   }
   &.corner-br {
     bottom: -5vpx;
     right: -5vpx;
-    border-bottom-color: $magic-gold;
-    border-right-color: $magic-gold;
-    &::before {
-      bottom: -3vpx;
-      right: -3vpx;
-    }
+    border-bottom-color: $ember;
+    border-right-color: $ember;
   }
 }
 
+// 实色标题 + 单层 drop-shadow（去掉 gradient-clip + shimmer）
 .magic-title {
   margin: 0;
+  font-family: $font-display;
   font-size: 20vpx;
   text-align: center;
-  color: #fff;
-  text-shadow: 0 0 10vpx rgba($magic-gold, 0.8);
-  font-family: serif;
+  color: $text;
+  font-weight: 700;
   letter-spacing: 2vpx;
-  background: linear-gradient(90deg, #fff, $magic-gold, #fff);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 3s linear infinite;
-}
-
-@keyframes shine {
-  to {
-    background-position: 200% center;
-  }
+  filter: drop-shadow(0 2vpx 10vpx rgba($ember, 0.4));
 }
 
 .title-underline {
-  height: 2vpx;
+  height: 1vpx;
   margin: 12vpx auto 20vpx;
   width: 60%;
-  background: linear-gradient(90deg, transparent, $magic-gold, transparent);
+  background: linear-gradient(90deg, transparent, rgba($ember, 0.5), transparent);
 }
 
 .notif-content {
   max-height: 50vh;
   overflow-y: auto;
   margin-bottom: 30vpx;
-  color: rgba(255, 255, 255, 0.9);
+  color: $text;
   line-height: 1.8;
   font-size: 15vpx;
 
-  /* 彻底隐藏滚动条 */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
   }
 
   .content-text {
@@ -327,13 +291,13 @@ defineExpose({ show });
   }
 
   .highlight-text {
-    color: $magic-gold;
-    font-weight: bold;
-    text-shadow: 0 0 5vpx rgba($magic-gold, 0.5);
+    color: $ember;
+    font-weight: 700;
+    text-shadow: 0 0 5vpx rgba($ember, 0.4);
   }
 
   .link-text {
-    color: #4facfe;
+    color: $cyan-deep;
     text-decoration: underline;
     cursor: pointer;
     font-weight: 500;
@@ -341,17 +305,17 @@ defineExpose({ show });
 
   .image-wrap {
     margin: 10vpx 0;
-    border-radius: 8vpx;
+    border-radius: $radius-sm;
     overflow: hidden;
-    border: 1vpx solid rgba(255, 255, 255, 0.2);
+    border: 1vpx solid rgba(236, 230, 216, 0.2);
   }
 
   .video-wrap {
     margin: 15vpx 0;
-    border-radius: 12vpx;
+    border-radius: $radius-md;
     overflow: hidden;
-    border: 1vpx solid rgba($magic-gold, 0.3);
-    background: rgba(0, 0, 0, 0.4);
+    border: 1vpx solid rgba($ember, 0.3);
+    background: rgba(20, 17, 13, 0.4);
     cursor: pointer;
     transition: all 0.3s;
 
@@ -366,14 +330,14 @@ defineExpose({ show });
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #000;
+      background: $ink-900;
 
       .poster-img {
         opacity: 0.7;
       }
 
       .video-placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: $text-faint;
       }
 
       .play-icon-overlay {
@@ -382,9 +346,9 @@ defineExpose({ show });
         display: flex;
         align-items: center;
         justify-content: center;
-        color: $magic-gold;
-        text-shadow: 0 0 20vpx rgba(0, 0, 0, 0.8);
-        background: rgba(0, 0, 0, 0.2);
+        color: $ember;
+        text-shadow: 0 0 20vpx rgba(20, 17, 13, 0.8);
+        background: rgba(20, 17, 13, 0.2);
       }
     }
 
@@ -392,30 +356,34 @@ defineExpose({ show });
       padding: 8vpx;
       text-align: center;
       font-size: 12vpx;
-      color: $magic-gold;
-      background: rgba($magic-gold, 0.1);
-      border-top: 1vpx solid rgba($magic-gold, 0.2);
+      color: $ember;
+      background: $ember-faint;
+      border-top: 1vpx solid rgba($ember, 0.2);
     }
   }
 }
 
+// 单色 ember 按钮（去掉紫渐变 + 永续 flare）
 .confirm-btn {
   width: 100%;
   height: 48vpx;
-  border-radius: 24vpx;
+  border-radius: $radius-pill;
   border: none;
-  background: linear-gradient(135deg, $magic-purple 0%, #4834d4 100%);
-  color: #fff;
+  background: $ember;
+  color: $ink-900;
   font-size: 16vpx;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4vpx 15vpx rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s;
+  box-shadow: 0 4vpx 15vpx rgba($ember, 0.25);
+  transition:
+    transform 0.2s,
+    background 0.2s;
 
   &:active {
     transform: scale(0.96);
+    background: $ember-bright;
   }
 
   .btn-text {
@@ -423,27 +391,35 @@ defineExpose({ show });
     z-index: 2;
   }
 
+  // btn-flare 节点保留，仅按压时一次
   .btn-flare {
     position: absolute;
     top: 0;
     left: -150%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
     transform: skewX(-20deg);
-    animation: flare 4s infinite;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  &:active .btn-flare {
+    animation: flare-once 0.6s ease-out;
   }
 }
 
-@keyframes flare {
+@keyframes flare-once {
   0% {
     left: -150%;
+    opacity: 0;
   }
   30% {
-    left: 150%;
+    opacity: 1;
   }
   100% {
     left: 150%;
+    opacity: 0;
   }
 }
 
@@ -473,7 +449,7 @@ defineExpose({ show });
   0% {
     transform: scale(0.4) rotate(-5deg);
     opacity: 0;
-    filter: brightness(3);
+    filter: brightness(2.2);
   }
   100% {
     transform: scale(1) rotate(0);
@@ -482,17 +458,18 @@ defineExpose({ show });
   }
 }
 
+// 光爆：收敛到 ember
 @keyframes burst-flash {
   0% {
     inset: 0;
-    background: #fff;
+    background: $text;
     border-radius: 50%;
-    opacity: 1;
+    opacity: 0.8;
     transform: scale(0);
   }
   100% {
     inset: -100vpx;
-    background: $magic-gold;
+    background: $ember;
     border-radius: 50%;
     opacity: 0;
     transform: scale(3);

@@ -54,15 +54,15 @@ defineExpose({ show, hide });
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
+@use "../_variables.scss" as *;
 
 /* 1. 基础遮罩层样式 */
 .magic-tip-overlay {
   position: fixed;
   inset: 0;
   z-index: 10005;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10vpx); // 毛玻璃
+  background: rgba(20, 17, 13, 0.85);
+  backdrop-filter: blur(10vpx);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,31 +70,26 @@ $magic-gold: #ffd700;
   perspective: 1200px;
 }
 
-/* 2. 基础卡片样式 */
+/* 2. 卡片样式（暖系底，替换紫调） */
 .magic-tip-card {
   position: relative;
   width: 85%;
   max-width: 320vpx;
-  background: radial-gradient(circle at top, #2a1b4d 0%, #12091d 100%);
-  border: 1.5vpx solid $magic-gold;
-  border-radius: 16vpx;
+  background: radial-gradient(circle at top, $ink-700 0%, $ink-900 100%);
+  border: 1.5vpx solid $glass-border-strong;
+  border-radius: $radius-lg;
   padding: 24vpx;
-  box-shadow: 0 0 40vpx rgba($magic-gold, 0.2);
+  box-shadow: 0 0 40vpx rgba($ember, 0.14), $glass-inner;
   overflow: hidden;
   z-index: 10;
 }
 
-/* -----------------------------------------------------------
-   3. 核心动画逻辑：背景与卡片分离
------------------------------------------------------------ */
-
-/* 【背景遮罩层】仅执行淡入淡出 */
+/* 3. 动画逻辑：背景与卡片分离 */
 .magic-tip-enter-active,
 .magic-tip-leave-active {
   transition: opacity 0.5s ease;
 }
 
-/* 【卡片主体】执行复杂的 3D 弹出动效 */
 .magic-tip-enter-active .magic-tip-card {
   transition: all 0.5s cubic-bezier(0.15, 1.15, 0.6, 1);
 }
@@ -103,12 +98,10 @@ $magic-gold: #ffd700;
   transition: all 0.3s ease-in;
 }
 
-/* 状态定义 */
 .magic-tip-enter-from {
-  opacity: 0; // 遮罩层淡出状态
+  opacity: 0;
 
   .magic-tip-card {
-    // 只有卡片在放大展开
     opacity: 0;
     transform: scale(0.4) rotateX(-40deg) translateY(60vpx);
     filter: blur(10vpx) brightness(2);
@@ -116,33 +109,30 @@ $magic-gold: #ffd700;
 }
 
 .magic-tip-leave-to {
-  opacity: 0; // 遮罩层淡出状态
+  opacity: 0;
 
   .magic-tip-card {
-    // 卡片执行关闭动画（气化升华）
     opacity: 0;
     transform: scale(1.1) translateY(-30vpx);
     filter: blur(10vpx) brightness(3);
   }
 }
 
-/* -----------------------------------------------------------
-   4. 布局逻辑
------------------------------------------------------------ */
-
+/* 4. 布局逻辑 */
 .tip-header {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10vpx;
   margin-bottom: 20vpx;
-  color: $magic-gold;
+  color: $ember;
   .magic-icon {
     font-size: 22vpx;
   }
   .tip-title {
+    font-family: $font-display;
     font-size: 16vpx;
-    font-weight: bold;
+    font-weight: 700;
     letter-spacing: 2vpx;
   }
 }
@@ -161,7 +151,7 @@ $magic-gold: #ffd700;
   .tip-text {
     font-size: 15vpx;
     line-height: 1.8;
-    color: rgba(255, 255, 255, 0.95);
+    color: $text;
     margin: 0;
   }
 }
@@ -173,16 +163,16 @@ $magic-gold: #ffd700;
 
   .close-btn {
     background: transparent;
-    border: 1.2vpx solid $magic-gold;
-    color: $magic-gold;
+    border: 1.2vpx solid $ember;
+    color: $ember;
     padding: 10vpx 36vpx;
-    border-radius: 24vpx;
+    border-radius: $radius-pill;
     font-size: 14vpx;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     &:active {
-      background: rgba($magic-gold, 0.1);
+      background: $ember-soft;
       transform: scale(0.95);
     }
   }
@@ -194,7 +184,7 @@ $magic-gold: #ffd700;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at center, rgba($magic-gold, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgba($ember, 0.04) 0%, transparent 70%);
   pointer-events: none;
 }
 </style>

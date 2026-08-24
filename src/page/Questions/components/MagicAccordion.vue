@@ -22,22 +22,12 @@
           </div>
         </div>
 
-        <!-- 收起状态：显示华丽的文案 -->
+        <!-- 收起状态：克制的单行回顾标识 -->
         <div class="header-content collapsed" v-else key="collapsed">
           <div class="magic-success-banner">
-            <!-- 魔法粒子 -->
-            <div class="magic-particles">
-              <span v-for="i in 6" :key="i" class="particle" :style="{ '--i': i }"></span>
-            </div>
-            <span class="banner-ornament left">
-              <span class="ornament-glow"></span>
-            </span>
-            <span class="banner-text">
-              <span class="text-shimmer">✨ 谜题已解 · 点击回顾 ✨</span>
-            </span>
-            <span class="banner-ornament right">
-              <span class="ornament-glow"></span>
-            </span>
+            <span class="banner-ornament left"></span>
+            <span class="banner-text">谜题已解 · 点击回顾</span>
+            <span class="banner-ornament right"></span>
           </div>
         </div>
       </transition>
@@ -142,9 +132,7 @@ const handleToggle = () => {
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
-$magic-purple: #8a2be2;
-$magic-cyan: #00d4ff;
+@use "../_variables.scss" as *;
 
 .magic-accordion {
   width: 100%;
@@ -152,15 +140,15 @@ $magic-cyan: #00d4ff;
   transition: all 0.3s ease;
 }
 
-// 魔法光晕背景
+// 魔法光晕背景（收起态克制暖光）
 .magic-glow {
   position: absolute;
   top: -20vpx;
   left: 50%;
   transform: translateX(-50%);
-  width: 80%;
-  height: 60vpx;
-  background: radial-gradient(ellipse at center, rgba($magic-gold, 0) 0%, transparent 70%);
+  width: 70%;
+  height: 54vpx;
+  background: radial-gradient(ellipse at center, rgba($ember, 0) 0%, transparent 70%);
   opacity: 0;
   transition: opacity 0.6s ease;
   pointer-events: none;
@@ -168,20 +156,7 @@ $magic-cyan: #00d4ff;
 
   &.active {
     opacity: 1;
-    background: radial-gradient(ellipse at center, rgba($magic-gold, 0.2) 0%, transparent 70%);
-    animation: glowPulse 2s ease-in-out infinite;
-  }
-}
-
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.1);
+    background: radial-gradient(ellipse at center, rgba($ember, 0.1) 0%, transparent 70%);
   }
 }
 
@@ -216,154 +191,53 @@ $magic-cyan: #00d4ff;
       right: 0;
       top: 50%;
       transform: translateY(-50%) rotate(180deg);
-      opacity: 0.6;
+      opacity: 0.55;
       transition: all 0.3s ease;
 
       .arrow-icon {
-        color: rgba($magic-gold, 0.8);
+        color: rgba($ember, 0.8);
         transition: transform 0.3s ease;
       }
     }
 
     &:hover .expanded-icon {
-      opacity: 1;
-      .arrow-icon {
-        animation: arrowBounce 0.6s ease infinite;
-      }
+      opacity: 0.9;
     }
   }
 }
 
-@keyframes arrowBounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3vpx);
-  }
-}
-
+// 收起态：克制的单行标识（去掉粒子/shimmer/双 ornament-glow）
 .magic-success-banner {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12vpx;
   width: 100%;
-  padding: 16vpx 0;
+  padding: 14vpx 0;
   position: relative;
-  background: radial-gradient(circle at center, rgba($magic-gold, 0.12) 0%, transparent 70%);
-  border-top: 1vpx solid rgba($magic-gold, 0.15);
-  border-bottom: 1vpx solid rgba($magic-gold, 0.15);
-
-  // 魔法粒子容器
-  .magic-particles {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-
-    .particle {
-      position: absolute;
-      width: 4vpx;
-      height: 4vpx;
-      background: $magic-gold;
-      border-radius: 50%;
-      opacity: 0;
-      animation: particleFloat 3s ease-in-out infinite;
-      animation-delay: calc(var(--i) * 0.5s);
-
-      @for $i from 1 through 6 {
-        &:nth-child(#{$i}) {
-          left: calc(10% + #{$i * 14%});
-          top: 50%;
-        }
-      }
-    }
-  }
+  border-top: 1vpx solid rgba($ember, 0.12);
+  border-bottom: 1vpx solid rgba($ember, 0.12);
 
   .banner-text {
-    font-size: 14vpx;
-    color: $magic-gold;
-    font-weight: bold;
-    letter-spacing: 2vpx;
+    font-family: $font-display;
+    font-size: 12vpx;
+    color: $ember;
+    font-weight: 600;
+    letter-spacing: 3vpx;
+    text-transform: uppercase;
     position: relative;
     z-index: 1;
-
-    .text-shimmer {
-      background: linear-gradient(
-        90deg,
-        $magic-gold 0%,
-        #fff8dc 25%,
-        $magic-gold 50%,
-        #fff8dc 75%,
-        $magic-gold 100%
-      );
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: shimmer 3s linear infinite;
-      text-shadow: none;
-    }
   }
 
   .banner-ornament {
-    width: 30vpx;
-    height: 2vpx;
-    position: relative;
-    background: linear-gradient(90deg, transparent, $magic-gold, transparent);
+    height: 1vpx;
+    flex: 0 0 30vpx;
+    background: linear-gradient(90deg, transparent, rgba($ember, 0.45), transparent);
 
-    .ornament-glow {
-      position: absolute;
-      inset: -2vpx;
-      background: linear-gradient(90deg, transparent, rgba($magic-gold, 0.6), transparent);
-      filter: blur(3vpx);
-      animation: ornamentPulse 2s ease-in-out infinite;
-    }
-
-    &.left {
-      background: linear-gradient(90deg, transparent, $magic-gold);
-    }
-
+    &.left,
     &.right {
-      background: linear-gradient(90deg, $magic-gold, transparent);
+      background: linear-gradient(90deg, transparent, rgba($ember, 0.45), transparent);
     }
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes particleFloat {
-  0%,
-  100% {
-    opacity: 0;
-    transform: translateY(0) scale(0);
-  }
-  10% {
-    opacity: 0.8;
-    transform: translateY(0) scale(1);
-  }
-  90% {
-    opacity: 0.8;
-    transform: translateY(-20vpx) scale(0.5);
-  }
-}
-
-@keyframes ornamentPulse {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.8;
   }
 }
 
@@ -389,7 +263,6 @@ $magic-cyan: #00d4ff;
 // 内容区域样式
 .accordion-body {
   overflow: hidden;
-  // 使用更平滑的过渡曲线
   transition:
     max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -398,21 +271,19 @@ $magic-cyan: #00d4ff;
 }
 
 .body-inner {
-  // 关键：使用 box-sizing 确保内容宽度稳定
   box-sizing: border-box;
-  // 防止动画时内容重排
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-// 边缘光效
+// 边缘光效（展开瞬间的克制扫光）
 .edge-glow {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2vpx;
-  background: linear-gradient(90deg, transparent, rgba($magic-gold, 0.5), transparent);
+  height: 1vpx;
+  background: linear-gradient(90deg, transparent, rgba($ember, 0.4), transparent);
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
@@ -438,12 +309,13 @@ $magic-cyan: #00d4ff;
   }
 }
 
-// 收起状态的特殊样式
+// 收起状态的 hover
 .magic-accordion.is-collapsed {
   .accordion-header {
     &:hover {
       .magic-success-banner {
-        background: radial-gradient(circle at center, rgba($magic-gold, 0.18) 0%, transparent 70%);
+        border-top-color: rgba($ember, 0.2);
+        border-bottom-color: rgba($ember, 0.2);
       }
     }
   }
@@ -452,7 +324,6 @@ $magic-cyan: #00d4ff;
 // 动画进行中的样式
 .magic-accordion.is-animating {
   .body-inner {
-    // 动画期间锁定布局
     pointer-events: none;
   }
 }

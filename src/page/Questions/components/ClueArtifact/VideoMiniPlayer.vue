@@ -89,15 +89,15 @@ const handleEnded = () => {
 
 .video-mini-player {
   margin-top: 12vpx;
-  border-radius: 12vpx;
+  border-radius: $radius-md;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1vpx solid rgba($magic-purple, 0.3);
+  background: rgba(20, 17, 13, 0.4);
+  border: 1vpx solid rgba($amethyst, 0.3);
   transition: all 0.3s ease;
 
   &.player-active {
-    background: rgba(0, 0, 0, 0.8);
-    border-color: rgba($magic-purple, 0.5);
+    background: rgba(20, 17, 13, 0.8);
+    border-color: rgba($amethyst, 0.5);
   }
 }
 
@@ -115,13 +115,13 @@ const handleEnded = () => {
     align-items: center;
     justify-content: center;
     gap: 10vpx;
-    color: $magic-purple;
+    color: $amethyst;
     font-size: 14vpx;
     font-weight: 500;
     margin-bottom: 10vpx;
 
     .el-icon {
-      animation: pulse-icon 2s ease-in-out infinite;
+      animation: pulse-icon 2.4s ease-in-out infinite;
     }
   }
 
@@ -134,15 +134,15 @@ const handleEnded = () => {
     .deco-line {
       width: 40vpx;
       height: 1vpx;
-      background: linear-gradient(to right, transparent, rgba($magic-purple, 0.5), transparent);
+      background: linear-gradient(to right, transparent, rgba($amethyst, 0.5), transparent);
     }
 
     .deco-dot {
       width: 6vpx;
       height: 6vpx;
       border-radius: 50%;
-      background: $magic-purple;
-      animation: dot-pulse 1.5s ease-in-out infinite;
+      background: $amethyst;
+      animation: dot-pulse 1.8s ease-in-out infinite;
     }
   }
 }
@@ -151,7 +151,7 @@ const handleEnded = () => {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #000;
+  background: $ink-900;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 
@@ -163,18 +163,18 @@ const handleEnded = () => {
     width: 28vpx;
     height: 28vpx;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1vpx solid rgba(255, 255, 255, 0.2);
+    background: rgba(20, 17, 13, 0.6);
+    border: 1vpx solid rgba(236, 230, 216, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: $text;
     cursor: pointer;
     transition: all 0.3s ease;
 
     &:active {
       transform: scale(0.9);
-      background: rgba($magic-purple, 0.6);
+      background: rgba($amethyst, 0.6);
     }
   }
 
@@ -182,16 +182,16 @@ const handleEnded = () => {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background: #000;
-    // iOS 微信浏览器兼容
+    background: $ink-900;
     -webkit-object-fit: contain;
   }
 
+  // 单色 ember 边框
   .player-magic-border {
     position: absolute;
     inset: 0;
-    border: 2vpx solid transparent;
-    background: linear-gradient(135deg, rgba($magic-purple, 0.4), rgba($magic-gold, 0.3)) border-box;
+    border: 1.5vpx solid transparent;
+    background: linear-gradient(135deg, rgba($ember, 0.4), rgba($ember, 0.2)) border-box;
     -webkit-mask:
       linear-gradient(#fff 0 0) padding-box,
       linear-gradient(#fff 0 0);
@@ -201,10 +201,10 @@ const handleEnded = () => {
       linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
+    opacity: 0.7;
   }
 }
 
-// 动画
 @keyframes pulse-icon {
   0%,
   100% {
@@ -212,7 +212,7 @@ const handleEnded = () => {
     opacity: 1;
   }
   50% {
-    transform: scale(1.15);
+    transform: scale(1.12);
     opacity: 0.8;
   }
 }

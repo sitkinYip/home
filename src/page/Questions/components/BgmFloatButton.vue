@@ -188,7 +188,7 @@ onUnmounted(() => {
       transform: scale(1.08);
       box-shadow:
         0 8vpx 24vpx rgba(0, 0, 0, 0.3),
-        inset 0 1vpx 0 rgba(255, 255, 255, 0.15);
+        inset 0 1vpx 0 rgba(236, 230, 216, 0.15);
     }
   }
 
@@ -197,8 +197,8 @@ onUnmounted(() => {
     position: absolute;
     inset: -4vpx;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba($magic-gold, 0.1) 0%, transparent 70%);
-    opacity: 0.5;
+    background: radial-gradient(circle, rgba($ember, 0.1) 0%, transparent 70%);
+    opacity: 0.45;
     transition: opacity 0.3s ease;
   }
 
@@ -208,13 +208,13 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
+    background: $glass-bg;
     backdrop-filter: blur(12vpx);
     -webkit-backdrop-filter: blur(12vpx);
-    border: 1vpx solid rgba(255, 255, 255, 0.12);
+    border: 1vpx solid $glass-border;
     box-shadow:
       0 4vpx 16vpx rgba(0, 0, 0, 0.2),
-      inset 0 1vpx 0 rgba(255, 255, 255, 0.1);
+      inset 0 1vpx 0 rgba(236, 230, 216, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -224,8 +224,8 @@ onUnmounted(() => {
   // 音符图标
   .note-icon {
     font-size: 18vpx;
-    color: rgba($magic-gold, 0.6);
-    text-shadow: 0 0 8vpx rgba($magic-gold, 0.3);
+    color: rgba($ember, 0.65);
+    text-shadow: 0 0 8vpx rgba($ember, 0.3);
     transition: all 0.3s ease;
     z-index: 2;
   }
@@ -241,7 +241,7 @@ onUnmounted(() => {
     .wave {
       width: 2vpx;
       height: 8vpx;
-      background: rgba($magic-gold, 0.4);
+      background: rgba($ember, 0.45);
       border-radius: 2vpx;
       animation: wave-anim 0.8s ease-in-out infinite;
 
@@ -265,8 +265,8 @@ onUnmounted(() => {
     position: absolute;
     inset: -6vpx;
     border-radius: 50%;
-    border: 1vpx solid rgba($magic-gold, 0.3);
-    animation: pulse-glow 2.5s ease-in-out infinite;
+    border: 1vpx solid rgba($ember, 0.3);
+    animation: pulse-glow 2.8s ease-in-out infinite;
     pointer-events: none;
   }
 
@@ -274,17 +274,17 @@ onUnmounted(() => {
   &.playing {
     .outer-glow {
       opacity: 1;
-      background: radial-gradient(circle, rgba($magic-gold, 0.2) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba($ember, 0.2) 0%, transparent 70%);
     }
 
     .btn-body {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba($magic-gold, 0.2);
+      background: $glass-bg-strong;
+      border-color: rgba($ember, 0.25);
     }
 
     .note-icon {
-      color: rgba($magic-gold, 0.9);
-      text-shadow: 0 0 12vpx rgba($magic-gold, 0.5);
+      color: rgba($ember, 0.9);
+      text-shadow: 0 0 12vpx rgba($ember, 0.5);
       opacity: 0;
     }
   }

@@ -53,13 +53,13 @@ const contactAdmin = () => {
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
+@use "../_variables.scss" as *;
 
 .lost-container {
   position: fixed;
   inset: 0;
   z-index: 10006;
-  background: radial-gradient(circle at center, #1a0f2e 0%, #050208 100%);
+  background: radial-gradient(circle at center, $ink-700 0%, $ink-900 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,28 +86,29 @@ $magic-gold: #ffd700;
   .compass-ring {
     position: absolute;
     inset: 0;
-    border: 2vpx dashed rgba($magic-gold, 0.3);
+    border: 1.5vpx dashed rgba($ember, 0.3);
     border-radius: 50%;
     animation: rotate 15s linear infinite;
   }
 
   .lost-icon {
     font-size: 60vpx;
-    color: rgba($magic-gold, 0.5);
-    filter: drop-shadow(0 0 15vpx rgba($magic-gold, 0.3));
+    color: rgba($ember, 0.5);
+    filter: drop-shadow(0 0 15vpx rgba($ember, 0.25));
   }
 }
 
 .lost-title {
-  color: $magic-gold;
+  font-family: $font-display;
+  color: $ember;
   font-size: 24vpx;
   letter-spacing: 4vpx;
   margin-bottom: 20vpx;
-  text-shadow: 0 0 10vpx rgba($magic-gold, 0.4);
+  text-shadow: 0 0 10vpx rgba($ember, 0.35);
 }
 
 .lost-desc {
-  color: rgba(255, 255, 255, 0.6);
+  color: $text-mute;
   font-size: 15vpx;
   line-height: 1.8;
   margin-bottom: 40vpx;
@@ -122,26 +123,26 @@ $magic-gold: #ffd700;
   .magic-btn {
     background: transparent;
     padding: 12vpx 40vpx;
-    border-radius: 30vpx;
+    border-radius: $radius-pill;
     font-size: 15vpx;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     width: 220vpx;
 
     &.primary {
-      border: 1.5vpx solid $magic-gold;
-      color: $magic-gold;
-      box-shadow: 0 0 15vpx rgba($magic-gold, 0.2);
+      border: 1.5vpx solid $ember;
+      color: $ember;
+      box-shadow: 0 0 15vpx rgba($ember, 0.16);
       &:active {
         transform: scale(0.95);
-        background: rgba($magic-gold, 0.1);
+        background: $ember-soft;
       }
     }
 
     &.secondary {
-      border: 1vpx solid rgba(255, 255, 255, 0.3);
-      color: rgba(255, 255, 255, 0.5);
+      border: 1vpx solid $glass-border;
+      color: $text-faint;
       font-size: 13vpx;
       &:active {
         opacity: 0.7;
@@ -153,9 +154,9 @@ $magic-gold: #ffd700;
 .void-dust {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(white, transparent 2vpx);
+  background-image: radial-gradient(rgba(236, 230, 216, 0.6), transparent 2vpx);
   background-size: 50vpx 50vpx;
-  opacity: 0.1;
+  opacity: 0.08;
   animation: dust-move 20s linear infinite;
 }
 

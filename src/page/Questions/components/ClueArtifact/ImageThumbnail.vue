@@ -66,17 +66,16 @@ const handlePreview = () => {
   position: relative;
   width: 100%;
   height: 160vpx;
-  border-radius: 12vpx;
+  border-radius: $radius-md;
   overflow: hidden;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(20, 17, 13, 0.4);
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 
   .thumbnail-img {
     width: 100%;
     height: 100%;
-    // iOS 微信浏览器兼容
     object-fit: cover;
     -webkit-object-fit: cover;
   }
@@ -90,24 +89,24 @@ const handlePreview = () => {
     align-items: center;
     justify-content: center;
     gap: 8vpx;
-    color: rgba(255, 255, 255, 0.5);
+    color: $text-faint;
     font-size: 12vpx;
 
     .loading-icon {
-      animation: pulse 1.5s ease-in-out infinite;
+      animation: pulse 1.8s ease-in-out infinite;
     }
   }
 
   .thumbnail-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(20, 17, 13, 0.45);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8vpx;
-    color: #fff;
+    color: $text;
     opacity: 0;
     transition: opacity 0.3s ease;
 
@@ -121,13 +120,13 @@ const handlePreview = () => {
     opacity: 1;
   }
 
-  // 魔法边框
+  // 魔法边框：单色 ember（去掉绿+金双色渐变）
   .magic-border {
     position: absolute;
     inset: 0;
-    border: 2vpx solid transparent;
-    border-radius: 12vpx;
-    background: linear-gradient(135deg, rgba($magic-green, 0.3), rgba($magic-gold, 0.3)) border-box;
+    border: 1.5vpx solid transparent;
+    border-radius: $radius-md;
+    background: linear-gradient(135deg, rgba($ember, 0.4), rgba($ember, 0.2)) border-box;
     -webkit-mask:
       linear-gradient(#fff 0 0) padding-box,
       linear-gradient(#fff 0 0);
@@ -137,7 +136,7 @@ const handlePreview = () => {
       linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
-    animation: border-glow 3s ease-in-out infinite alternate;
+    opacity: 0.7;
   }
 }
 
@@ -150,15 +149,6 @@ const handlePreview = () => {
   50% {
     opacity: 1;
     transform: scale(1.1);
-  }
-}
-
-@keyframes border-glow {
-  from {
-    opacity: 0.5;
-  }
-  to {
-    opacity: 1;
   }
 }
 </style>

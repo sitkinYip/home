@@ -98,21 +98,21 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8vpx;
   padding: 10vpx 20vpx;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(20, 17, 13, 0.6);
   backdrop-filter: blur(16vpx);
   -webkit-backdrop-filter: blur(16vpx);
-  border: 1vpx solid rgba($magic-gold, 0.3);
-  border-radius: 24vpx;
+  border: 1vpx solid rgba($ember, 0.3);
+  border-radius: $radius-pill;
   box-shadow:
     0 4vpx 20vpx rgba(0, 0, 0, 0.4),
-    0 0 12vpx rgba($magic-gold, 0.1);
+    0 0 12vpx rgba($ember, 0.08);
   white-space: nowrap;
 }
 
 .hint-text {
   font-size: 13vpx;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: $text;
   letter-spacing: 0.5vpx;
 }
 
@@ -126,9 +126,9 @@ onBeforeUnmount(() => {
   display: inline-block;
   font-size: 16vpx;
   font-weight: bold;
-  color: $magic-gold;
+  color: $ember;
   opacity: 0.3;
-  animation: arrow-pulse 1.2s ease-in-out infinite;
+  animation: arrow-pulse 1.4s ease-in-out infinite;
 
   &:nth-child(1) {
     animation-delay: 0.3s;
@@ -144,9 +144,9 @@ onBeforeUnmount(() => {
 .hint-glow {
   position: absolute;
   inset: -2vpx;
-  border-radius: 26vpx;
-  background: linear-gradient(90deg, transparent, rgba($magic-gold, 0.15), transparent);
-  animation: glow-sweep 3s ease-in-out infinite;
+  border-radius: 28vpx;
+  background: linear-gradient(90deg, transparent, rgba($ember, 0.12), transparent);
+  animation: glow-sweep 4s ease-in-out infinite;
   pointer-events: none;
   z-index: -1;
 }

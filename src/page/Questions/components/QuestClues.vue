@@ -8,7 +8,7 @@
 
         <!-- 魔法粒子效果 -->
         <div class="magic-particles">
-          <span v-for="n in 25" :key="n" class="particle" :style="getParticleStyle(n)"></span>
+          <span v-for="n in 8" :key="n" class="particle" :style="getParticleStyle(n)"></span>
         </div>
 
         <!-- 全屏内容容器 -->
@@ -28,7 +28,6 @@
               </div>
               <div class="toggle-orbits">
                 <span class="orbit orbit-1"></span>
-                <span class="orbit orbit-2"></span>
               </div>
             </div>
           </div>
@@ -415,11 +414,11 @@ onBeforeUnmount(() => {
  * 生成粒子随机样式
  */
 const getParticleStyle = (_index: number) => {
-  const size = 2 + Math.random() * 4;
+  const size = 2 + Math.random() * 3;
   const left = Math.random() * 100;
   const delay = Math.random() * 3;
   const duration = 4 + Math.random() * 4;
-  const hue = 30 + Math.random() * 40; // 金色到橙色
+  const hue = 32 + Math.random() * 18; // 收窄到琥珀色温
 
   return {
     width: `${size}px`,
@@ -427,7 +426,7 @@ const getParticleStyle = (_index: number) => {
     left: `${left}%`,
     animationDelay: `${delay}s`,
     animationDuration: `${duration}s`,
-    backgroundColor: `hsl(${hue}, 85%, 55%)`,
+    backgroundColor: `hsl(${hue}, 60%, 55%)`,
   };
 };
 </script>
@@ -486,18 +485,18 @@ const getParticleStyle = (_index: number) => {
   // 初始状态为透明，由 GSAP 控制淡入
   opacity: 0;
 
-  // 全屏背景遮罩
+  // 全屏背景遮罩（暖调，去掉紫色光晕）
   .fullscreen-backdrop {
     position: absolute;
     inset: 0;
     z-index: -1;
     background: radial-gradient(
       ellipse at center,
-      rgba($magic-green, 0.08) 0%,
-      rgba(10, 14, 20, 0.98) 70%
+      rgba($jade, 0.06) 0%,
+      rgba(20, 17, 13, 0.98) 70%
     );
 
-    // 梦幻光晕
+    // 暖色光晕（单一色调）
     &::before {
       content: "";
       position: absolute;
@@ -505,7 +504,7 @@ const getParticleStyle = (_index: number) => {
       left: 10%;
       width: 300vpx;
       height: 300vpx;
-      background: radial-gradient(circle, rgba($magic-gold, 0.12) 0%, transparent 60%);
+      background: radial-gradient(circle, rgba($ember, 0.1) 0%, transparent 60%);
       animation: glow-float 8s ease-in-out infinite alternate;
     }
 
@@ -516,7 +515,7 @@ const getParticleStyle = (_index: number) => {
       right: 10%;
       width: 250vpx;
       height: 250vpx;
-      background: radial-gradient(circle, rgba($magic-purple, 0.1) 0%, transparent 60%);
+      background: radial-gradient(circle, rgba($ember, 0.07) 0%, transparent 60%);
       animation: glow-float 10s ease-in-out infinite alternate-reverse;
     }
   }
@@ -553,10 +552,9 @@ const getParticleStyle = (_index: number) => {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    background: rgba(10, 14, 20, 0.98);
+    background: rgba(20, 17, 13, 0.98);
     backdrop-filter: blur(30vpx) saturate(1.3);
     -webkit-backdrop-filter: blur(30vpx) saturate(1.3);
-    // 初始状态由 GSAP 设置
     transform-origin: center bottom;
 
     // 多题模式适配：占满整个容器
@@ -570,13 +568,13 @@ const getParticleStyle = (_index: number) => {
       top: 0;
       z-index: 10;
       padding: 16vpx 24vpx;
-      background: rgba(10, 14, 20, 0.95);
+      background: rgba(20, 17, 13, 0.95);
       backdrop-filter: blur(20vpx);
       -webkit-backdrop-filter: blur(20vpx);
-      border-bottom: 1vpx solid rgba($magic-green, 0.3);
+      border-bottom: 1vpx solid rgba($jade, 0.3);
       flex-shrink: 0;
 
-      // 全屏切换按钮
+      // 全屏切换按钮（统一为 ember 琥珀色）
       .fullscreen-toggle {
         position: absolute;
         right: 16vpx;
@@ -590,20 +588,20 @@ const getParticleStyle = (_index: number) => {
             rgba(139, 90, 43, 0.95) 50%,
             rgba(100, 60, 20, 0.9) 100%
           );
-          border-color: rgba($magic-gold, 0.6);
+          border-color: rgba($ember, 0.6);
           box-shadow:
-            0 0 12vpx rgba($magic-gold, 0.4),
-            0 0 24vpx rgba($magic-gold, 0.2),
+            0 0 12vpx rgba($ember, 0.4),
+            0 0 24vpx rgba($ember, 0.2),
             inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
             inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
         }
 
         .crystal-glow {
-          background: radial-gradient(circle, rgba($magic-gold, 0.3) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba($ember, 0.3) 0%, transparent 70%);
         }
 
         .orbit {
-          border-top-color: rgba($magic-gold, 0.4) !important;
+          border-top-color: rgba($ember, 0.4) !important;
         }
       }
     }
@@ -614,7 +612,6 @@ const getParticleStyle = (_index: number) => {
       overflow-x: hidden;
       padding: 8vpx 24vpx 24vpx;
 
-      // 自定义滚动条 - 更细且半透明
       &::-webkit-scrollbar {
         width: 4vpx;
       }
@@ -622,10 +619,10 @@ const getParticleStyle = (_index: number) => {
         background: transparent;
       }
       &::-webkit-scrollbar-thumb {
-        background: rgba($magic-green, 0.3);
+        background: rgba($jade, 0.3);
         border-radius: 2vpx;
         &:hover {
-          background: rgba($magic-green, 0.5);
+          background: rgba($jade, 0.5);
         }
       }
     }
@@ -636,13 +633,11 @@ const getParticleStyle = (_index: number) => {
 .clue-card {
   padding: 20vpx;
   margin-bottom: 12vpx;
-  border: 1vpx solid rgba($magic-green, 0.4);
-  // iOS 微信浏览器兼容
+  border: 1vpx solid rgba($jade, 0.4);
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 
   &.fullscreen-mode {
-    // 全屏模式下确保内容可以正常展开
     overflow: visible;
     position: relative;
     z-index: 100;
@@ -651,7 +646,7 @@ const getParticleStyle = (_index: number) => {
   .clue-header {
     position: relative;
     text-align: center;
-    color: $magic-green;
+    color: $jade;
     font-weight: bold;
     margin-bottom: 12vpx;
     font-size: 14vpx;
@@ -664,7 +659,7 @@ const getParticleStyle = (_index: number) => {
   .header-ornament {
     flex: 1;
     height: 1vpx;
-    background: linear-gradient(to right, transparent, rgba($magic-green, 0.4), transparent);
+    background: linear-gradient(to right, transparent, rgba($jade, 0.4), transparent);
   }
 
   .clue-text {
@@ -710,15 +705,15 @@ const getParticleStyle = (_index: number) => {
       height: 100%;
       background: linear-gradient(
         135deg,
-        rgba($magic-green, 0.8) 0%,
-        rgba(darken($magic-green, 15%), 0.9) 50%,
-        rgba(darken($magic-green, 25%), 0.85) 100%
+        rgba($jade, 0.85) 0%,
+        rgba(darken($jade, 18%), 0.92) 50%,
+        rgba(darken($jade, 28%), 0.85) 100%
       );
       border-radius: 50%;
-      border: 1.5vpx solid rgba($magic-green, 0.6);
+      border: 1.5vpx solid rgba($jade, 0.6);
       box-shadow:
-        0 0 12vpx rgba($magic-green, 0.4),
-        0 0 24vpx rgba($magic-green, 0.2),
+        0 0 12vpx rgba($jade, 0.4),
+        0 0 24vpx rgba($jade, 0.2),
         inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
         inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
       display: flex;
@@ -732,19 +727,20 @@ const getParticleStyle = (_index: number) => {
         font-weight: 300;
         text-shadow:
           0 0 6px rgba(255, 255, 255, 0.8),
-          0 0 12px rgba($magic-green, 0.6);
+          0 0 12px rgba($jade, 0.6);
       }
     }
 
     .crystal-glow {
       position: absolute;
       inset: -6vpx;
-      background: radial-gradient(circle, rgba($magic-green, 0.25) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba($jade, 0.22) 0%, transparent 70%);
       border-radius: 50%;
       animation: crystal-pulse 2s ease-in-out infinite alternate;
     }
   }
 
+  // 单轨道（去掉 orbit-2）
   .toggle-orbits {
     position: absolute;
     inset: -4vpx;
@@ -754,19 +750,12 @@ const getParticleStyle = (_index: number) => {
       position: absolute;
       inset: 0;
       border: 1vpx solid transparent;
-      border-top-color: rgba($magic-green, 0.4);
+      border-top-color: rgba($jade, 0.4);
       border-radius: 50%;
       animation: orbit-rotate 3s linear infinite;
 
       &.orbit-1 {
-        animation-duration: 2.5s;
-      }
-
-      &.orbit-2 {
-        inset: -3vpx;
-        border-top-color: rgba($magic-green, 0.25);
-        animation-duration: 3.5s;
-        animation-direction: reverse;
+        animation-duration: 3s;
       }
     }
   }
@@ -775,8 +764,8 @@ const getParticleStyle = (_index: number) => {
     .toggle-crystal .crystal-inner {
       transform: scale(0.9);
       box-shadow:
-        0 0 18vpx rgba($magic-green, 0.6),
-        0 0 36vpx rgba($magic-green, 0.3),
+        0 0 18vpx rgba($jade, 0.55),
+        0 0 36vpx rgba($jade, 0.28),
         inset 0 1vpx 3vpx rgba(255, 255, 255, 0.3),
         inset 0 -1vpx 3vpx rgba(0, 0, 0, 0.2);
     }

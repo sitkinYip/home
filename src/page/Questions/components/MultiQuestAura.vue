@@ -98,7 +98,7 @@ const handleClose = () => {
 const triggerConfetti = () => {
   if (!myConfetti) return;
   const end = Date.now() + 5 * 1000;
-  const colors = ["#ffd700", "#00d2ff", "#8a2be2"];
+  const colors = ["#d9a441", "#ece6d8", "#5fae7f"];
 
   (function frame() {
     if (!visible.value || !myConfetti) return;
@@ -133,8 +133,8 @@ defineExpose({ startEffect });
 .multi-aura-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10020; // 高于 VideoPlayer(10010) 和 Vant ImagePreview，确保全屏特效不被媒体层遮挡
-  background: radial-gradient(circle at center, rgba(15, 20, 35, 0.95) 0%, rgba(0, 0, 0, 1) 100%);
+  z-index: $z-top; // 高于 VideoPlayer(10010) 和 Vant ImagePreview，确保全屏特效不被媒体层遮挡
+  background: radial-gradient(circle at center, rgba(28, 24, 19, 0.95) 0%, $ink-900 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -155,34 +155,33 @@ defineExpose({ startEffect });
   background: conic-gradient(
     from 0deg at 50% 50%,
     transparent 0deg,
-    rgba($magic-purple, 0.15) 120deg,
+    rgba(217, 164, 65, 0.1) 120deg,
     transparent 180deg,
-    rgba($magic-gold, 0.15) 300deg,
+    rgba(217, 164, 65, 0.08) 300deg,
     transparent 360deg
   );
-  animation: rotateLight 20s linear infinite;
+  animation: rotateLight 22s linear infinite;
   mix-blend-mode: screen;
 }
 
 .geom-container {
   position: relative;
-  width: 240vpx; // 缩小尺寸 300 -> 240
+  width: 240vpx;
   height: 240vpx;
   display: flex;
   align-items: center;
   justify-content: center;
   perspective: 1000px;
-  margin: 0 40vpx; // 增加两侧留白
+  margin: 0 40vpx;
 
   .geom-layer {
     position: absolute;
     width: 100%;
     height: 100%;
-    border: 2vpx solid transparent;
-    border-image: linear-gradient(45deg, $magic-gold, $magic-purple) 1;
+    border: 2vpx solid rgba(217, 164, 65, 0.5);
     box-shadow:
-      inset 0 0 20vpx rgba($magic-purple, 0.3),
-      0 0 20vpx rgba($magic-gold, 0.3);
+      inset 0 0 20vpx rgba(217, 164, 65, 0.18),
+      0 0 20vpx rgba(217, 164, 65, 0.22);
 
     &.outer-diamond {
       transform: rotateZ(45deg);
@@ -193,7 +192,7 @@ defineExpose({ startEffect });
       width: 70%;
       height: 70%;
       border-radius: 50%;
-      border: 2vpx dashed $magic-cyan;
+      border: 2vpx dashed rgba(236, 230, 216, 0.28);
       animation: rotateCW 15s linear infinite;
     }
   }
@@ -201,10 +200,10 @@ defineExpose({ startEffect });
   .core-glow {
     width: 30%;
     height: 30%;
-    background: radial-gradient(circle, #fff 0%, $magic-purple 50%, transparent 100%);
+    background: radial-gradient(circle, $ember-bright 0%, $ember 50%, transparent 100%);
     filter: blur(15vpx);
     border-radius: 50%;
-    animation: breathe 1.5s infinite;
+    animation: breathe 1.6s infinite;
   }
 }
 
@@ -212,36 +211,35 @@ defineExpose({ startEffect });
   position: relative;
   z-index: 10;
   text-align: center;
-  margin-top: 40vpx; // 减小上边距
-  padding: 0 20vpx; // 增加文字区域两侧留白
+  margin-top: 40vpx;
+  padding: 0 20vpx;
   width: 100%;
   box-sizing: border-box;
 
   .victory-title {
-    font-size: 26vpx; // 缩小主标题字体大小 32 -> 26
-    font-weight: 900;
-    color: #fff;
-    background: linear-gradient(90deg, #fff, $magic-cyan, $magic-purple);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10vpx rgba($magic-cyan, 0.8));
-    letter-spacing: 1vpx;
+    font-family: $font-display;
+    font-size: 26vpx;
+    font-weight: 700;
+    color: $text;
+    letter-spacing: 2vpx;
     margin: 0;
+    filter: drop-shadow(0 2vpx 10vpx rgba(217, 164, 65, 0.4));
   }
 
   .victory-subtitle {
-    font-size: 13vpx; // 缩小副标题字体大小 14 -> 13
-    color: rgba(255, 255, 255, 0.85);
-    letter-spacing: 2vpx; // 减小字间距
+    font-size: 13vpx;
+    color: $text-mute;
+    letter-spacing: 2vpx;
     margin-top: 12vpx;
   }
 
   .action-hint {
     margin-top: 40vpx;
-    font-size: 13vpx;
-    color: $magic-gold;
-    opacity: 0.6;
-    animation: breathe 2s infinite;
+    font-family: $font-display;
+    font-size: 12vpx;
+    color: $ember;
+    opacity: 0.55;
+    animation: breathe 2.4s infinite;
     text-transform: uppercase;
     letter-spacing: 2vpx;
   }

@@ -146,22 +146,18 @@ const handleClick = (e: MouseEvent) => {
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
-$magic-rose: #ff9a9e;
-$magic-lavender: #fad0c4;
-$magic-cyan: #00f2ff;
+@use "../../_variables.scss" as *;
 
 .magic-artifact {
   position: relative;
   width: 100%;
   margin-bottom: 10vpx;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1vpx solid rgba(255, 255, 255, 0.1);
-  border-radius: 12vpx;
+  background: $glass-bg;
+  border: 1vpx solid $glass-border;
+  border-radius: $radius-md;
   overflow: hidden;
   backdrop-filter: blur(10vpx);
   -webkit-backdrop-filter: blur(10vpx);
-  // iOS 微信浏览器兼容
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 
@@ -178,38 +174,37 @@ $magic-cyan: #00f2ff;
     position: relative;
     width: 36vpx;
     height: 36vpx;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8vpx;
+    background: rgba(20, 17, 13, 0.5);
+    border-radius: $radius-sm;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 
     &.seal-icon {
-      background: linear-gradient(135deg, $magic-rose 0%, $magic-lavender 100%);
-      border: 1.5vpx solid #fff;
+      background: linear-gradient(135deg, $magic-rose 0%, rgba(201, 138, 141, 0.5) 100%);
+      border: 1.5vpx solid rgba(255, 255, 255, 0.5);
       color: #fff;
       border-radius: 50%;
-      box-shadow: 0 0 15vpx rgba($magic-rose, 0.5);
+      box-shadow: 0 0 12vpx rgba($magic-rose, 0.35);
       .heartbeat-icon {
-        animation: heartbeat 2s infinite;
+        animation: heartbeat 2.4s infinite;
       }
     }
 
     &.portal-icon {
-      background: radial-gradient(circle, $magic-cyan 0%, #003366 100%);
-      border: 1vpx solid $magic-cyan;
+      background: radial-gradient(circle, $cyan-deep 0%, #1a3a4a 100%);
+      border: 1vpx solid rgba($cyan-deep, 0.7);
       color: #fff;
-      animation: portal-breathe 2s infinite;
     }
   }
 
   .sacred-halo {
     position: absolute;
     inset: -8vpx;
-    background: radial-gradient(circle, rgba($magic-rose, 0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba($magic-rose, 0.22) 0%, transparent 70%);
     border-radius: 50%;
-    animation: halo-pulse 3s infinite ease-in-out;
+    animation: halo-pulse 3.5s infinite ease-in-out;
     z-index: -1;
   }
 
@@ -218,24 +213,26 @@ $magic-cyan: #00f2ff;
     overflow: hidden;
 
     .letter-label {
-      color: #ffb1b1;
-      font-weight: bold;
-      text-shadow: 0 0 5vpx rgba($magic-rose, 0.5);
+      color: $magic-rose;
+      font-weight: 700;
+      text-shadow: 0 0 5vpx rgba($magic-rose, 0.4);
     }
     .topic-label {
-      color: $magic-cyan;
-      font-weight: bold;
+      color: $cyan-deep;
+      font-weight: 700;
     }
 
     .artifact-label {
+      font-family: $font-display;
       font-size: 11vpx;
-      color: rgba(255, 255, 255, 0.6);
+      color: $text-mute;
       margin-bottom: 2vpx;
+      letter-spacing: 1vpx;
     }
 
     .artifact-content {
       font-size: 13vpx;
-      color: #eeeeee;
+      color: $text;
       line-height: 1.6;
       white-space: pre-wrap;
       display: -webkit-box;
@@ -245,13 +242,13 @@ $magic-cyan: #00f2ff;
       overflow: hidden;
 
       .magic-highlight {
-        color: $magic-gold;
-        font-weight: bold;
-        text-shadow: 0 0 8vpx rgba(255, 215, 0, 0.8);
+        color: $ember;
+        font-weight: 700;
+        text-shadow: 0 0 8vpx rgba($ember, 0.5);
       }
 
       .magic-link {
-        color: #7dd3fc;
+        color: $cyan-deep;
         text-decoration: underline;
         text-decoration-style: dashed;
       }
@@ -259,13 +256,14 @@ $magic-cyan: #00f2ff;
   }
 
   .artifact-arrow {
-    color: rgba(255, 255, 255, 0.2);
+    color: $text-ghost;
   }
 
+  // letter/topic：保留单一边缘流光（去掉 portal-breathe 永续缩放）
   &.letter,
   &.topic {
     .artifact-arrow {
-      animation: arrow-bounce 1s infinite alternate;
+      animation: arrow-bounce 1.4s infinite alternate;
     }
     .divine-border {
       position: absolute;
@@ -278,36 +276,36 @@ $magic-cyan: #00f2ff;
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-        animation: move-border 4s linear infinite;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: move-border 5s linear infinite;
       }
     }
   }
 
   &.letter {
-    background: rgba($magic-rose, 0.05);
+    background: rgba($magic-rose, 0.06);
     .artifact-arrow {
       color: $magic-rose;
     }
   }
 
   &.topic {
-    background: rgba($magic-cyan, 0.08);
-    border-left: 3vpx solid $magic-cyan;
+    background: rgba($cyan-deep, 0.08);
+    border-left: 3vpx solid $cyan-deep;
   }
 
-  // 基础边框
+  // 类型边框（统一到 token 色）
   &.url {
-    border-left: 3vpx solid #00d2ff;
+    border-left: 3vpx solid $cyan-deep;
   }
   &.img {
-    border-left: 3vpx solid #2ecc71;
+    border-left: 3vpx solid $jade;
   }
   &.video {
-    border-left: 3vpx solid #8a2be2;
+    border-left: 3vpx solid $amethyst;
   }
   &.text {
-    border-left: 3vpx solid #e67e22;
+    border-left: 3vpx solid $ember;
   }
 }
 
@@ -317,13 +315,13 @@ $magic-cyan: #00f2ff;
     transform: scale(1);
   }
   10% {
-    transform: scale(1.15);
+    transform: scale(1.12);
   }
   20% {
     transform: scale(1);
   }
   30% {
-    transform: scale(1.15);
+    transform: scale(1.12);
   }
   40% {
     transform: scale(1);
@@ -334,23 +332,11 @@ $magic-cyan: #00f2ff;
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.3;
+    opacity: 0.25;
   }
   50% {
-    transform: scale(1.2);
-    opacity: 0.5;
-  }
-}
-
-@keyframes portal-breathe {
-  0%,
-  100% {
-    box-shadow: 0 0 5vpx $magic-cyan;
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 15vpx $magic-cyan;
-    transform: scale(1.05);
+    transform: scale(1.18);
+    opacity: 0.45;
   }
 }
 
@@ -372,26 +358,16 @@ $magic-cyan: #00f2ff;
   }
 }
 
+// 去掉永续扫光（仅 hover 时一次，移动端无 hover 自然不出现）
 .artifact-flare {
   position: absolute;
   top: 0;
   left: -100%;
   width: 60%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  background: linear-gradient(90deg, transparent, rgba(236, 230, 216, 0.05), transparent);
   transform: skewX(-25deg);
-  animation: sweep 6s infinite ease-in-out;
-}
-
-@keyframes sweep {
-  0% {
-    left: -100%;
-  }
-  30% {
-    left: 150%;
-  }
-  100% {
-    left: 150%;
-  }
+  pointer-events: none;
+  opacity: 0;
 }
 </style>

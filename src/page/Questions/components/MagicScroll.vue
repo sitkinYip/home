@@ -220,8 +220,8 @@ defineExpose({ show });
   position: fixed;
   inset: 0;
   z-index: 99;
-  // 透明背景，带有轻微的魔法紫色调
-  background: rgba(20, 15, 35, 0.65);
+  // 暖调背景（去掉紫色调）
+  background: rgba(20, 17, 13, 0.7);
   backdrop-filter: blur(16vpx) saturate(1.2);
   -webkit-backdrop-filter: blur(16vpx) saturate(1.2);
   display: flex;

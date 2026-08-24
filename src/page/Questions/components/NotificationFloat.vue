@@ -260,15 +260,15 @@ onUnmounted(() => {
   .ball-inner {
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.15);
+    background: $glass-bg;
     backdrop-filter: blur(10vpx);
     -webkit-backdrop-filter: blur(10vpx);
-    border: 1vpx solid rgba(255, 255, 255, 0.2);
+    border: 1vpx solid $glass-border;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: $text;
     transition: all 0.3s;
     box-shadow: 0 4vpx 15vpx rgba(0, 0, 0, 0.3);
 
@@ -279,9 +279,9 @@ onUnmounted(() => {
 
   &.has-unread {
     .ball-inner {
-      border-color: rgba($magic-gold, 0.5);
-      box-shadow: 0 0 15vpx rgba($magic-gold, 0.3);
-      color: $magic-gold;
+      border-color: rgba($ember, 0.5);
+      box-shadow: 0 0 15vpx rgba($ember, 0.3);
+      color: $ember;
     }
   }
 }
@@ -292,23 +292,25 @@ onUnmounted(() => {
   right: -2vpx;
   min-width: 16vpx;
   height: 16vpx;
-  background: $magic-red;
+  background: $rust;
   border-radius: 8vpx;
+  font-family: $font-num;
+  font-variant-numeric: tabular-nums;
   font-size: 10vpx;
-  font-weight: bold;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 4vpx;
-  color: #fff;
-  border: 1.5vpx solid #1a1a1a;
+  color: $text;
+  border: 1.5vpx solid $ink-900;
   box-shadow: 0 2vpx 4vpx rgba(0, 0, 0, 0.5);
 }
 
 .ball-halo {
   position: absolute;
   inset: -4vpx;
-  border: 1vpx solid rgba($magic-gold, 0.3);
+  border: 1vpx solid rgba($ember, 0.3);
   border-radius: 50%;
   animation: rotateCW 10s linear infinite;
   pointer-events: none;
@@ -322,13 +324,13 @@ onUnmounted(() => {
   .wave {
     position: absolute;
     inset: 0;
-    border: 1vpx solid $magic-gold;
+    border: 1vpx solid $ember;
     border-radius: 50%;
     opacity: 0;
-    animation: ball-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    animation: ball-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
 
     &.wave-2 {
-      animation-delay: 1s;
+      animation-delay: 1.2s;
     }
   }
 }
@@ -341,7 +343,7 @@ onUnmounted(() => {
   }
   0% {
     transform: scale(1);
-    opacity: 0.5;
+    opacity: 0.45;
   }
 }
 
@@ -354,15 +356,15 @@ onUnmounted(() => {
   }
 }
 
-// 列表面板
+// 列表面板（暖系底）
 .notif-list-panel {
   position: absolute;
   bottom: 60vpx;
   left: 0;
   width: 200vpx;
   padding: 16vpx !important;
-  background: rgba(20, 10, 30, 0.9) !important;
-  border: 1vpx solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(39, 31, 23, 0.92) !important;
+  border: 1vpx solid $glass-border !important;
   transform-origin: bottom left;
   z-index: 5;
 
@@ -371,14 +373,15 @@ onUnmounted(() => {
     align-items: center;
     gap: 8vpx;
     margin-bottom: 12vpx;
-    border-bottom: 1vpx solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1vpx solid rgba(236, 230, 216, 0.1);
     padding-bottom: 8vpx;
 
     .header-text {
-      font-size: 13vpx;
-      font-weight: bold;
-      color: $magic-gold;
-      letter-spacing: 1vpx;
+      font-family: $font-display;
+      font-size: 12vpx;
+      font-weight: 700;
+      color: $ember;
+      letter-spacing: 1.5vpx;
     }
   }
 
@@ -386,7 +389,6 @@ onUnmounted(() => {
     max-height: 240vpx;
     overflow-y: auto;
 
-    /* 彻底隐藏滚动条 */
     scrollbar-width: none;
     -ms-overflow-style: none;
     &::-webkit-scrollbar {
@@ -400,7 +402,7 @@ onUnmounted(() => {
     gap: 8vpx;
     padding: 10vpx 0;
     cursor: pointer;
-    border-bottom: 1vpx dashed rgba(255, 255, 255, 0.05);
+    border-bottom: 1vpx dashed rgba(236, 230, 216, 0.06);
     transition: all 0.2s;
 
     &:last-child {
@@ -412,20 +414,20 @@ onUnmounted(() => {
     }
 
     .item-bullet {
-      color: $magic-gold;
+      color: $ember;
       font-size: 10vpx;
       opacity: 0.6;
     }
     .item-title {
       flex: 1;
       font-size: 13vpx;
-      color: rgba(255, 255, 255, 0.85);
+      color: $text;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .item-arrow {
-      color: rgba(255, 255, 255, 0.3);
+      color: $text-ghost;
       font-size: 16vpx;
     }
   }

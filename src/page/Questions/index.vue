@@ -693,28 +693,23 @@ onMounted(() => {
 .multi-quest-container {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   position: relative;
   overflow: hidden;
-  color: #fff;
-  background: #0a0e14;
+  color: $text;
+  background: $ink-900;
 
+  // 单一暖光晕（去掉金紫双色 screen-blend）
   &::after {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: radial-gradient(
-        circle at 20% 30%,
-        rgba(255, 215, 0, 0.15) 0%,
-        transparent 15%
-      ),
-      radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.15) 0%, transparent 20%),
-      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 25%);
+    background-image:
+      radial-gradient(circle at 22% 18%, rgba(217, 164, 65, 0.12) 0%, transparent 38%),
+      radial-gradient(circle at 82% 88%, rgba(217, 164, 65, 0.06) 0%, transparent 42%);
     pointer-events: none;
     z-index: 2;
-    mix-blend-mode: screen;
-    -webkit-mix-blend-mode: screen;
-    animation: ambient-float 15s ease-in-out infinite;
-    filter: blur(2vpx);
+    animation: ambient-float 18s ease-in-out infinite;
   }
 }
 
@@ -722,6 +717,7 @@ onMounted(() => {
   position: relative;
   z-index: 4;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   padding-top: 24vpx;
@@ -740,22 +736,25 @@ onMounted(() => {
   .progress-track {
     flex: 1;
     height: 4vpx;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(236, 230, 216, 0.12);
     border-radius: 2vpx;
     overflow: hidden;
   }
 
+  // 单色 ember 浓淡（去掉金→紫渐变）
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, $magic-gold, $magic-purple);
+    background: linear-gradient(90deg, $ember-deep, $ember);
     border-radius: 2vpx;
     transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .progress-label {
+    font-family: $font-num;
+    font-variant-numeric: tabular-nums;
     font-size: 12vpx;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 500;
+    color: $text-mute;
+    font-weight: 600;
     white-space: nowrap;
   }
 }
@@ -819,7 +818,7 @@ onMounted(() => {
   }
 }
 
-// 关卡序号徽章
+// 关卡序号徽章（暖系玻璃）
 .slide-badge {
   position: absolute;
   top: 12vpx;
@@ -828,35 +827,37 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4vpx;
-  background: rgba(0, 0, 0, 0.5);
+  background: $glass-bg-strong;
   backdrop-filter: blur(10vpx);
   -webkit-backdrop-filter: blur(10vpx);
-  border: 1vpx solid rgba(255, 255, 255, 0.15);
-  border-radius: 12vpx;
+  border: 1vpx solid $glass-border;
+  border-radius: $radius-md;
   padding: 4vpx 10vpx;
 
   .badge-step {
+    font-family: $font-num;
+    font-variant-numeric: tabular-nums;
     font-size: 11vpx;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.7);
+    font-weight: 700;
+    color: $text-mute;
   }
 
   .badge-check {
     font-size: 12vpx;
-    color: $magic-green;
+    color: $jade;
   }
 }
 
-// 环境光浮动动画（复用 style.scss 中的定义）
+// 环境光浮动动画（克制单向位移）
 @keyframes ambient-float {
   0%,
   100% {
     transform: translateY(0) scale(1);
-    opacity: 0.6;
+    opacity: 0.55;
   }
   50% {
-    transform: translateY(-7.69231vw) scale(1.1);
-    opacity: 1;
+    transform: translateY(-6.66667vw) scale(1.04);
+    opacity: 0.85;
   }
 }
 </style>

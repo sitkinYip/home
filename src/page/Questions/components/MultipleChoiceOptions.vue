@@ -177,62 +177,53 @@ const handleMediaClick = (item: OptionItem) => {
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
-$magic-purple: #8a2be2;
-$option-bg: rgba(0, 0, 0, 0.6);
-$option-hover-bg: rgba(138, 43, 226, 0.2);
+@use "../_variables.scss" as *;
+
+$option-bg: rgba(20, 17, 13, 0.6);
+$option-hover-bg: rgba(217, 164, 65, 0.12);
 
 .multiple-choice-options {
   display: flex;
   flex-direction: column;
-  gap: 8vpx; // 10 -> 8
+  gap: 8vpx;
   width: 100%;
-  margin-top: 12vpx; // 16 -> 12
-  // 增加底部间距
-  margin-bottom: 16vpx; // 20 -> 16
-  position: relative; // 为 overlay 定位
+  margin-top: 12vpx;
+  margin-bottom: 16vpx;
+  position: relative;
 }
 
 .option-item {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 8vpx 12vpx; // 12 -> 8px vertical
-  border-radius: 8vpx; // 10 -> 8
+  padding: 8vpx 12vpx;
+  border-radius: $radius-sm;
   background: $option-bg;
-  border: 1vpx solid rgba($magic-gold, 0.3);
+  border: 1vpx solid rgba($ember, 0.25);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   user-select: none;
 
   &:hover:not(.is-disabled) {
-    transform: translateY(-2vpx);
-    border-color: rgba($magic-gold, 0.8);
+    transform: translateY(-1vpx);
+    border-color: rgba($ember, 0.55);
     background: $option-hover-bg;
-    box-shadow: 0 4vpx 12vpx rgba(0, 0, 0, 0.3);
-
-    .key-char {
-      color: #fff;
-      text-shadow: 0 0 8vpx $magic-gold;
-    }
   }
 
   &.is-selected {
-    border-color: $magic-gold;
-    background: rgba($magic-gold, 0.15);
-    box-shadow:
-      0 0 15vpx rgba($magic-gold, 0.2),
-      inset 0 0 10vpx rgba($magic-gold, 0.1);
+    border-color: $ember;
+    background: $ember-soft;
+    box-shadow: 0 0 0 1vpx $ember; // 单层描边，去掉外光+内光+glow 三层
 
     .option-key {
-      background: $magic-gold;
-      border-color: #fff;
+      background: $ember;
+      border-color: $ember;
     }
 
     .key-char {
-      color: #000;
-      font-weight: bold;
+      color: $ink-900;
+      font-weight: 700;
     }
 
     .option-glow {
@@ -241,16 +232,16 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   }
 
   &.is-disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
-    filter: grayscale(0.5);
+    filter: grayscale(0.4);
   }
 }
 
 .option-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba($magic-gold, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba($ember, 0.1) 0%, transparent 70%);
   opacity: 0;
   transition: opacity 0.4s ease;
   pointer-events: none;
@@ -262,54 +253,54 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   display: flex;
   align-items: center;
   width: 100%;
-  gap: 8vpx; // 10 -> 8
+  gap: 8vpx;
 }
 
 .option-key {
   position: relative;
-  width: 24vpx; // 28 -> 24
-  height: 24vpx; // 28 -> 24
+  width: 24vpx;
+  height: 24vpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1vpx solid rgba($magic-gold, 0.5);
+  border: 1vpx solid rgba($ember, 0.5);
   border-radius: 50%;
   transition: all 0.3s ease;
   flex-shrink: 0;
-  margin-top: 4vpx; // 对齐首行文本中线
+  margin-top: 4vpx;
   margin-bottom: 6vpx;
 
   .key-char {
-    font-size: 13vpx; // 14 -> 13
-    color: $magic-gold;
+    font-family: $font-display;
+    font-size: 13vpx;
+    color: $ember;
     transition: all 0.3s ease;
-    font-family: "Cinzel", serif;
   }
 }
 
 .option-text {
   display: flex;
   align-items: center;
-  font-size: 12vpx; // 15 -> 14
-  color: #fff;
+  font-size: 12vpx;
+  color: $text;
   font-weight: 500;
-  line-height: 1.5; // Improve readability for multi-line
-  min-height: 36vpx; // 初始保留两行高度 (12 * 1.5 * 2)
+  line-height: 1.5;
+  min-height: 36vpx;
   flex: 1;
-  word-break: break-word; // Handle long words/mixed content
+  word-break: break-word;
   text-align: left;
-  padding-right: 4vpx; // Avoid touching image
+  padding-right: 4vpx;
 }
 
 .option-media-wrap {
   position: relative;
-  width: 56vpx; // 60 -> 56
-  height: 42vpx; // 45 -> 42
-  border-radius: 8vpx;
+  width: 56vpx;
+  height: 42vpx;
+  border-radius: $radius-sm;
   overflow: hidden;
-  border: 1vpx solid rgba(255, 255, 255, 0.2);
+  border: 1vpx solid rgba(236, 230, 216, 0.18);
   flex-shrink: 0;
-  cursor: zoom-in; // 提示可预览
+  cursor: zoom-in;
 
   .option-media {
     width: 100%;
@@ -320,7 +311,7 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   .video-placeholder {
     width: 100%;
     height: 100%;
-    background: #000;
+    background: $ink-900;
   }
 
   .media-overlay {
@@ -332,8 +323,8 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
     justify-content: center;
 
     .play-icon {
-      font-size: 16vpx; // 18 -> 16
-      color: #fff;
+      font-size: 16vpx;
+      color: $text;
       filter: drop-shadow(0 0 4vpx rgba(0, 0, 0, 0.8));
     }
   }
@@ -344,22 +335,22 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
   right: 12vpx;
   top: 50%;
   transform: translateY(-50%);
-  width: 14vpx; // 16 -> 14
-  height: 14vpx; // 16 -> 14
+  width: 14vpx;
+  height: 14vpx;
 
   .magic-circle {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: $magic-gold;
-    box-shadow: 0 0 10vpx $magic-gold;
-    animation: pulse 1.5s infinite;
+    background: $ember;
+    box-shadow: 0 0 8vpx rgba($ember, 0.6);
+    animation: pulse 1.8s infinite;
   }
 }
 
 @keyframes pulse {
   0% {
-    transform: scale(0.8);
+    transform: scale(0.85);
     opacity: 0.7;
   }
   50% {
@@ -367,30 +358,30 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
     opacity: 1;
   }
   100% {
-    transform: scale(0.8);
+    transform: scale(0.85);
     opacity: 0.7;
   }
 }
 
-// 惩罚遮罩
+// 惩罚遮罩（对齐 $rust + 等宽数字）
 .penalty-overlay {
   position: absolute;
-  inset: -10vpx; // 稍微扩大一点覆盖边缘
-  background: rgba(0, 0, 0, 0.7);
+  inset: -10vpx;
+  background: rgba(20, 17, 13, 0.78);
   backdrop-filter: blur(4px);
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12vpx;
-  border: 1vpx solid rgba(255, 71, 87, 0.3);
+  border-radius: $radius-md;
+  border: 1vpx solid rgba($rust, 0.3);
 
   .penalty-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8vpx;
-    color: #ff4757;
+    color: $rust;
   }
 
   .penalty-icon {
@@ -403,10 +394,11 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
     text-align: center;
 
     .timer {
+      font-family: $font-num;
+      font-variant-numeric: tabular-nums;
       font-size: 24vpx;
-      font-weight: bold;
-      font-family: monospace;
-      text-shadow: 0 0 10vpx rgba(255, 71, 87, 0.5);
+      font-weight: 700;
+      text-shadow: 0 0 10vpx rgba($rust, 0.45);
     }
 
     .tips {
@@ -417,7 +409,7 @@ $option-hover-bg: rgba(138, 43, 226, 0.2);
 
     .forever-lock {
       font-size: 18vpx;
-      font-weight: bold;
+      font-weight: 700;
       letter-spacing: 2px;
     }
   }

@@ -94,7 +94,7 @@ export function useAnswerCheck(
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ["#ffd700", "#ffffff", "#8a2be2"],
+      colors: ["#d9a441", "#ece6d8", "#5fae7f"],
     });
     triggerSuccessFeedback();
 

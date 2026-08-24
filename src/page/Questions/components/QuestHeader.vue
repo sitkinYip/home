@@ -39,10 +39,10 @@
         <div class="status-inner" :class="{ 'is-error-border': isError }">
           <el-icon :size="24">
             <!-- 三态图标逻辑 -->
-            <CircleClose v-if="isError" color="#ff4757" />
+            <CircleClose v-if="isError" color="#c4564f" />
             <template v-else>
-              <Lock v-if="!isBinGo" color="#ffd700" />
-              <MagicStick v-else color="#2ecc71" />
+              <Lock v-if="!isBinGo" color="#d9a441" />
+              <MagicStick v-else color="#5fae7f" />
             </template>
           </el-icon>
         </div>
@@ -79,7 +79,7 @@ defineEmits(["avatarClick", "headerClick"]);
   .header-left {
     display: flex;
     align-items: center;
-    gap: 12vpx; // 头像与文字的间距
+    gap: 12vpx;
   }
 
   // 左侧：用户头像组件
@@ -89,28 +89,19 @@ defineEmits(["avatarClick", "headerClick"]);
     height: 54vpx;
     flex-shrink: 0;
 
+    // 单层细线环 + 慢速单向旋转
     .avatar-frame {
       position: absolute;
       inset: -4vpx;
-      border: 2vpx solid rgba($magic-gold, 0.5);
+      border: 1.5vpx solid rgba($ember, 0.45);
       border-radius: 50%;
       &::before {
         content: "";
         position: absolute;
-        inset: -8vpx;
-        border: 1vpx dashed rgba($magic-gold, 0.3);
+        inset: -6vpx;
+        border: 1vpx dashed rgba($ember, 0.22);
         border-radius: 50%;
-        animation: rotateCW 10s linear infinite;
-      }
-      &::after {
-        content: "";
-        position: absolute;
-        inset: -4vpx;
-        border: 2vpx solid transparent;
-        border-top-color: rgba($magic-gold, 0.6);
-        border-bottom-color: rgba($magic-gold, 0.6);
-        border-radius: 50%;
-        animation: rotateCCW 3s ease-in-out infinite;
+        animation: rotateCW 14s linear infinite;
       }
     }
 
@@ -118,18 +109,19 @@ defineEmits(["avatarClick", "headerClick"]);
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      border: 2vpx solid #0a0e14;
+      border: 2vpx solid $ink-900;
       display: block;
     }
 
     .avatar-placeholder {
       width: 100%;
       height: 100%;
-      background: #2c3e50;
+      background: $ink-700;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: $magic-gold;
+      color: $ember;
+      font-family: $font-display;
       font-size: 20vpx;
     }
   }
@@ -140,33 +132,36 @@ defineEmits(["avatarClick", "headerClick"]);
     justify-content: center;
 
     .hero-name {
-      font-size: 18vpx; // 稍微调小一点，保证一行显示
-      font-weight: 800;
+      font-size: 18vpx;
+      font-weight: 700;
       margin: 0;
-      color: #fff;
-      text-shadow: 0 2vpx 8vpx rgba(0, 0, 0, 0.8);
-      max-width: 180vpx; // 防止名字过长遮挡
+      color: $text;
+      text-shadow: 0 2vpx 8vpx rgba(0, 0, 0, 0.6);
+      max-width: 180vpx;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .level-badge {
+      font-family: $font-display;
       font-size: 10vpx;
-      color: $magic-gold;
-      letter-spacing: 1vpx;
-      background: rgba(255, 215, 0, 0.1);
+      color: $ember;
+      letter-spacing: 1.5vpx;
+      background: $ember-faint;
       padding: 2vpx 8vpx;
-      border-radius: 4vpx;
+      border-radius: $radius-sm;
       margin-top: 4vpx;
-      border: 0.5vpx solid rgba($magic-gold, 0.3);
+      border: 0.5vpx solid rgba($ember, 0.28);
+      display: inline-block;
+      width: fit-content;
     }
   }
 
   // 右侧：状态指示器
   .status-indicator-wrap {
     position: relative;
-    width: 46vpx; // 比头像略小，主次分明
+    width: 46vpx;
     height: 46vpx;
     cursor: pointer;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -177,23 +172,23 @@ defineEmits(["avatarClick", "headerClick"]);
       left: 0;
       width: 100%;
       height: 100%;
-      background: $magic-gold;
+      background: $ember;
       border-radius: 50%;
       filter: blur(10vpx);
-      opacity: 0.3;
-      animation: pulse 2s infinite;
+      opacity: 0.22;
+      animation: pulse 2.6s infinite;
       transition:
         background 0.3s,
         filter 0.3s,
         opacity 0.3s;
       &.is-error-glow {
-        background: $magic-red !important;
-        opacity: 0.7 !important;
-        filter: blur(15vpx) !important; // 错误时光晕更扩散，更有反噬感
+        background: $rust !important;
+        opacity: 0.5 !important;
+        filter: blur(15vpx) !important;
       }
       &.is-bingo-glow {
-        background: $magic-green;
-        opacity: 0.5;
+        background: $jade;
+        opacity: 0.35;
       }
     }
 
@@ -201,14 +196,14 @@ defineEmits(["avatarClick", "headerClick"]);
       position: relative;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.05);
+      background: $glass-bg;
       backdrop-filter: blur(5vpx);
-      border: 1vpx solid rgba($magic-gold, 0.4);
+      border: 1vpx solid rgba($ember, 0.4);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 0 10vpx rgba($magic-gold, 0.1);
+      box-shadow: $glass-inner;
     }
   }
 }
@@ -221,26 +216,18 @@ defineEmits(["avatarClick", "headerClick"]);
     transform: rotate(360deg);
   }
 }
-@keyframes rotateCCW {
-  from {
-    transform: rotate(360deg);
-  }
-  to {
-    transform: rotate(0deg);
-  }
-}
 @keyframes pulse {
   0% {
     transform: scale(1);
-    opacity: 0.4;
+    opacity: 0.35;
   }
   50% {
-    transform: scale(1.15);
+    transform: scale(1.12);
     opacity: 0.6;
   }
   100% {
     transform: scale(1);
-    opacity: 0.4;
+    opacity: 0.35;
   }
 }
 </style>

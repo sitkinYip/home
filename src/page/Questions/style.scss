@@ -1,124 +1,124 @@
-// 魔法主题色
+// 余烬秘卷 · 全局基础样式
 @use "./_variables.scss" as *;
 
 #Questions {
   width: 100vw;
   min-height: 100vh;
+  min-height: 100dvh; // 移动端视口稳定，防 iOS Safari 跳动
   display: flex;
   justify-content: center;
 }
 .adventure-container {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
-  color: #fff;
-  background: #0a0e14;
+  color: $text;
+  background: $ink-900;
+
+  // 单一暖光晕 + 颗粒纹理：去掉金紫双色 screen-blend（最强 AI 味）
   &::after {
     content: "";
     position: fixed;
     inset: 0;
-    // 1. 提升透明度到 0.15 - 0.2
-    // 2. 增加一些模糊感，让光晕更柔和
     background-image:
-      radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.15) 0%, transparent 15%),
-      radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.15) 0%, transparent 20%),
-      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 25%);
+      radial-gradient(circle at 22% 18%, rgba(217, 164, 65, 0.12) 0%, transparent 38%),
+      radial-gradient(circle at 82% 88%, rgba(217, 164, 65, 0.06) 0%, transparent 42%);
     pointer-events: none;
-    // 3. 提升层级到 2，确保在 overlay(1) 之上
-    z-index: 2; 
-    // 4. 使用滤色模式，让发光感更强
-    mix-blend-mode: screen; 
-    -webkit-mix-blend-mode: screen;
-    animation: ambient-float 15s ease-in-out infinite;
-    filter: blur(2vpx); // 增加轻微模糊，更有梦幻感
+    z-index: 2;
+    animation: ambient-float 18s ease-in-out infinite;
+  }
+
+  // 细颗粒噪点纹理：打破纯色数字扁平感（全局一层，极轻）
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    -webkit-mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 3;
   }
 
   .magic-bg {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 0; // 基层
-    background: url("https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/api.sitkin.top/images/lost-in-thought-found-in-peace-7r-540x960.jpg") center/cover;
-    filter: brightness(0.3) saturate(1.2);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: url("https://sitkin-cdn.oss-cn-heyuan.aliyuncs.com/api.sitkin.top/images/lost-in-thought-found-in-peace-7r-540x960.jpg")
+      center/cover;
+    filter: brightness(0.28) saturate(0.9) sepia(0.15);
   }
 
   .overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1; // 遮罩层
-    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background: radial-gradient(circle at center, transparent 0%, rgba(20, 17, 13, 0.85) 100%);
   }
 
   .quest-wrapper {
     position: relative;
     z-index: 4;
-    padding: 30vpx 24vpx;
-    padding-bottom: 12vpx;
+    padding: 30vpx 24vpx 12vpx;
     box-sizing: border-box;
   }
 }
 
-// 基础毛玻璃面板
+// 真玻璃面板：暖系底 + 1px 内高光 + 暖描边
 .magic-panel {
   position: relative;
-  overflow: hidden; // 确保流光不会溢出
+  overflow: hidden;
   background: $glass-bg;
-  backdrop-filter: blur(20vpx);
-  -webkit-backdrop-filter: blur(20vpx);
+  backdrop-filter: blur(20vpx) saturate(1.1);
+  -webkit-backdrop-filter: blur(20vpx) saturate(1.1);
   border: 1vpx solid $glass-border;
-  border-radius: 20vpx;
-  box-shadow: 0 8vpx 32vpx 0 rgba(0, 0, 0, 0.3);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card, $glass-inner;
   margin-bottom: 24vpx;
   padding: 24vpx;
   transition:
     border-color 0.4s,
     box-shadow 0.4s;
-  &::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      45deg,
-      transparent 45%,
-      rgba(255, 255, 255, 0.05) 50%,
-      transparent 55%
-    );
-    transform: rotate(-45deg);
-    animation: sweep-light 6s infinite;
-    pointer-events: none;
-  }
 }
 
-// 任务面板装饰
+// 任务面板标题行
 .quest-card {
   .q_title_row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12vpx;
+    gap: 14vpx;
     margin-bottom: 20vpx;
 
     .ornament {
       height: 1vpx;
       flex: 1;
-      background: linear-gradient(to right, transparent, $glass-border, transparent);
+      background: linear-gradient(to right, transparent, rgba(217, 164, 65, 0.35), transparent);
     }
     .title_text {
-      font-size: 13vpx;
+      font-family: $font-display;
+      font-size: 12vpx;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 2vpx;
-      color: #aaa;
+      letter-spacing: 3vpx;
+      color: $text-faint;
     }
   }
 
   .qa_content_text {
     font-size: 17vpx;
     margin-bottom: 24vpx;
-    line-height: 1;
+    line-height: 1.6;
     .question-item {
       display: flex;
       align-items: center;
@@ -127,18 +127,15 @@
     .text-glow {
       display: flex;
       align-items: center;
-
-      padding-top: 6vpx;
-      padding-bottom: 6vpx;
-      padding-right: 5vpx;
-      text-shadow: 0 0 10vpx rgba(255, 255, 255, 0.2);
+      padding: 6vpx 5vpx 6vpx 0;
+      text-shadow: 0 1vpx 12vpx rgba(217, 164, 65, 0.12);
     }
 
     .image-container {
       margin: 16vpx 0;
-      border-radius: 12vpx;
+      border-radius: $radius-md;
       overflow: hidden;
-      border: 1vpx solid rgba(255, 255, 255, 0.1);
+      border: 1vpx solid rgba(236, 230, 216, 0.1);
       .quest-img {
         width: 100%;
         display: block;
@@ -147,24 +144,21 @@
   }
 }
 
+// 环境光浮动：更克制，单向位移
 @keyframes ambient-float {
-    0%, 100% { 
-      transform: translateY(0) scale(1); 
-      opacity: 0.6;
-    }
-    50% { 
-      // -30vpx ÷ 390 × 100 = -7.69231vw
-      transform: translateY(-7.69231vw) scale(1.1); 
-      opacity: 1;
-    }
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    // -26vpx ÷ 390 × 100 = -6.66667vw
+    transform: translateY(-6.66667vw) scale(1.04);
+    opacity: 0.85;
+  }
 }
 
-@keyframes sweep-light {
-    0% { transform: translateX(-100%) rotate(-45deg); }
-    20%, 100% { transform: translateX(100%) rotate(-45deg); }
-}
-
-// 错误反馈动画：抖动
+// 错误反馈：抖动（对齐 $rust）
 // 10vpx ÷ 390 × 100 = 2.5641vw, 5vpx = 1.28205vw
 @keyframes magic-shake {
   0%,
@@ -192,53 +186,59 @@
 }
 
 .shake-animation {
-  // forwards 保证动画结束后状态（如果需要）
   animation: magic-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  border-color: rgba($magic-red, 0.6) !important;
-  // 增加一个淡红色的发光
-  box-shadow: 0 0 30vpx rgba($magic-red, 0.2);
+  border-color: rgba($rust, 0.55) !important;
+  box-shadow: 0 0 24vpx rgba($rust, 0.16);
 }
 
-// 通用动画
+// 通用脉冲（克制动效基础）
 @keyframes pulse {
   0% {
     transform: scale(1);
-    opacity: 0.4;
+    opacity: 0.45;
   }
   50% {
-    transform: scale(1.15);
-    opacity: 0.6;
+    transform: scale(1.12);
+    opacity: 0.7;
   }
   100% {
     transform: scale(1);
-    opacity: 0.4;
+    opacity: 0.45;
   }
 }
 
 .icon-pulse {
-  animation: pulse 2s infinite;
-  color: $magic-gold;
+  animation: pulse 2.5s infinite;
+  color: $ember;
 }
 
 // Loading 状态
 .loading-screen {
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #0a0e14;
-  color: $magic-gold;
+  background: $ink-900;
+  color: $ember;
+
+  p {
+    margin-top: 16vpx;
+    font-family: $font-display;
+    font-size: 13vpx;
+    letter-spacing: 3vpx;
+    color: $text-faint;
+  }
 
   .loader-spell {
     width: 44vpx;
     height: 44vpx;
-    border: 3vpx solid rgba($magic-gold, 0.1);
-    border-top-color: $magic-gold;
+    border: 2vpx solid rgba($ember, 0.12);
+    border-top-color: $ember;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-bottom: 16vpx;
   }
 }
 

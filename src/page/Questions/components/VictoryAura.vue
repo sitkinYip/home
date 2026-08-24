@@ -94,7 +94,7 @@ const handleClose = () => {
 
 const triggerConfetti = () => {
   const end = Date.now() + 6 * 1000; // 缩短粒子时间，避免关闭后还在背景喷发
-  const colors = ["#ffd700", "#ffffff", "#8a2be2"];
+  const colors = ["#d9a441", "#ece6d8", "#5fae7f"];
 
   (function frame() {
     if (!visible.value) return; // 如果已经关闭，停止喷发
@@ -124,14 +124,15 @@ defineExpose({ startEffect });
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
-$magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%23FFD700' stroke-width='2'%3E%3Ccircle cx='256' cy='256' r='250' stroke-opacity='0.2'/%3E%3Ccircle cx='256' cy='256' r='230' stroke-width='4' stroke-dasharray='20 10'/%3E%3Cpath d='M256 20 L460 380 L52 380 Z' stroke-opacity='0.6'/%3E%3Cpath d='M256 492 L52 132 L460 132 Z' stroke-opacity='0.6'/%3E%3Ccircle cx='256' cy='256' r='120' stroke-width='2'/%3E%3Ccircle cx='256' cy='256' r='100' stroke-dasharray='5 5'/%3E%3Cpath d='M256 20 V492 M20 256 H492' stroke-opacity='0.3'/%3E%3Ccircle cx='256' cy='256' r='160' stroke-width='1' stroke-dasharray='2 4'/%3E%3C/g%3E%3Cpath d='M256 256 m-240 0 a240 240 0 1 0 480 0 a240 240 0 1 0 -480 0' fill='none' stroke='%23FFD700' stroke-width='8' stroke-dasharray='1 30' stroke-linecap='round'/%3E%3C/svg%3E";
+@use "../_variables.scss" as *;
+
+$magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg fill='none' stroke='%23d9a441' stroke-width='2'%3E%3Ccircle cx='256' cy='256' r='250' stroke-opacity='0.18'/%3E%3Ccircle cx='256' cy='256' r='230' stroke-width='4' stroke-dasharray='20 10'/%3E%3Cpath d='M256 20 L460 380 L52 380 Z' stroke-opacity='0.5'/%3E%3Cpath d='M256 492 L52 132 L460 132 Z' stroke-opacity='0.5'/%3E%3Ccircle cx='256' cy='256' r='120' stroke-width='2'/%3E%3Ccircle cx='256' cy='256' r='100' stroke-dasharray='5 5'/%3E%3Cpath d='M256 20 V492 M20 256 H492' stroke-opacity='0.25'/%3E%3Ccircle cx='256' cy='256' r='160' stroke-width='1' stroke-dasharray='2 4'/%3E%3C/g%3E%3Cpath d='M256 256 m-240 0 a240 240 0 1 0 480 0 a240 240 0 1 0 -480 0' fill='none' stroke='%23d9a441' stroke-width='8' stroke-dasharray='1 30' stroke-linecap='round'/%3E%3C/svg%3E";
 
 .victory-aura-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
-  background: radial-gradient(circle at center, rgba(15, 5, 30, 0.98) 0%, rgba(0, 0, 0, 1) 100%);
+  z-index: $z-top;
+  background: radial-gradient(circle at center, rgba(28, 24, 19, 0.98) 0%, $ink-900 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -145,7 +146,6 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
   }
 }
 
-// ... 魔法阵样式保持上一版不变 ...
 .divine-light {
   position: absolute;
   width: 200%;
@@ -153,12 +153,12 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
   background: conic-gradient(
     from 0deg at 50% 50%,
     transparent 0deg,
-    rgba(255, 215, 0, 0.05) 90deg,
+    rgba(217, 164, 65, 0.04) 90deg,
     transparent 180deg,
-    rgba(138, 43, 226, 0.05) 270deg,
+    rgba(107, 91, 149, 0.03) 270deg,
     transparent 360deg
   );
-  animation: rotateLight 15s linear infinite;
+  animation: rotateLight 18s linear infinite;
 }
 
 .magic-circle-container {
@@ -175,35 +175,35 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    filter: drop-shadow(0 0 12vpx rgba(255, 215, 0, 0.4));
+    filter: drop-shadow(0 0 10vpx rgba(217, 164, 65, 0.35));
     &.outer {
       width: 100%;
       height: 100%;
       animation: rotateCW 25s linear infinite;
-      opacity: 0.8;
+      opacity: 0.7;
     }
     &.middle {
       width: 85%;
       height: 85%;
       animation: rotateCCW 18s linear infinite;
-      opacity: 0.6;
+      opacity: 0.55;
       transform: rotate(45deg);
     }
     &.inner {
       width: 60%;
       height: 60%;
       animation: rotateCW 12s linear infinite;
-      filter: drop-shadow(0 0 20vpx rgba(255, 215, 0, 0.8));
+      filter: drop-shadow(0 0 18vpx rgba(217, 164, 65, 0.6));
     }
   }
 
   .hero-glow {
     width: 30%;
     height: 30%;
-    background: radial-gradient(circle, #fff 0%, $magic-gold 50%, transparent 100%);
+    background: radial-gradient(circle, $ember-bright 0%, $ember 45%, transparent 100%);
     filter: blur(25vpx);
     border-radius: 50%;
-    animation: pulse 2s infinite;
+    animation: pulse 2.4s infinite;
   }
 }
 
@@ -213,28 +213,27 @@ $magic-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBo
   text-align: center;
   margin-top: 40vpx;
   .victory-title {
-    font-size: 36vpx;
-    font-weight: 900;
-    color: #fff;
-    background: linear-gradient(to bottom, #fff 30%, $magic-gold 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 15vpx rgba(255, 215, 0, 0.6));
-    letter-spacing: 2vpx;
+    font-family: $font-display;
+    font-size: 34vpx;
+    font-weight: 700;
+    color: $text;
+    letter-spacing: 3vpx;
     margin: 0;
+    filter: drop-shadow(0 2vpx 12vpx rgba(217, 164, 65, 0.4));
   }
   .victory-subtitle {
-    font-size: 15vpx;
-    color: rgba(255, 255, 255, 0.8);
-    letter-spacing: 5vpx;
+    font-size: 14vpx;
+    color: $text-mute;
+    letter-spacing: 4vpx;
     margin-top: 12vpx;
   }
   .action-hint {
     margin-top: 30vpx;
-    font-size: 13vpx;
-    color: $magic-gold;
-    opacity: 0.6;
-    animation: breathe 2s infinite;
+    font-family: $font-display;
+    font-size: 12vpx;
+    color: $ember;
+    opacity: 0.55;
+    animation: breathe 2.4s infinite;
     text-transform: uppercase;
     letter-spacing: 2vpx;
   }

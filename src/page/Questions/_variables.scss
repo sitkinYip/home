@@ -1,12 +1,74 @@
-// 魔法主题色
-$magic-gold: #ffd700;
-$magic-purple: rgb(138, 43, 226);
-$magic-red: #ff4757;
-$magic-green: #2ecc71;
-$glass-bg: rgba(255, 255, 255, 0.1);
-$glass-border: rgba(255, 255, 255, 0.2);
+// ============================================================
+// 余烬秘卷 · Ember Codex 设计系统
+// 单一暖系色板 + 字体栈 + 圆角/阴影/层级阶梯
+// ============================================================
 
-// 扩展色
-$magic-rose: #ff9a9e;
-$magic-lavender: #fad0c4;
-$magic-cyan: #00d2ff;
+// —— 墨色底（暖系炭灰，替换纯黑/冷调）——
+$ink-900: #14110d; // 最深底（替换 #0a0e14）
+$ink-800: #1c1813; // 容器底
+$ink-700: #271f17; // 次级面
+$ink-600: #332a1f; // 抬升面
+
+// —— 玻璃面（暖白基底，替换冷白玻璃）——
+$glass-bg: rgba(236, 230, 216, 0.06);
+$glass-bg-strong: rgba(236, 230, 216, 0.09);
+$glass-border: rgba(236, 230, 216, 0.14);
+$glass-border-strong: rgba(217, 164, 65, 0.45);
+$glass-inner: inset 0 1vpx 0 rgba(236, 230, 216, 0.1); // 真玻璃：顶部高光内边
+
+// —— 唯一强调色 · 余烬琥珀（去饱和，替换饱和 #ffd700）——
+$ember: #d9a441;
+$ember-bright: #e8b855;
+$ember-deep: #a87826;
+$ember-soft: rgba(217, 164, 65, 0.16);
+$ember-faint: rgba(217, 164, 65, 0.08);
+
+// —— 点睛/状态色（去饱和，单一来源）——
+$amethyst: #6b5b95; // 墨紫·极少点睛（替换 #8a2be2）
+$jade: #5fae7f; // 成功（替换 #2ecc71）
+$rust: #c4564f; // 错误（替换 #ff4757）
+$cyan-deep: #5b8fa3; // 媒体/链接辅助（替换 #00d2ff/#4facfe）
+
+// —— 文字（暖系灰阶）——
+$text: #ece6d8; // 暖白主文字
+$text-mute: rgba(236, 230, 216, 0.62);
+$text-faint: rgba(236, 230, 216, 0.38);
+$text-ghost: rgba(236, 230, 216, 0.22);
+
+// —— 字体栈 ——
+$font-display: "Cinzel", "Playfair Display", "HarmonyOS_Regular", serif; // 标题/数字（Cinzel 已懒加载）
+$font-body: "HarmonyOS_Regular", -apple-system, system-ui, sans-serif; // 正文（沿用全局）
+$font-num: "Cinzel", "SF Mono", monospace; // 等宽数字位
+
+// —— 圆角阶梯 ——
+$radius-sm: 8vpx;
+$radius-md: 14vpx;
+$radius-lg: 20vpx;
+$radius-pill: 999vpx;
+
+// —— 阴影阶梯（暖系着色阴影，替代纯黑低透）——
+$shadow-card: 0 8vpx 28vpx rgba(0, 0, 0, 0.45);
+$shadow-float: 0 12vpx 36vpx rgba(0, 0, 0, 0.55);
+$shadow-ember: 0 0 0 1vpx $ember-soft, 0 6vpx 24vpx rgba(217, 164, 65, 0.18);
+$shadow-inset-glow: inset 0 0 24vpx rgba(217, 164, 65, 0.06);
+
+// —— z-index 层级（替代散落的 9999）——
+$z-bg: 0;
+$z-content: 4;
+$z-overlay: 99;
+$z-modal: 9000;
+$z-top: 10020;
+
+// ============================================================
+// 旧名别名映射 —— 保证未逐一改到的组件自动套用新色
+// （历史命名 $magic-* 全部指向新 token，零回归风险）
+// ============================================================
+$magic-gold: $ember; // #ffd700 → $ember
+$magic-purple: $amethyst; // rgb(138,43,226) → $amethyst
+$magic-red: $rust; // #ff4757 → $rust
+$magic-green: $jade; // #2ecc71 → $jade
+$magic-rose: #c98a8d; // 收敛去饱和
+$magic-lavender: rgba(201, 138, 141, 0.5);
+$magic-cyan: $cyan-deep; // #00d2ff → $cyan-deep
+
+// 玻璃面别名（部分组件直接引用 $glass-bg/$glass-border，已在上方定义）

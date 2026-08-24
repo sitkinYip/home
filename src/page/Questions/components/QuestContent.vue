@@ -99,7 +99,7 @@ const showHint = (tips: string) => {
 </script>
 
 <style lang="scss" scoped>
-$magic-gold: #ffd700;
+@use "../_variables.scss" as *;
 
 .quest-item-block {
   margin-bottom: 12vpx;
@@ -108,27 +108,26 @@ $magic-gold: #ffd700;
 
 .media-container {
   position: relative;
-  border-radius: 12vpx;
+  border-radius: $radius-md;
   overflow: hidden;
-  border: 1vpx solid rgba($magic-gold, 0.3);
-  background: #000;
+  border: 1vpx solid rgba($ember, 0.25);
+  background: $ink-900;
   margin-bottom: 16vpx;
-  cursor: pointer; // 增加点击手型感
+  cursor: pointer;
 
   .media-element {
     width: 100%;
     display: block;
     max-height: 220vpx;
-    // 确保 Element 的 Image 组件不会拦截点击
     pointer-events: auto;
   }
 }
 
-// 视频无封面占位：魔法阵
+// 视频无封面占位：魔法阵（去饱和）
 .video-placeholder {
   width: 100%;
   height: 180vpx;
-  background: radial-gradient(circle at center, #1a0f2e 0%, #000 100%);
+  background: radial-gradient(circle at center, $ink-700 0%, $ink-900 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -137,13 +136,13 @@ $magic-gold: #ffd700;
     position: absolute;
     width: 100vpx;
     height: 100vpx;
-    border: 1vpx dashed rgba($magic-gold, 0.2);
+    border: 1vpx dashed rgba($ember, 0.18);
     border-radius: 50%;
     animation: rotateCW 12s linear infinite;
   }
   .ritual-icon {
     font-size: 28vpx;
-    color: rgba($magic-gold, 0.3);
+    color: rgba($ember, 0.3);
   }
 }
 
@@ -154,27 +153,28 @@ $magic-gold: #ffd700;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(20, 17, 13, 0.45);
   z-index: 5;
   .play-icon {
     font-size: 44vpx;
-    color: $magic-gold;
-    filter: drop-shadow(0 0 10vpx $magic-gold);
+    color: $ember;
+    filter: drop-shadow(0 0 10vpx rgba($ember, 0.6));
   }
   .play-text {
-    color: $magic-gold;
-    font-size: 12vpx;
+    font-family: $font-display;
+    color: $ember;
+    font-size: 11vpx;
     margin-top: 10vpx;
     letter-spacing: 2vpx;
-    font-weight: bold;
+    font-weight: 600;
   }
   .play-icon-ripple {
     position: absolute;
     width: 64vpx;
     height: 64vpx;
-    border: 2vpx solid $magic-gold;
+    border: 1vpx solid rgba($ember, 0.5);
     border-radius: 50%;
-    animation: ripple 2s infinite;
+    animation: ripple 2.4s infinite;
   }
 }
 
@@ -188,22 +188,21 @@ $magic-gold: #ffd700;
   width: 100%;
   font-size: 17vpx;
   line-height: 1.6;
-  color: #fff;
-  /* 确保文字内容块在多行时左对齐 */
+  color: $text;
   text-align: left;
 
   &.is-caption {
     font-size: 14vpx;
-    color: rgba(255, 255, 255, 0.7);
+    color: $text-mute;
     font-style: italic;
     padding: 0 10vpx;
-    border-left: 2vpx solid $magic-gold;
+    border-left: 2vpx solid $ember;
     margin-top: 12vpx;
-    /* 容器由于是 block+flex 且 width 100%，边框会保持在最左侧 */
     justify-content: center;
   }
 }
 
+// 提示按钮：暖玻璃细描边（去掉金色 pill + breathe 内阴影）
 .magic-hint-trigger {
   margin-top: 12vpx;
   display: flex;
@@ -214,34 +213,29 @@ $magic-gold: #ffd700;
     display: flex;
     align-items: center;
     gap: 8vpx;
-    padding: 8vpx 20vpx;
-    background: rgba($magic-gold, 0.1);
-    border: 1vpx solid rgba($magic-gold, 0.4);
-    border-radius: 24vpx;
-    color: $magic-gold;
+    padding: 7vpx 18vpx;
+    background: $glass-bg;
+    backdrop-filter: blur(8vpx);
+    -webkit-backdrop-filter: blur(8vpx);
+    border: 1vpx solid rgba($ember, 0.32);
+    border-radius: $radius-pill;
+    color: $ember;
     cursor: pointer;
     transition: all 0.3s;
 
     &:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
+      background: $ember-soft;
     }
 
-    .rune-glow {
-      position: absolute;
-      inset: 0;
-      border-radius: 24vpx;
-      box-shadow: inset 0 0 12vpx rgba($magic-gold, 0.4);
-      animation: breathe 2s infinite;
-    }
     .rune-tag {
       font-size: 13vpx;
-      font-weight: bold;
+      font-weight: 600;
       letter-spacing: 1vpx;
     }
   }
 }
 
-/* 动画部分保持不变 */
 @keyframes rotateCW {
   from {
     transform: rotate(0deg);
@@ -253,22 +247,11 @@ $magic-gold: #ffd700;
 @keyframes ripple {
   0% {
     transform: scale(1);
-    opacity: 0.8;
+    opacity: 0.6;
   }
   100% {
     transform: scale(1.8);
     opacity: 0;
-  }
-}
-@keyframes breathe {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02);
   }
 }
 @keyframes slide-up {

@@ -76,17 +76,17 @@ const displayRankName = computed(() => props.rankInfo?.rankName || "");
  */
 const particleStyle = (_index: number) => {
   const left = Math.random() * 100;
-  const size = 2 + Math.random() * 4;
+  const size = 2 + Math.random() * 3;
   const delay = Math.random() * 6;
   const duration = 4 + Math.random() * 5;
-  const hue = 30 + Math.random() * 40; // 金色到橙色
+  const hue = 32 + Math.random() * 18; // 收窄到琥珀色温
   return {
     left: `${left}%`,
     width: `${size}px`,
     height: `${size}px`,
     animationDelay: `${delay}s`,
     animationDuration: `${duration}s`,
-    backgroundColor: `hsl(${hue}, 85%, 58%)`,
+    backgroundColor: `hsl(${hue}, 62%, 56%)`,
   };
 };
 
@@ -150,7 +150,7 @@ const handleClose = () => {
 
 const triggerConfetti = () => {
   const end = Date.now() + 4000;
-  const colors = ["#ffd700", "#ffffff", "#8a2be2", "#00d2ff"];
+  const colors = ["#d9a441", "#ece6d8", "#5fae7f"];
 
   (function frame() {
     if (!visible.value) return;
@@ -185,11 +185,11 @@ defineExpose({ startEffect });
 .rank-up-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9998;
+  z-index: $z-top;
   background: radial-gradient(
     ellipse at center,
-    rgba(10, 5, 30, 0.96) 0%,
-    rgba(0, 0, 0, 0.99) 100%
+    rgba(28, 24, 19, 0.96) 0%,
+    $ink-900 100%
   );
   display: flex;
   flex-direction: column;
@@ -204,7 +204,7 @@ defineExpose({ startEffect });
   }
 }
 
-// 极光背景
+// 极光背景（收掉紫，单一暖调）
 .rank-divine-light {
   position: absolute;
   width: 200%;
@@ -212,11 +212,11 @@ defineExpose({ startEffect });
   background: conic-gradient(
     from 0deg at 50% 50%,
     transparent 0deg,
-    rgba($magic-gold, 0.08) 60deg,
+    rgba(217, 164, 65, 0.06) 60deg,
     transparent 120deg,
-    rgba($magic-purple, 0.08) 200deg,
+    rgba(217, 164, 65, 0.04) 200deg,
     transparent 280deg,
-    rgba($magic-gold, 0.06) 340deg,
+    rgba(217, 164, 65, 0.05) 340deg,
     transparent 360deg
   );
   animation: rankRotateLight 18s linear infinite;
@@ -237,11 +237,11 @@ defineExpose({ startEffect });
     border-radius: 50%;
     opacity: 0;
     animation: rankFloatUp linear infinite;
-    box-shadow: 0 0 6px 2px currentColor;
+    box-shadow: 0 0 5px 1px currentColor;
   }
 }
 
-// 核心魔法阵
+// 核心魔法阵（双圈精简）
 .rank-circle-container {
   position: relative;
   width: 200vpx;
@@ -257,40 +257,29 @@ defineExpose({ startEffect });
     &.outer-ring {
       width: 100%;
       height: 100%;
-      border: 2vpx solid rgba($magic-gold, 0.5);
+      border: 1.5vpx solid rgba(217, 164, 65, 0.45);
       box-shadow:
-        0 0 20vpx rgba($magic-gold, 0.2),
-        inset 0 0 20vpx rgba($magic-gold, 0.1);
+        0 0 20vpx rgba(217, 164, 65, 0.16),
+        inset 0 0 20vpx rgba(217, 164, 65, 0.08);
       animation: rankRotateCW 25s linear infinite;
 
-      // 符文刻度
+      // 单层符文刻度（去掉双圈）
       &::before {
         content: "";
         position: absolute;
-        inset: -4vpx;
+        inset: -5vpx;
         border-radius: 50%;
-        border: 3vpx dashed rgba($magic-gold, 0.25);
-        animation: rankRotateCCW 15s linear infinite;
+        border: 2vpx dashed rgba(217, 164, 65, 0.2);
+        animation: rankRotateCCW 16s linear infinite;
       }
     }
 
     &.middle-ring {
       width: 75%;
       height: 75%;
-      border: 1vpx solid rgba($magic-purple, 0.4);
-      box-shadow:
-        0 0 15vpx rgba($magic-purple, 0.2),
-        inset 0 0 15vpx rgba($magic-purple, 0.1);
+      border: 1vpx solid rgba(236, 230, 216, 0.14);
+      box-shadow: inset 0 0 15vpx rgba(217, 164, 65, 0.08);
       animation: rankRotateCCW 18s linear infinite;
-
-      &::after {
-        content: "";
-        position: absolute;
-        inset: 6vpx;
-        border-radius: 50%;
-        border: 1vpx dotted rgba($magic-gold, 0.2);
-        animation: rankRotateCW 10s linear infinite;
-      }
     }
   }
 
@@ -307,21 +296,22 @@ defineExpose({ startEffect });
       position: absolute;
       width: 120%;
       height: 120%;
-      background: radial-gradient(circle, rgba($magic-gold, 0.6) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(217, 164, 65, 0.55) 0%, transparent 70%);
       filter: blur(15vpx);
       border-radius: 50%;
-      animation: rankPulse 2s ease-in-out infinite;
+      animation: rankPulse 2.2s ease-in-out infinite;
     }
 
     .rank-value {
       position: relative;
       z-index: 3;
+      font-family: $font-display;
       font-size: 36vpx;
-      font-weight: 900;
-      color: #fff;
+      font-weight: 700;
+      color: $text;
       text-shadow:
-        0 0 20vpx rgba($magic-gold, 0.8),
-        0 0 40vpx rgba($magic-gold, 0.4);
+        0 0 20vpx rgba(217, 164, 65, 0.7),
+        0 0 40vpx rgba(217, 164, 65, 0.35);
       letter-spacing: 2vpx;
     }
   }
@@ -336,25 +326,23 @@ defineExpose({ startEffect });
   padding: 0 24vpx;
 
   .rank-label {
-    font-size: 13vpx;
-    color: rgba(255, 255, 255, 0.5);
+    font-family: $font-display;
+    font-size: 12vpx;
+    color: $text-faint;
     letter-spacing: 4vpx;
     text-transform: uppercase;
     margin: 0 0 12vpx;
   }
 
+  // 实色 + 单层 drop-shadow，去掉 gradient-clip shimmer
   .rank-name {
+    font-family: $font-display;
     font-size: 32vpx;
-    font-weight: 900;
+    font-weight: 700;
     margin: 0;
-    background: linear-gradient(135deg, #fff 0%, $magic-gold 50%, $magic-purple 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 12vpx rgba($magic-gold, 0.6));
+    color: $text;
     letter-spacing: 3vpx;
-    animation: rankNameShimmer 3s ease-in-out infinite;
-    background-size: 200% 200%;
+    filter: drop-shadow(0 2vpx 12vpx rgba(217, 164, 65, 0.45));
   }
 
   .rank-divider {
@@ -367,29 +355,30 @@ defineExpose({ startEffect });
     .divider-line {
       width: 40vpx;
       height: 1vpx;
-      background: linear-gradient(to right, transparent, rgba($magic-gold, 0.5), transparent);
+      background: linear-gradient(to right, transparent, rgba(217, 164, 65, 0.4), transparent);
     }
 
     .divider-gem {
       font-size: 10vpx;
-      color: $magic-gold;
-      animation: rankPulse 2s ease-in-out infinite;
+      color: $ember;
+      animation: rankPulse 2.2s ease-in-out infinite;
     }
   }
 
   .rank-desc {
     font-size: 14vpx;
-    color: rgba(255, 255, 255, 0.65);
+    color: $text-mute;
     letter-spacing: 2vpx;
     margin: 0;
   }
 
   .action-hint {
     margin-top: 36vpx;
-    font-size: 13vpx;
-    color: $magic-gold;
+    font-family: $font-display;
+    font-size: 12vpx;
+    color: $ember;
     opacity: 0.5;
-    animation: rankBreathe 2s infinite;
+    animation: rankBreathe 2.4s infinite;
     text-transform: uppercase;
     letter-spacing: 2vpx;
   }
@@ -463,18 +452,6 @@ defineExpose({ startEffect });
   100% {
     transform: translateY(-110vh) scale(0.5);
     opacity: 0;
-  }
-}
-
-@keyframes rankNameShimmer {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
   }
 }
 

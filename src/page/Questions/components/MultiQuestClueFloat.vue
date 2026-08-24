@@ -180,30 +180,28 @@ onUnmounted(() => {
   height: 52vpx;
   border-radius: 50%;
 
-  // 底部多层渐变色质感
+  // 暖系底（去掉蓝调）
   background: radial-gradient(
     circle at 30% 30%,
-    rgba(30, 45, 75, 0.85) 0%,
-    rgba(10, 15, 30, 0.95) 100%
+    rgba(51, 42, 31, 0.9) 0%,
+    rgba(20, 17, 13, 0.96) 100%
   );
-  border: 1vpx solid rgba(255, 255, 255, 0.2);
+  border: 1vpx solid rgba(236, 230, 216, 0.2);
 
-  // 综合阴影：外部大发光 + 内部辉光 + 顶部玻璃反光
   box-shadow:
     0 8vpx 28vpx rgba(0, 0, 0, 0.7),
-    0 0 16vpx rgba($magic-cyan, 0.3),
-    inset 0 0 20vpx rgba($magic-cyan, 0.25),
-    inset 0 2vpx 3vpx rgba(255, 255, 255, 0.4);
+    0 0 16vpx rgba($ember, 0.22),
+    inset 0 0 20vpx rgba($ember, 0.18),
+    inset 0 2vpx 3vpx rgba(236, 230, 216, 0.35);
 
   backdrop-filter: blur(16vpx);
   -webkit-backdrop-filter: blur(16vpx);
-  touch-action: none; // 防止拖拽时页面滚动
+  touch-action: none;
   user-select: none;
 
-  // 呼吸悬浮动画
   animation: float-idle 4s ease-in-out infinite alternate;
 
-  // 魔法轨迹旋转外环
+  // 单色 ember 旋转外环（去掉金紫双轨）
   .magic-ring {
     position: absolute;
     inset: -3vpx;
@@ -211,20 +209,20 @@ onUnmounted(() => {
     background: conic-gradient(
       from 0deg,
       transparent 0deg,
-      rgba($magic-cyan, 0.9) 80deg,
+      rgba($ember, 0.85) 80deg,
       transparent 180deg,
-      rgba($magic-purple, 0.9) 260deg,
+      rgba($ember, 0.5) 260deg,
       transparent 360deg
     );
     z-index: 1;
     mask: radial-gradient(circle, transparent 55%, black 56%);
     -webkit-mask: radial-gradient(circle, transparent 55%, black 56%);
-    animation: spin-ring 3s linear infinite;
+    animation: spin-ring 4s linear infinite;
     pointer-events: none;
-    opacity: 0.8;
+    opacity: 0.75;
   }
 
-  // 包装层限制切割
+  // 玻璃扫光：保留但减弱频率
   .glass-sweep-wrapper {
     position: absolute;
     inset: 0;
@@ -235,39 +233,38 @@ onUnmounted(() => {
     mask: radial-gradient(circle, black 100%, transparent);
     -webkit-mask: radial-gradient(circle, black 100%, transparent);
 
-    // 玻璃态表面周期扫光效果
     .glass-sweep {
       position: absolute;
-      inset: -20vpx; //稍微放大一点点供旋转和过渡
+      inset: -20vpx;
       background: linear-gradient(
         105deg,
         transparent 20%,
-        rgba(255, 255, 255, 0.6) 50%,
+        rgba(236, 230, 216, 0.4) 50%,
         transparent 80%
       );
-      animation: sweep-light 4s cubic-bezier(0.1, 0, 0.9, 1) infinite;
+      animation: sweep-light 6s cubic-bezier(0.1, 0, 0.9, 1) infinite;
     }
   }
 
-  // 底部常驻微发光
+  // 底部常驻微发光（ember）
   .bottom-glow {
     position: absolute;
     inset: -15vpx;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba($magic-cyan, 0.15) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba($ember, 0.12) 0%, transparent 60%);
     z-index: 0;
     pointer-events: none;
-    animation: pulse-glow 3s infinite alternate;
+    animation: pulse-glow 3.5s infinite alternate;
   }
 
   &.dragging {
-    transform: scale(1.15) !important; // 放大比例
-    animation: none; // 取消浮动动画
+    transform: scale(1.15) !important;
+    animation: none;
     box-shadow:
       0 12vpx 40vpx rgba(0, 0, 0, 0.8),
-      0 0 30vpx rgba($magic-purple, 0.5),
-      inset 0 0 24vpx rgba($magic-purple, 0.5),
-      inset 0 2vpx 4vpx rgba(255, 255, 255, 0.5);
+      0 0 30vpx rgba($ember, 0.4),
+      inset 0 0 24vpx rgba($ember, 0.35),
+      inset 0 2vpx 4vpx rgba(236, 230, 216, 0.45);
 
     .float-inner {
       animation: none;
@@ -275,12 +272,12 @@ onUnmounted(() => {
     }
 
     .magic-ring {
-      animation-duration: 1.5s; // 旋转加速
+      animation-duration: 2s;
       opacity: 1;
     }
 
     .glass-sweep {
-      display: none; // 拖动时不扫光
+      display: none;
     }
   }
 
@@ -296,13 +293,13 @@ onUnmounted(() => {
     justify-content: center;
     width: 100%;
     height: 100%;
-    animation: inner-breathe 2.5s ease-in-out infinite alternate;
+    animation: inner-breathe 3s ease-in-out infinite alternate;
     transition: transform 0.3s ease;
 
     .clue-icon {
       font-size: 26vpx;
-      color: #fff;
-      filter: drop-shadow(0 0 8vpx rgba($magic-cyan, 0.8));
+      color: $text;
+      filter: drop-shadow(0 0 8vpx rgba($ember, 0.6));
     }
   }
 
@@ -314,15 +311,13 @@ onUnmounted(() => {
     width: 10vpx;
     height: 10vpx;
     border-radius: 50%;
-    background: $magic-gold;
+    background: $ember;
     box-shadow:
-      0 0 10vpx $magic-gold,
-      0 0 18vpx $magic-gold;
-    animation: pulseDot 2s infinite;
+      0 0 10vpx $ember,
+      0 0 18vpx rgba($ember, 0.5);
+    animation: pulseDot 2.4s infinite;
   }
 }
-
-// --- 动画关键帧 ---
 
 @keyframes spin-ring {
   to {
@@ -336,7 +331,7 @@ onUnmounted(() => {
     opacity: 0;
   }
   15% {
-    opacity: 1;
+    opacity: 0.8;
   }
   30% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
@@ -360,21 +355,21 @@ onUnmounted(() => {
 @keyframes pulse-glow {
   0% {
     transform: scale(0.9);
-    opacity: 0.6;
+    opacity: 0.55;
   }
   100% {
     transform: scale(1.15);
-    opacity: 1;
+    opacity: 0.9;
   }
 }
 
 @keyframes inner-breathe {
   0% {
-    transform: scale(0.95);
-    opacity: 0.85;
+    transform: scale(0.96);
+    opacity: 0.88;
   }
   100% {
-    transform: scale(1.05);
+    transform: scale(1.04);
     opacity: 1;
   }
 }
@@ -383,19 +378,19 @@ onUnmounted(() => {
   0% {
     transform: scale(0.9);
     opacity: 0.8;
-    box-shadow: 0 0 6vpx $magic-gold;
+    box-shadow: 0 0 6vpx $ember;
   }
   50% {
     transform: scale(1.3);
     opacity: 1;
     box-shadow:
-      0 0 12vpx $magic-gold,
-      0 0 20vpx rgba($magic-gold, 0.5);
+      0 0 12vpx $ember,
+      0 0 20vpx rgba($ember, 0.5);
   }
   100% {
     transform: scale(0.9);
     opacity: 0.8;
-    box-shadow: 0 0 6vpx $magic-gold;
+    box-shadow: 0 0 6vpx $ember;
   }
 }
 

@@ -40,10 +40,10 @@ defineEmits<{
   backdrop-filter: blur(20vpx);
   -webkit-backdrop-filter: blur(20vpx);
   border: 1vpx solid $glass-border;
-  border-radius: 50vpx;
+  border-radius: $radius-pill;
   box-shadow:
     0 8vpx 32vpx rgba(0, 0, 0, 0.3),
-    inset 0 1vpx 0 rgba(255, 255, 255, 0.1);
+    inset 0 1vpx 0 rgba(236, 230, 216, 0.1);
 
   cursor: pointer;
   transition: all 0.3s ease;
@@ -59,7 +59,7 @@ defineEmits<{
     left: 20%;
     right: 20%;
     height: 1vpx;
-    background: linear-gradient(90deg, transparent, rgba($magic-gold, 0.6), transparent);
+    background: linear-gradient(90deg, transparent, rgba($ember, 0.6), transparent);
     filter: blur(1vpx);
   }
 
@@ -67,20 +67,20 @@ defineEmits<{
     display: flex;
     align-items: center;
     gap: 10vpx;
-    color: rgba(255, 255, 255, 0.85);
+    color: $text;
   }
 
   .music-note {
     font-size: 16vpx;
-    color: $magic-gold;
-    text-shadow: 0 0 10vpx rgba($magic-gold, 0.5);
-    animation: float-note 2s ease-in-out infinite;
+    color: $ember;
+    text-shadow: 0 0 10vpx rgba($ember, 0.5);
+    animation: float-note 2.4s ease-in-out infinite;
   }
 
   .hint-text {
     font-size: 13vpx;
     letter-spacing: 1vpx;
-    font-weight: 300;
+    font-weight: 400;
   }
 
   .close-btn {
@@ -90,9 +90,9 @@ defineEmits<{
     width: 20vpx;
     height: 20vpx;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(20, 17, 13, 0.5);
     backdrop-filter: blur(4vpx);
-    border: 1vpx solid rgba(255, 255, 255, 0.1);
+    border: 1vpx solid $glass-border;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,14 +101,14 @@ defineEmits<{
 
     .close-icon {
       font-size: 12vpx;
-      color: rgba(255, 255, 255, 0.5);
+      color: $text-mute;
       line-height: 1;
     }
 
     &:active {
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(20, 17, 13, 0.7);
       .close-icon {
-        color: rgba(255, 255, 255, 0.8);
+        color: $text;
       }
     }
   }

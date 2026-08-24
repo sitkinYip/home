@@ -114,7 +114,7 @@ defineExpose({ show });
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(20, 17, 13, 0.75);
   backdrop-filter: blur(8vpx);
   padding: 24vpx;
 }
@@ -125,22 +125,21 @@ defineExpose({ show });
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  padding: 0; // 覆盖默认 .magic-panel 的 padding
-  background: rgba(20, 25, 40, 0.85);
-  border: 1vpx solid rgba($magic-cyan, 0.4);
+  padding: 0;
+  background: rgba(39, 31, 23, 0.85);
+  border: 1vpx solid rgba($cyan-deep, 0.4);
   box-shadow:
     0 10vpx 40vpx rgba(0, 0, 0, 0.5),
-    inset 0 0 20vpx rgba($magic-cyan, 0.1);
+    inset 0 0 20vpx rgba($cyan-deep, 0.08);
   overflow: hidden;
   position: relative;
 
   &::before {
-    // 覆盖默认的光效
     background: linear-gradient(
       135deg,
       transparent 20%,
-      rgba($magic-cyan, 0.1) 40%,
-      rgba($magic-cyan, 0.4) 50%,
+      rgba($cyan-deep, 0.08) 40%,
+      rgba($cyan-deep, 0.3) 50%,
       transparent 60%
     );
   }
@@ -151,17 +150,18 @@ defineExpose({ show });
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1vpx solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
+  border-bottom: 1vpx solid rgba(236, 230, 216, 0.1);
+  background: linear-gradient(to bottom, rgba(236, 230, 216, 0.04), transparent);
 
   .modal-title {
     display: flex;
     align-items: center;
     gap: 8vpx;
+    font-family: $font-display;
     font-size: 18vpx;
-    font-weight: bold;
-    color: $magic-cyan;
-    text-shadow: 0 0 10vpx rgba($magic-cyan, 0.5);
+    font-weight: 700;
+    color: $cyan-deep;
+    text-shadow: 0 0 10vpx rgba($cyan-deep, 0.4);
 
     .title-icon {
       font-size: 22vpx;
@@ -175,14 +175,14 @@ defineExpose({ show });
     align-items: center;
     justify-content: center;
     font-size: 20vpx;
-    color: rgba(255, 255, 255, 0.6);
+    color: $text-mute;
     border-radius: 50%;
     transition: all 0.3s ease;
     cursor: pointer;
 
     &:active {
       transform: scale(0.9);
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(236, 230, 216, 0.1);
     }
   }
 }
@@ -193,7 +193,7 @@ defineExpose({ show });
   overflow-y: auto;
   font-size: 16vpx;
   line-height: 1.8;
-  color: rgba(255, 255, 255, 0.9);
+  color: $text;
 
   .parsed-content {
     white-space: pre-wrap;
@@ -201,23 +201,23 @@ defineExpose({ show });
   }
 
   .highlight-text {
-    color: $magic-gold;
-    font-weight: bold;
-    text-shadow: 0 0 5vpx rgba($magic-gold, 0.4);
-    background: linear-gradient(180deg, transparent 70%, rgba($magic-gold, 0.2) 70%);
+    color: $ember;
+    font-weight: 700;
+    text-shadow: 0 0 5vpx rgba($ember, 0.35);
+    background: linear-gradient(180deg, transparent 70%, rgba($ember, 0.18) 70%);
   }
 
   .clue-link {
-    color: $magic-cyan;
+    color: $cyan-deep;
     text-decoration: underline;
     cursor: pointer;
   }
 
   .clue-img-wrapper {
     margin: 16vpx 0;
-    border-radius: 12vpx;
+    border-radius: $radius-md;
     overflow: hidden;
-    border: 1vpx solid rgba(255, 255, 255, 0.1);
+    border: 1vpx solid rgba(236, 230, 216, 0.1);
 
     .clue-img {
       width: 100%;
@@ -235,20 +235,20 @@ defineExpose({ show });
       align-items: center;
       justify-content: center;
       padding: 30vpx;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1vpx dashed rgba($magic-purple, 0.5);
-      border-radius: 12vpx;
+      background: rgba(20, 17, 13, 0.4);
+      border: 1vpx dashed rgba($amethyst, 0.5);
+      border-radius: $radius-md;
       gap: 12vpx;
-      color: rgba(255, 255, 255, 0.8);
+      color: $text-mute;
       cursor: pointer;
 
       &:active {
-        background: rgba($magic-purple, 0.2);
+        background: rgba($amethyst, 0.18);
       }
 
       .play-icon {
         font-size: 36vpx;
-        color: $magic-purple;
+        color: $amethyst;
       }
     }
   }
@@ -260,30 +260,32 @@ defineExpose({ show });
   flex-direction: column;
   align-items: center;
   gap: 16vpx;
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.05), transparent);
-  border-top: 1vpx solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(to top, rgba(236, 230, 216, 0.04), transparent);
+  border-top: 1vpx solid rgba(236, 230, 216, 0.05);
 
   .hint-text {
     font-size: 12vpx;
-    color: rgba(255, 255, 255, 0.4);
+    color: $text-faint;
   }
 
+  // 单色 ember 按钮（去掉青紫渐变）
   .confirm-btn {
     width: 100%;
     padding: 12vpx 0;
-    border-radius: 20vpx;
-    background: linear-gradient(90deg, rgba($magic-cyan, 0.8), rgba($magic-purple, 0.8));
-    color: #fff;
+    border-radius: $radius-lg;
+    background: $ember;
+    color: $ink-900;
     font-size: 16vpx;
-    font-weight: bold;
+    font-weight: 700;
     border: none;
     outline: none;
     cursor: pointer;
-    box-shadow: 0 4vpx 15vpx rgba($magic-cyan, 0.3);
+    box-shadow: 0 4vpx 15vpx rgba($ember, 0.25);
 
     &:active {
       transform: scale(0.98);
-      box-shadow: 0 2vpx 8vpx rgba($magic-cyan, 0.2);
+      background: $ember-bright;
+      box-shadow: 0 2vpx 8vpx rgba($ember, 0.2);
     }
   }
 }
