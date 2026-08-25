@@ -35,16 +35,23 @@ export default ({ mode }) => {
         workbox: {
           skipWaiting: true,
           clientsClaim: true,
+          // Questions 已拆分为独立应用。根 Service Worker 的 scope 仍覆盖这些路径，
+          // 但不应为它们执行 SPA 导航回退或运行时静态资源缓存。
+          navigateFallbackDenylist: [/^\/questions(?:-next)?(?:\/|$)/],
           runtimeCaching: [
             {
-              urlPattern: /(.*?)\.(js|css|woff2|woff|ttf)/, // js / css 静态资源缓存
+              urlPattern: ({ url }) =>
+                !/^\/questions(?:-next)?(?:\/|$)/.test(url.pathname) &&
+                /\.(js|css|woff2|woff|ttf)$/.test(url.pathname), // js / css 静态资源缓存
               handler: "CacheFirst",
               options: {
                 cacheName: "js-css-cache",
               },
             },
             {
-              urlPattern: /(.*?)\.(png|jpe?g|svg|gif|bmp|psd|tiff|tga|eps)/, // 图片缓存
+              urlPattern: ({ url }) =>
+                !/^\/questions(?:-next)?(?:\/|$)/.test(url.pathname) &&
+                /\.(png|jpe?g|svg|gif|bmp|psd|tiff|tga|eps)$/.test(url.pathname), // 图片缓存
               handler: "CacheFirst",
               options: {
                 cacheName: "image-cache",
