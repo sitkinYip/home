@@ -31,6 +31,7 @@ export default ({ mode }) => {
         resolvers: [ElementPlusResolver(), VantResolver()],
       }),
       VitePWA({
+        selfDestroying: true,
         registerType: "autoUpdate",
         workbox: {
           skipWaiting: true,
